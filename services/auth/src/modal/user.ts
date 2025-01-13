@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IuserSchema } from "../modal/IuserSchema";
+import { IuserSchema } from "./interfaces/IuserSchema";
 
 const userSchema = new Schema<IuserSchema>({
     email: {
