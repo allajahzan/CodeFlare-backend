@@ -1,7 +1,7 @@
 import { Document, FilterQuery, Model, UpdateQuery } from "mongoose";
 import { IBaseRepository } from "../interface/IBaseRepository";
 
-/** Implementaion of BaseRepository */
+/** Implementaion of Base Repository */
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
     private readonly modal: Model<T>;
 

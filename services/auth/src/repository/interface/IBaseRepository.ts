@@ -1,6 +1,6 @@
 import { Document, FilterQuery, UpdateQuery } from "mongoose";
 
-/** Interface for BaseRepository */
+/** Interface for Base Repository */
 export interface IBaseRepository<T extends Document> {
     find(query: FilterQuery<T>): Promise<T[] | []>;
     findOne(query: FilterQuery<T>): Promise<T | null>;
