@@ -1,0 +1,18 @@
+# Gateway
+gateway/.env
+gateway/node_modules
+
+# Services 
+
+# Authentication service
+services/auth/.env
+services/auth/node_modules
+
+# Admin service
+services/admin/.env
+services/admin/node_modules
+
+# Coordinator service
+services/coordinator/.env
+services/coordinator/node_modules
+
