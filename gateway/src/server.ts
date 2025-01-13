@@ -3,7 +3,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
-import {sayhi, saybei} from '@codeflare/common'
+import { sayhi, saybei } from "@codeflare/common";
 
 // create app
 const app = express();
@@ -29,8 +29,6 @@ const services = {
     admin: "http://localhost:3001/",
 };
 
-
-
 // reverse proxy
 app.use(
     "/api/auth",
@@ -43,7 +41,7 @@ app.use(
 
 // port
 app.listen(process.env.PORT, () => {
-    console.log(sayhi())
-    console.log(saybei())
+    console.log(sayhi());
+    console.log(saybei());
     console.log(`api gateway is running on port ${process.env.PORT}`);
 });
