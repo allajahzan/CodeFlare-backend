@@ -11,14 +11,17 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.5",
+    "@codeflare/common": "^1.0.9",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "inversify": "^6.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.4",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",
     "@types/mongoose": "^5.11.96",
     "@types/morgan": "^1.9.9",

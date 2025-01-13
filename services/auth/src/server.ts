@@ -3,18 +3,18 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "./app";
-import mongose from "mongoose";
+import { MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
 
-
 // server
-const startServer = () => {
+const startServer = async () => {
     try {
         // check all env are defined
         isEnvDefined();
 
-        // connect to db
-        mongose.connect(process.env.MONGO_DB_URL as string);
+        // connect to mongodb
+        const db = new MongodbConnection(process.env.MONGO_DB_URL as string);
+        await db.retryConnection();
 
         //listen to port
         app.listen(process.env.PORT, () =>

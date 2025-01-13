@@ -11,7 +11,7 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.2",
+    "@codeflare/common": "^1.0.6",
     "@types/morgan": "^1.9.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

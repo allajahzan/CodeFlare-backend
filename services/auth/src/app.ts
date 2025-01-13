@@ -1,8 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import connection from "mongoose";
 import { errorHandler } from "@codeflare/common";
-// import route from "./routes/route";
+import router from "./routes/router";
 
 // create app
 const app = express();
@@ -10,9 +9,12 @@ const app = express();
 // middlewares
 app.use(express.json());
 app.use(cookieParser());
-// app.use("/", route);
 
-app.use(errorHandler)
+// routes
+app.use("/", router);
+
+// error handler
+app.use(errorHandler);
 
 // export app
 export default app;
