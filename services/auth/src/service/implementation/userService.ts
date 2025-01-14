@@ -9,9 +9,7 @@ import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { IUserLoginResponse } from "../../dto/userService/IUserLoginDto";
-import { IUserRegisterResponse } from "../../dto/userService/IUserRegisterDto";
-import { IRefreshTokenResponse } from "../../dto/userService/IRefreshTokenDto";
+import { IUserLoginResponse, IUserRegisterResponse, IRefreshTokenResponse } from "../../dto/userServiceDto";
 
 /** User Serivce */
 export class UserService implements IUserService {

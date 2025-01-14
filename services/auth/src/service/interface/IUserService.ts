@@ -1,6 +1,4 @@
-import { IRefreshTokenResponse } from "../../dto/userService/IRefreshTokenDto";
-import { IUserLoginResponse } from "../../dto/userService/IUserLoginDto";
-import { IUserRegisterResponse } from "../../dto/userService/IUserRegisterDto";
+import { IUserLoginResponse, IUserRegisterResponse, IRefreshTokenResponse } from "../../dto/userServiceDto";
 
 /** Interface for User Service */
 export interface IUserService {
