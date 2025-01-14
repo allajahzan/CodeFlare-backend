@@ -9,7 +9,7 @@ export class UserController implements IUserController {
 
     /**
      * Constructs an instance of UserController.
-     * @param userService - The user service to use for performing operations on users.
+     * @param userService - The user service to use ofr performing operations on users.
      */
     constructor(userService: IUserService) {
         this.userService = userService;
@@ -60,6 +60,7 @@ export class UserController implements IUserController {
 
     /**
      * Handles refresh token requests by calling the refresh token service.
+     *
      * @param req - The express request object containing the refresh token in cookies.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.

@@ -61,7 +61,7 @@ export class UserService implements IUserService {
 
             return { accessToken, refreshToken };
         } catch (err: any) {
-            throw new Error(err.message);
+            throw new Error(err)
         }
     }
 
@@ -92,7 +92,7 @@ export class UserService implements IUserService {
 
             return { newUser };
         } catch (err: any) {
-            throw new Error(err.message);
+            throw new Error(err)
         }
     }
 
@@ -122,7 +122,7 @@ export class UserService implements IUserService {
 
             return { accessToken };
         } catch (err: any) {
-            throw new Error(err.message);
+            throw new Error(err)
         }
     }
 }
