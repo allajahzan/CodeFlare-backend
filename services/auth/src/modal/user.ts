@@ -1,7 +1,8 @@
 import { Schema, model } from "mongoose";
-import { IuserSchema } from "./interfaces/IuserSchema";
+import { IUserSchema } from "./interfaces/IUserSchema";
 
-const userSchema = new Schema<IuserSchema>({
+
+const userSchema = new Schema<IUserSchema>({
     email: {
         type: String,
         required: true,
@@ -20,5 +21,5 @@ const userSchema = new Schema<IuserSchema>({
     },
 });
 
-const User = model<IuserSchema>("User", userSchema);
+const User = model<IUserSchema>("User", userSchema);
 export default User;

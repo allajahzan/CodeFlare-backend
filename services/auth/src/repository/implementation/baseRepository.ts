@@ -3,14 +3,14 @@ import { IBaseRepository } from "../interface/IBaseRepository";
 
 /** Implementaion of Base Repository */
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
-    private readonly modal: Model<T>;
+    protected readonly model: Model<T>;
 
     /**
      * Constructs an instance of BaseRepository.
-     * @param modal - The modal of type T which will be used by the repository.
+     * @param model - The model of type T which will be used by the repository.
      */
-    constructor(modal: Model<T>) {
-        this.modal = modal;
+    constructor(model: Model<T>) {
+        this.model = model;
     }
 
     /**
@@ -21,7 +21,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
      */
     async find(query: FilterQuery<T>): Promise<T[] | []> {
         try {
-            return await this.modal.find(query);
+            return await this.model.find(query);
         } catch (err: any) {
             return [];
         }
@@ -34,7 +34,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
      */
     async findOne(query: FilterQuery<T>): Promise<T | null> {
         try {
-            return await this.modal.findOne(query);
+            return await this.model.findOne(query);
         } catch (err) {
             return null;
         }
@@ -47,7 +47,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
      */
     async create(data: Partial<T>): Promise<T | null> {
         try {
-            const createdDocument = new this.modal(data);
+            const createdDocument = new this.model(data);
             return await createdDocument.save();
         } catch (err) {
             return null;
@@ -62,7 +62,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
      */
     async update(query: FilterQuery<T>, data: UpdateQuery<T>): Promise<T | null> {
         try {
-            const updatedDocument = await this.modal.findOneAndUpdate(query, data);
+            const updatedDocument = await this.model.findOneAndUpdate(query, data);
             return updatedDocument;
         } catch (err) {
             return null;
@@ -76,7 +76,7 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
      */
     async delete(query: FilterQuery<T>): Promise<T | null> {
         try {
-            const deletedDocument = await this.modal.findOneAndDelete(query);
+            const deletedDocument = await this.model.findOneAndDelete(query);
             return deletedDocument;
         } catch (err) {
             return null;
