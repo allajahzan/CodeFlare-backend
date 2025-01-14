@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import { IUserSchema } from "../../modal/interfaces/IUserSchema";
+import { IUserSchema } from "../../modal/interface/IUserSchema";
 import { IBaseRepository } from "./IBaseRepository";
 
 /** Interface for User Repository */

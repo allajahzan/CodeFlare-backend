@@ -9,6 +9,9 @@ import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { IUserLoginResponse } from "../../dto/userService/IUserLoginDto";
+import { IUserRegisterResponse } from "../../dto/userService/IUserRegisterDto";
+import { IRefreshTokenResponse } from "../../dto/userService/IRefreshTokenDto";
 
 /** User Serivce */
 export class UserService implements IUserService {
@@ -28,7 +31,10 @@ export class UserService implements IUserService {
      * @param password - The password of the user to log in.
      * @returns A promise that resolves to an object containing the access and refresh tokens if the login is successful, otherwise the promise is rejected with an error.
      */
-    async userLogin(email: string, password: string): Promise<any> {
+    async userLogin(
+        email: string,
+        password: string
+    ): Promise<IUserLoginResponse> {
         try {
             const user = await this.userRespository.findUserByEmail(email);
             if (!user) throw new UnauthorizedError("User not found");
@@ -68,7 +74,7 @@ export class UserService implements IUserService {
         email: string,
         password: string,
         role: string
-    ): Promise<any> {
+    ): Promise<IUserRegisterResponse> {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
@@ -80,9 +86,9 @@ export class UserService implements IUserService {
                 role,
             });
 
-            if (newUser) throw new Error("User not created");
+            if (!newUser) throw new Error("User not created");
 
-            return newUser;
+            return { newUser };
         } catch (err: any) {
             throw new Error(err.message);
         }
@@ -95,7 +101,7 @@ export class UserService implements IUserService {
      * @throws {ForbiddenError} If the token is not provided.
      * @throws {Error} If any error occurs during token verification or generation.
      */
-    async refreshToken(token: string): Promise<any> {
+    async refreshToken(token: string): Promise<IRefreshTokenResponse> {
         try {
             if (!token) throw new ForbiddenError();
 
