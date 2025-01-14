@@ -1,4 +1,4 @@
-import { IUserSchema } from "../../modal/interfaces/IuserSchema";
+import { IUserSchema } from "../../modal/interfaces/IUserSchema";
 import { IUserRepository } from "../interface/IUserRepository";
 import { BaseRepository } from "./baseRepository";
 import { FilterQuery, Model, Document } from "mongoose";
