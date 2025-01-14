@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import { IUserSchema } from "./interfaces/IUserSchema";
 
-
+/** User Schema */
 const userSchema = new Schema<IUserSchema>({
     email: {
         type: String,
@@ -17,7 +17,7 @@ const userSchema = new Schema<IUserSchema>({
     },
     isblock: {
         type: Boolean,
-        required: true,
+        default : false
     },
 });
 

@@ -4,7 +4,7 @@ import { BaseRepository } from "./baseRepository";
 import { FilterQuery, Model, Document } from "mongoose";
 
 /** User Repository */
-export class UserRepositor extends BaseRepository<IUserSchema> implements IUserRepository<IUserSchema> {
+export class UserRepository extends BaseRepository<IUserSchema> implements IUserRepository {
     /**
      * Constructs an instance of UserRepository.
      * @param model - The model of type IUserSchema which will be used by the repository.
