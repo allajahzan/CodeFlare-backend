@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import { IUserSchema } from "./interface/IUserSchema";
 
-/** User Schema */
+/** Implementaion of User Schema */
 const userSchema = new Schema<IUserSchema>({
     email: {
         type: String,

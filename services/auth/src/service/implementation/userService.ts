@@ -15,7 +15,7 @@ import {
     IRefreshTokenResponse,
 } from "../../dto/userServiceDto";
 
-/** User Service */
+/** Implementation of User Service */
 export class UserService implements IUserService {
     private userRespository: IUserRepository;
 

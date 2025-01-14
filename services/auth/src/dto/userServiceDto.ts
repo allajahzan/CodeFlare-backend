@@ -11,7 +11,7 @@ export interface IUserRegisterResponse {
     newUser: IUserSchema;
 }
 
-/** Interface for refreshToken */
+/** Interface for refreshToken Response */
 export interface IRefreshTokenResponse {
     accessToken: string;
 }

@@ -3,7 +3,7 @@ import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
 import { HTTPStatusCodes, SendResponse } from "@codeflare/common";
 
-/** User Controller */
+/** Implementation of User Controller */
 export class UserController implements IUserController {
     private userService: IUserService;
 
@@ -17,7 +17,6 @@ export class UserController implements IUserController {
 
     /**
      * Handles user login requests by calling the user login service
-     *
      * @param req - The express request object containing user login details.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.
@@ -39,7 +38,6 @@ export class UserController implements IUserController {
 
     /**
      * Handles user registration requests by calling the user registration service
-     *
      * @param req - The express request object containing user registration details.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.
@@ -62,7 +60,6 @@ export class UserController implements IUserController {
 
     /**
      * Handles refresh token requests by calling the refresh token service.
-     *
      * @param req - The express request object containing the refresh token in cookies.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.

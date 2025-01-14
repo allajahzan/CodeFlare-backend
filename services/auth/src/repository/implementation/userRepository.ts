@@ -3,7 +3,7 @@ import { IUserRepository } from "../interface/IUserRepository";
 import { BaseRepository } from "./baseRepository";
 import { FilterQuery, Model, Document } from "mongoose";
 
-/** User Repository */
+/** Implementation of User Repository */
 export class UserRepository extends BaseRepository<IUserSchema> implements IUserRepository {
     /**
      * Constructs an instance of UserRepository.
