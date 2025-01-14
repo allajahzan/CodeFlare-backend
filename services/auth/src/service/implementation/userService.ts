@@ -9,9 +9,13 @@ import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { IUserLoginResponse, IUserRegisterResponse, IRefreshTokenResponse } from "../../dto/userServiceDto";
+import {
+    IUserLoginResponse,
+    IUserRegisterResponse,
+    IRefreshTokenResponse,
+} from "../../dto/userServiceDto";
 
-/** User Serivce */
+/** User Service */
 export class UserService implements IUserService {
     private userRespository: IUserRepository;
 
