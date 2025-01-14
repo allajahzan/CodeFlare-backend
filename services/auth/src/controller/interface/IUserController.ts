@@ -1,6 +1,4 @@
-import { NextFunction, Request } from "express";
-import { IUserLoginResponse } from "../../dto/userService/IUserLoginDto";
-
+import { Request, Response, NextFunction } from "express";
 /** Interface for User Controller */
 export interface IUserController {
     userLogin(req: Request, res: Response, next: NextFunction): Promise<void>;
