@@ -75,7 +75,8 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { _id, user } = req.body;
+            const { user } = req.body;
+            const { id : _id } = req.params 
 
             const data = await this.userService.updateUser(_id, user);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
@@ -97,7 +98,7 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { _id } = req.body;
+            const { id : _id } = req.params;
 
             const data = await this.userService.changeUserStatus(_id);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
