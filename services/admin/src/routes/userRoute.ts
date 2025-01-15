@@ -27,7 +27,7 @@ router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Change user status
-router.patch("/user:id/status", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/:id", (req: Request, res: Response, next: NextFunction) =>
     userController.changeUserStatus(req, res, next)
 );
 
