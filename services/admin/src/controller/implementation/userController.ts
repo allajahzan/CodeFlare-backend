@@ -21,6 +21,26 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Retrieves all users from the database.
+     * @param req - The express request object.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the user retrieval process is complete.
+     */
+    async getUsers(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const data = await this.userService.getUsers();
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
      * Handles the creation of a new user by calling the user service.
      * @param req - The express request object containing the new user's details.
      * @param res - The express response object.
@@ -88,8 +108,6 @@ export class UserController implements IUserController {
 
     /**
      * Searches for users based on the provided query by calling the user service.
-     * The search is case insensitive and searches through the name, email, and batches fields.
-     *
      * @param req - The express request object containing the search query in the query parameters.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { NextFunction, Request, response, Response, Router } from "express";
 import { UserController } from "../controller/implementation/userController";
 import { UserService } from "../service/implementation/userService";
 import { UserRepository } from "../repository/implementation/userRepository";
@@ -11,23 +11,28 @@ const userReporsitory = new UserRepository(User);
 const userService = new UserService(userReporsitory);
 const userController = new UserController(userService);
 
-// Create User
-router.post("/user", (req: Request, res: Response, next: NextFunction) =>
+// Get all users
+router.get("/", (req: Request, res: Response, next: NextFunction) =>
+    userController.getUsers(req, res, next)
+);
+
+// Create user
+router.post("/", (req: Request, res: Response, next: NextFunction) =>
     userController.createUser(req, res, next)
 );
 
-// Update User
-router.put("/user", (req: Request, res: Response, next: NextFunction) =>
+// Update user
+router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
     userController.updateUser(req, res, next)
 );
 
-// Change User Status
-router.patch("/user", (req: Request, res: Response, next: NextFunction) =>
+// Change user status
+router.patch("/user:id/status", (req: Request, res: Response, next: NextFunction) =>
     userController.changeUserStatus(req, res, next)
 );
 
-// Search User
-router.get("/user/search", (req: Request, res: Response, next: NextFunction) =>
+// Search user
+router.get("/search", (req: Request, res: Response, next: NextFunction) =>
     userController.searchUsers(req, res, next)
 );
 

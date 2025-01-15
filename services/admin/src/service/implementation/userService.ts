@@ -28,8 +28,8 @@ export class UserService implements IUserService {
      */
     async getUsers(): Promise<IGetUsersResponse> {
         try {
-            const data = await this.userRepository.find({});
-            return { users: data };
+            const users = await this.userRepository.find({});
+            return { users };
         } catch (err: any) {
             throw err;
         }
