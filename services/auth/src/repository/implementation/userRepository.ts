@@ -1,7 +1,7 @@
 import { IUserSchema } from "../../modal/interface/IUserSchema";
 import { IUserRepository } from "../interface/IUserRepository";
-import { BaseRepository } from "./baseRepository";
-import { FilterQuery, Model, Document } from "mongoose";
+import { Model } from "mongoose";
+import { BaseRepository } from "@codeflare/common";
 
 /** Implementation of User Repository */
 export class UserRepository extends BaseRepository<IUserSchema> implements IUserRepository {
