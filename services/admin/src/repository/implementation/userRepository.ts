@@ -35,7 +35,8 @@ export class UserRepository extends BaseRepository<IUserSchema> implements IUser
         try {
             return await this.model.findOneAndUpdate(
                 { _id },
-                { $set: { isblock: true } }
+                { $set: { isblock: true } },
+                { new: true }
             );
         } catch (err: any) {
             return null;
@@ -51,7 +52,8 @@ export class UserRepository extends BaseRepository<IUserSchema> implements IUser
         try {
             return await this.model.findOneAndUpdate(
                 { _id },
-                { $set: { isblock: false } }
+                { $set: { isblock: false } },
+                { new: true}
             );
         } catch (err: any) {
             return null;
