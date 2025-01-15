@@ -1,4 +1,10 @@
-import { ConflictError, NotFoundError } from "@codeflare/common";
+import {
+    ConflictError,
+    HTTPStatusCodes,
+    NotFoundError,
+    ResponseMessage,
+    SendResponse,
+} from "@codeflare/common";
 import { IGetUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
@@ -14,6 +20,19 @@ export class UserService implements IUserService {
      */
     constructor(userRepository: IUserRepository) {
         this.userRepository = userRepository;
+    }
+
+    /**
+     * Retrieves all users from the database.
+     * @returns A promise that resolves to an object containing an array of all users if successful, otherwise rejects with an error.
+     */
+    async getUsers(): Promise<IGetUsersResponse> {
+        try {
+            const data = await this.userRepository.find({});
+            return { users: data };
+        } catch (err: any) {
+            throw err;
+        }
     }
 
     /**
