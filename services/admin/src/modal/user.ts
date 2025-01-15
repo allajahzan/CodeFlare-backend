@@ -1,4 +1,4 @@
-import { Schema, Model } from "mongoose";
+import { Schema, model } from "mongoose";
 import { IUserSchema } from "./interface/IUserSchema";
 
 /** Implementaion of User Schema */
@@ -33,5 +33,5 @@ const userShema = new Schema<IUserSchema>({
     },
 });
 
-const User = new Model("User", userShema);
+const User = model("User", userShema);
 export default User;
