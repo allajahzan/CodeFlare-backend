@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
-import { HTTPStatusCodes, SendResponse } from "@codeflare/common";
+import { HTTPStatusCodes, ResponseMessage, SendResponse } from "@codeflare/common";
 
 /** Implementation of User Controller */
 export class UserController implements IUserController {
@@ -31,7 +31,7 @@ export class UserController implements IUserController {
             const { email, password } = req.body;
 
             const data = await this.userService.userLogin(email, password);
-            SendResponse(res, HTTPStatusCodes.OK, "Login Successful", data);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
         }
@@ -54,7 +54,7 @@ export class UserController implements IUserController {
 
             const data = await this.userService.userRegister(email, password, role);
             console.log(data);
-            SendResponse(res, HTTPStatusCodes.CREATED, "Register Successful", data);
+            SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
         }
@@ -77,7 +77,7 @@ export class UserController implements IUserController {
             const refreshToken = req.cookies.refreshToken;
             
             const data = await this.userService.refreshToken(refreshToken);
-            SendResponse(res, HTTPStatusCodes.OK, "Refresh Token", data);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
         }

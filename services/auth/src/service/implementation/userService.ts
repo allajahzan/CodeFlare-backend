@@ -89,7 +89,7 @@ export class UserService implements IUserService {
                 role,
             });
 
-            if (!newUser) throw new Error("User not created");
+            if (!newUser) throw new Error("Failed to create the user");
 
             return { newUser };
         } catch (err: any) {
