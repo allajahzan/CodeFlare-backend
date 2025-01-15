@@ -12,7 +12,12 @@ services/auth/node_modules
 services/admin/.env
 services/admin/node_modules
 
+# Notification service
+services/notification/.env
+services/notification/node_modules
+
 # Coordinator service
 services/coordinator/.env
 services/coordinator/node_modules
+
 
