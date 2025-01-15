@@ -62,11 +62,12 @@ export class UserService implements IUserService {
      * @param user - The user object to update the user with.
      * @returns A promise that resolves to an object containing the updated user if successful, otherwise rejects with an error.
      */
-    async updateUser(_id: string, user: Partial<IUserSchema>): Promise<IGetUserResponse> {
+    async updateUser(_id: string, user: IUserSchema): Promise<IGetUserResponse> {
         try {
             const updatedUser = await this.userRepository.update(
                 { _id },
                 { $set: user },
+                { returnDocument: "after" }
             );
 
             if (!updatedUser) throw new Error("Failed to update the user");
