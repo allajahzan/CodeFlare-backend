@@ -5,7 +5,7 @@ import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
 
 /** Implementation of User Service */
-class UserService implements IUserService {
+export class UserService implements IUserService {
     private userRepository: IUserRepository;
 
     /**
