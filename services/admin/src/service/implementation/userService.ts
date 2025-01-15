@@ -57,27 +57,22 @@ class UserService implements IUserService {
      * @param _id - The id of the user to block.
      * @returns A promise that resolves to an object containing the blocked user if successful, otherwise rejects with an error.
      */
-    async blockUser(_id: string): Promise<IFindUserResponse> {
+    async changeUserStatus(_id: string): Promise<IFindUserResponse> {
         try {
-            const blockedUser = await this.userRepository.blockUser(_id);
-            if (!blockedUser) throw new Error("User not blocked");
+            const user = await this.userRepository.findOne({ _id });
 
-            return { user: blockedUser };
-        } catch (err: any) {
-            throw err;
-        }
-    }
+            if (!user) throw new NotFoundError("User not found");
 
-    /**
-     * Unblocks a user with the given _id.
-     * @param _id - The id of the user to unblock.
-     * @returns A promise that resolves to an object containing the unblocked user if successful, otherwise rejects with an error.
-     */
-    async unblockUser(_id: string): Promise<IFindUserResponse> {
-        try {
-            const unblockedUser = await this.userRepository.unblockUser(_id);
-            if (!unblockedUser) throw new Error("User not unblocked");
-            return { user: unblockedUser };
+            let updatedUser;
+            if (user.isblock) {
+                updatedUser = await this.userRepository.unblockUser(_id);
+                if (!updatedUser) throw new Error("User not unblocked");
+            } else {
+                updatedUser = await this.userRepository.blockUser(_id);
+                if (!updatedUser) throw new Error("User not blocked");
+            }
+
+            return { user: updatedUser };
         } catch (err: any) {
             throw err;
         }
@@ -91,6 +86,8 @@ class UserService implements IUserService {
      */
     async searchUsers(query: string): Promise<IGetUsersResponse> {
         try {
+            if (!query) throw new Error("Search query is required");
+
             const users = await this.userRepository.find({
                 $or: [
                     { name: { $regex: query, $options: "i" } },
@@ -100,22 +97,6 @@ class UserService implements IUserService {
             });
 
             return { users };
-        } catch (err: any) {
-            throw err;
-        }
-    }
-
-    /**
-     * Finds a single user in the database that matches the given email.
-     * @param email - The email to filter the documents.
-     * @returns A promise that resolves to the user that matches the email if found, otherwise rejects with a NotFoundError.
-     */
-    async findUserByEmail(email: string): Promise<IFindUserResponse> {
-        try {
-            const user = await this.userRepository.findUserByEmail(email);
-            if (!user) throw new NotFoundError("User not found");
-
-            return { user };
         } catch (err: any) {
             throw err;
         }
