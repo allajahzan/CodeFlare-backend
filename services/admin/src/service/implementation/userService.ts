@@ -24,10 +24,12 @@ class UserService implements IUserService {
     async createUser(user: IUserSchema): Promise<IGetUserResponse> {
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
+
             if (isUserExist) throw new ConflictError("User already exists");
 
             const newUser = await this.userRepository.create(user);
-            if (!newUser) throw new Error("User not created");
+
+            if (!newUser) throw new Error("Failed to add the user");
 
             return { user: newUser };
         } catch (err: any) {
@@ -47,7 +49,8 @@ class UserService implements IUserService {
                 { _id },
                 { $set: user }
             );
-            if (!updatedUser) throw new Error("User not updated");
+
+            if (!updatedUser) throw new Error("Failed to update the user");
 
             return { user: updatedUser };
         } catch (err: any) {
@@ -64,21 +67,25 @@ class UserService implements IUserService {
         try {
             const user = await this.userRepository.findOne({ _id });
 
-            if (!user) throw new NotFoundError("User not found");
+            if (!user) {
+                throw new NotFoundError("User not found");
+            }
 
-            let updatedUser;
+            const updatedUser = user.isblock
+                ? await this.userRepository.unblockUser(_id)
+                : await this.userRepository.blockUser(_id);
 
-            if (user.isblock) {
-                updatedUser = await this.userRepository.unblockUser(_id);
-                if (!updatedUser) throw new Error("User not unblocked");
-            } else {
-                updatedUser = await this.userRepository.blockUser(_id);
-                if (!updatedUser) throw new Error("User not blocked");
+            if (!updatedUser) {
+                throw new Error(
+                    user.isblock
+                        ? "Failed to unblock the user"
+                        : "Failed to block the user"
+                );
             }
 
             return { user: updatedUser };
-        } catch (err: any) {
-            throw err;
+        } catch (error: any) {
+            throw error;
         }
     }
 

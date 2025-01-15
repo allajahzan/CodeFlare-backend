@@ -9,7 +9,7 @@ import {
 } from "@codeflare/common";
 
 /** Implementation of User Controller */
-class UserController implements IUserController {
+export class UserController implements IUserController {
     private userService: IUserService;
 
     /**
@@ -33,7 +33,9 @@ class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const data = await this.userService.createUser(req.body);
+            const user = req.body;
+
+            const data = await this.userService.createUser(user);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.CREATED, data);
         } catch (err: any) {
             next(err);
@@ -54,6 +56,7 @@ class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { _id, user } = req.body;
+
             const data = await this.userService.updateUser(_id, user);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
@@ -75,6 +78,7 @@ class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { _id } = req.body;
+
             const data = await this.userService.changeUserStatus(_id);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
@@ -98,6 +102,7 @@ class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { query } = req.query;
+
             const data = await this.userService.searchUsers(query as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
