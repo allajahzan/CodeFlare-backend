@@ -1,12 +1,12 @@
 import { IUserSchema } from "../modal/interface/IUserSchema";
 
 
-/** Interface for Get Users Response */
+/** Interface for getUsers response */
 export interface IGetUsersResponse {
     users: IUserSchema[];
 }
 
-/** Interface for Find User Response */
+/** Interface for getUser response */
 export interface IGetUserResponse {
     user: IUserSchema;
 }

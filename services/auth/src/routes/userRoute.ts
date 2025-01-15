@@ -12,17 +12,17 @@ const userRepository = new UserRepository(User);
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// User Login
+// User login
 router.post("/login", (req: Request, res: Response, next: NextFunction) =>
     userController.userLogin(req, res, next)
 );
 
-// User Register
+// User register
 router.post("/register", (req: Request, res: Response, next: NextFunction) =>
     userController.userRegister(req, res, next)
 );
 
-// User Refresh Token
+// User refresh token
 router.post(
     "/refresh-token",
     isAuthenticated,
