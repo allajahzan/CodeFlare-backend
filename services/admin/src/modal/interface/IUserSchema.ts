@@ -1,7 +1,6 @@
-/** Inteface for User Schema */
-
 import { Document } from "mongoose";
 
+/** Inteface for User Schema */
 export interface IUserSchema extends Document {
     profilePic: string;
     name: string;
