@@ -5,7 +5,7 @@ import { IUserSchema } from "./interface/IUserSchema";
 const userShema = new Schema<IUserSchema>({
     profilePic: {
         type: String,
-        required: true,
+        required: false,
     },
     name: {
         type: String,
@@ -17,7 +17,7 @@ const userShema = new Schema<IUserSchema>({
     },
     phoneNo: {
         type: String,
-        required: true,
+        required: false,
     },
     role: {
         type: String,
