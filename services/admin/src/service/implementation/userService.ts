@@ -1,5 +1,5 @@
-import { NotFoundError } from "@codeflare/common";
-import { IFindUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
+import { ConflictError, NotFoundError } from "@codeflare/common";
+import { IGetUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
@@ -21,8 +21,11 @@ class UserService implements IUserService {
      * @param user - The user object to create a new user from.
      * @returns A promise that resolves to an object containing the newly created user if successful, otherwise rejects with an error.
      */
-    async createUser(user: IUserSchema): Promise<IFindUserResponse> {
+    async createUser(user: IUserSchema): Promise<IGetUserResponse> {
         try {
+            const isUserExist = await this.userRepository.findUserByEmail(user.email);
+            if (isUserExist) throw new ConflictError("User already exists");
+
             const newUser = await this.userRepository.create(user);
             if (!newUser) throw new Error("User not created");
 
@@ -38,7 +41,7 @@ class UserService implements IUserService {
      * @param user - The user object to update the user with.
      * @returns A promise that resolves to an object containing the updated user if successful, otherwise rejects with an error.
      */
-    async updateUser(_id: string, user: IUserSchema): Promise<IFindUserResponse> {
+    async updateUser(_id: string, user: IUserSchema): Promise<IGetUserResponse> {
         try {
             const updatedUser = await this.userRepository.update(
                 { _id },
@@ -57,13 +60,14 @@ class UserService implements IUserService {
      * @param _id - The id of the user to block.
      * @returns A promise that resolves to an object containing the blocked user if successful, otherwise rejects with an error.
      */
-    async changeUserStatus(_id: string): Promise<IFindUserResponse> {
+    async changeUserStatus(_id: string): Promise<IGetUserResponse> {
         try {
             const user = await this.userRepository.findOne({ _id });
 
             if (!user) throw new NotFoundError("User not found");
 
             let updatedUser;
+
             if (user.isblock) {
                 updatedUser = await this.userRepository.unblockUser(_id);
                 if (!updatedUser) throw new Error("User not unblocked");

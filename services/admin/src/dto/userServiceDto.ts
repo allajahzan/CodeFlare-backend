@@ -7,6 +7,6 @@ export interface IGetUsersResponse {
 }
 
 /** Interface for Find User Response */
-export interface IFindUserResponse {
+export interface IGetUserResponse {
     user: IUserSchema;
 }
