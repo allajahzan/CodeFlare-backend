@@ -39,6 +39,7 @@ export class UserService implements IUserService {
     ): Promise<IUserLoginResponse> {
         try {
             const user = await this.userRespository.findUserByEmail(email);
+
             if (!user) throw new UnauthorizedError("User not found");
 
             const isPsswordMatch = await bcrypt.compare(password, user.password);

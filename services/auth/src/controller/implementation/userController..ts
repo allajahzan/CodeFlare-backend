@@ -29,6 +29,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email, password } = req.body;
+
             const data = await this.userService.userLogin(email, password);
             SendResponse(res, HTTPStatusCodes.OK, "Login Successful", data);
         } catch (err) {
@@ -50,6 +51,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email, password, role } = req.body;
+
             const data = await this.userService.userRegister(email, password, role);
             console.log(data);
             SendResponse(res, HTTPStatusCodes.CREATED, "Register Successful", data);
@@ -73,6 +75,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const refreshToken = req.cookies.refreshToken;
+            
             const data = await this.userService.refreshToken(refreshToken);
             SendResponse(res, HTTPStatusCodes.OK, "Refresh Token", data);
         } catch (err) {
