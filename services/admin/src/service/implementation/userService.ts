@@ -64,10 +64,14 @@ export class UserService implements IUserService {
      */
     async updateUser(_id: string, user: IUserSchema): Promise<IGetUserResponse> {
         try {
+            const isUserExist = await this.userRepository.findOne({ _id : {$ne : _id}, email: user.email})
+
+            if(isUserExist) throw new ConflictError('User already exists')
+
             const updatedUser = await this.userRepository.update(
                 { _id },
                 { $set: user },
-                { returnDocument: "after" }
+                { new: true }
             );
 
             if (!updatedUser) throw new Error("Failed to update the user");
