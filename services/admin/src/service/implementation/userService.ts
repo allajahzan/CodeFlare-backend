@@ -9,6 +9,7 @@ import { IGetUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
+import { sendEmail } from "../../utils/nodeMailer";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -49,6 +50,10 @@ export class UserService implements IUserService {
             const newUser = await this.userRepository.create(user);
 
             if (!newUser) throw new Error("Failed to add the user");
+
+            sendEmail(user.email, (error: any, info: any) => { // send email with nodemailer
+                if (error) throw new Error(`Failed to send email to ${user.email}`);
+            });
 
             return { user: newUser };
         } catch (err: any) {
