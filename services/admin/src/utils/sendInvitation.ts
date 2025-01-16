@@ -6,10 +6,10 @@ export const sendInvitation = (email: string, name: string): void => {
     <div style="max-width: 500px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
         <!-- Modern Lock Icon -->
         <div style="margin-bottom: 32px;">
-            <img src="https://cdn-icons-png.flaticon.com/512/18357/18357729.png" alt="Security Icon" style="width: 140px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));" />
+            <img src="https://cdn-icons-png.flaticon.com/512/18357/18357729.png" alt="Security Icon" style="width: 120px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));" />
         </div>
 
-        <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 24px; color: #000000; letter-spacing: -0.02em;">
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 24px; color: #000000; letter-spacing: -0.02em;">
             Welcome to CodeFlare
         </h1>
 
