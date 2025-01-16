@@ -1,6 +1,10 @@
 import { sendEmail } from "@codeflare/common";
 
-export const sendInvitation = (email: string, name: string): void => {
+export const sendInvitation = (
+    email: string,
+    name: string,
+    subject: string
+): void => {
     try {
         const html = `
     <div style="max-width: 500px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
@@ -35,7 +39,7 @@ export const sendInvitation = (email: string, name: string): void => {
     </div>
         `;
 
-        sendEmail(email, html, (err: any) => {
+        sendEmail(email, subject, html, (err: any) => {
             if (err) {
                 throw new Error(err);
             }
