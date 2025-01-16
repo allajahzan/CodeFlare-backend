@@ -1,17 +1,17 @@
 import { IUserSchema } from "../modal/interface/IUserSchema";
 
-/** Interface for userLogin response */
-export interface IUserLoginResponse {
+/** Dto for userLogin */
+export interface IUserLoginDto {
     refreshToken: string;
     accessToken: string;
 }
 
-/** Interface for userRegister response */
-export interface IUserRegisterResponse {
+/** Dto for userRegister */
+export interface IUserRegisterDto {
     newUser: IUserSchema;
 }
 
-/** Interface for refreshToken response */
-export interface IRefreshTokenResponse {
+/** Dto for refreshToken */
+export interface IRefreshTokenDto {
     accessToken: string;
 }

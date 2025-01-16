@@ -10,9 +10,9 @@ import { IUserService } from "../interface/IUserService";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {
-    IUserLoginResponse,
-    IUserRegisterResponse,
-    IRefreshTokenResponse,
+    IUserLoginDto,
+    IUserRegisterDto,
+    IRefreshTokenDto,
 } from "../../dto/userServiceDto";
 
 /** Implementation of User Service */
@@ -36,7 +36,7 @@ export class UserService implements IUserService {
     async userLogin(
         email: string,
         password: string
-    ): Promise<IUserLoginResponse> {
+    ): Promise<IUserLoginDto> {
         try {
             const user = await this.userRespository.findUserByEmail(email);
 
@@ -77,7 +77,7 @@ export class UserService implements IUserService {
         email: string,
         password: string,
         role: string
-    ): Promise<IUserRegisterResponse> {
+    ): Promise<IUserRegisterDto> {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
@@ -104,7 +104,7 @@ export class UserService implements IUserService {
      * @throws {ForbiddenError} If the token is not provided.
      * @throws {Error} If any error occurs during token verification or generation.
      */
-    async refreshToken(token: string): Promise<IRefreshTokenResponse> {
+    async refreshToken(token: string): Promise<IRefreshTokenDto> {
         try {
             if (!token) throw new ForbiddenError();
 

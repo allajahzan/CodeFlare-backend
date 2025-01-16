@@ -1,8 +1,8 @@
-import { IUserLoginResponse, IUserRegisterResponse, IRefreshTokenResponse } from "../../dto/userServiceDto";
+import { IUserLoginDto, IUserRegisterDto, IRefreshTokenDto } from "../../dto/userServiceDto";
 
 /** Interface for User Service */
 export interface IUserService {
-    userLogin(email: string, password: string): Promise<IUserLoginResponse>;
-    userRegister(email: string, password: string, role: string): Promise<IUserRegisterResponse>;
-    refreshToken(token: string): Promise<IRefreshTokenResponse>
+    userLogin(email: string, password: string): Promise<IUserLoginDto>;
+    userRegister(email: string, password: string, role: string): Promise<IUserRegisterDto>;
+    refreshToken(token: string): Promise<IRefreshTokenDto>
 }
