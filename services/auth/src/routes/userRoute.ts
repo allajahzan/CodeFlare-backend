@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { isAuthenticated } from "../middleware/authMiddleware";
+import { checkAuth } from "../middleware/checkAuth";
 import { UserController } from "../controller/implementation/userController.";
 import { UserService } from "../service/implementation/userService";
 import { UserRepository } from "../repository/implementation/userRepository";
@@ -25,7 +25,7 @@ router.post("/register", (req: Request, res: Response, next: NextFunction) =>
 // User refresh token
 router.post(
     "/refresh-token",
-    isAuthenticated,
+    checkAuth,
     (req: Request, res: Response, next: NextFunction) =>
         userController.refreshToken(req, res, next)
 );

@@ -12,7 +12,7 @@ import User from "../modal/user";
  * @throws {NotFoundError} If the user is not found.
  * @throws {UnauthorizedError} If the user is blocked.
  */
-export const isAuthenticated = async (
+export const checkAuth = async (
     req: Request,
     res: Response,
     next: NextFunction
