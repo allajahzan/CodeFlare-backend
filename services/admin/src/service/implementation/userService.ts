@@ -45,15 +45,15 @@ export class UserService implements IUserService {
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
-            // if (isUserExist) throw new ConflictError("User already exists");
+            if (isUserExist) throw new ConflictError("User already exists");
 
-            // const newUser = await this.userRepository.create(user);
+            const newUser = await this.userRepository.create(user);
 
-            // if (!newUser) throw new Error("Failed to add the user");
+            if (!newUser) throw new Error("Failed to add the user");
 
-            sendInvitation(user.email, user.name) // send mail to user
+            sendInvitation(user.email, user.name); // send invitation to user
 
-            return { user: isUserExist as IUserSchema };
+            return { user: newUser };
         } catch (err: any) {
             throw err;
         }
