@@ -28,9 +28,9 @@ export class UserService implements IUserService {
      * @returns A promise that resolves to an object containing an array of all users if successful, otherwise rejects with an error.
      */
     async getUsers(): Promise<IUserDto[]> {
-        try { 
+        try {
             const users = await this.userRepository.find({});
-            return users
+            return users;
         } catch (err: any) {
             throw err;
         }
@@ -51,7 +51,7 @@ export class UserService implements IUserService {
 
             if (!newUser) throw new Error("Failed to add the user");
 
-            sendInvitation(user.email, user.name, 'Invitation to join - CodeFlare'); // send invitation to user
+            sendInvitation(user.email, user.name, "Invitation to join - CodeFlare"); // send invitation to user
 
             return newUser;
         } catch (err: any) {
@@ -114,8 +114,8 @@ export class UserService implements IUserService {
             }
 
             return updatedUser;
-        } catch (error: any) {
-            throw error;
+        } catch (err: any) {
+            throw err;
         }
     }
 
