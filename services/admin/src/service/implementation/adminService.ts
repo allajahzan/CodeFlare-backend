@@ -3,6 +3,7 @@ import { AdminRepositoty } from "../../repository/implementation/adminRepository
 import { IAdminRepostory } from "../../repository/interface/IAdminRepository";
 import { IAdminService } from "../interface/IAdminService";
 import { IAdminSchema } from "../../modal/interface/IAdminSchema";
+import { IGetAdminResponse } from "../../dto/adminServiceDto";
 
 /** Implementaion of Admin Service */
 export class AdminService implements IAdminService {
@@ -16,27 +17,47 @@ export class AdminService implements IAdminService {
         this.adminRepository = adminRepository;
     }
 
-    async getAdmin(_id: string): Promise<any> {
-        try{
-            const admin = await this.adminRepository.findOne({_id});
+    /**
+     * Retrieves an admin from the database using the provided ID.
+     * @param _id - The ID of the admin to retrieve.
+     * @returns A promise that resolves to an object containing the admin if found, otherwise rejects with an error.
+     * @throws NotFoundError if the admin is not found.
+     */
+    async getAdmin(_id: string): Promise<IGetAdminResponse> {
+        try {
+            const admin = await this.adminRepository.findOne({ _id });
 
-            if(!admin) throw new NotFoundError("Admin not found");
+            if (!admin) throw new NotFoundError("Admin not found");
 
-            return {admin}
-        }catch(err:any){
-            throw err
+            return { admin };
+        } catch (err: any) {
+            throw err;
         }
     }
 
-    async updateAdmin(_id: string, admin: IAdminSchema): Promise<any> {
-        try{
-            const updatedAdmin = await this.adminRepository.update({_id}, {$set: admin}, {new : true});
+    /**
+     * Updates an existing admin in the database with the given admin object.
+     * @param _id - The id of the admin to update.
+     * @param admin - The admin object to update the admin with.
+     * @returns A promise that resolves to an object containing the updated admin if successful, otherwise rejects with an error.
+     * @throws Error if the updating of the admin fails.
+     */
+    async updateAdmin(
+        _id: string,
+        admin: IAdminSchema
+    ): Promise<IGetAdminResponse> {
+        try {
+            const updatedAdmin = await this.adminRepository.update(
+                { _id },
+                { $set: admin },
+                { new: true }
+            );
 
-            if(!updatedAdmin) throw new Error("Failed to update admin");
+            if (!updatedAdmin) throw new Error("Failed to update admin");
 
-            return {updatedAdmin}
-        }catch(err:any){
-            throw err
+            return { admin: updatedAdmin };
+        } catch (err: any) {
+            throw err;
         }
     }
 }
