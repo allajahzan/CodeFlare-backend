@@ -3,7 +3,7 @@ import { AdminRepositoty } from "../../repository/implementation/adminRepository
 import { IAdminRepostory } from "../../repository/interface/IAdminRepository";
 import { IAdminService } from "../interface/IAdminService";
 import { IAdminSchema } from "../../modal/interface/IAdminSchema";
-import { IGetAdminResponse } from "../../dto/adminServiceDto";
+import { IAdminDto } from "../../dto/adminServiceDto";
 
 /** Implementaion of Admin Service */
 export class AdminService implements IAdminService {
@@ -23,13 +23,13 @@ export class AdminService implements IAdminService {
      * @returns A promise that resolves to an object containing the admin if found, otherwise rejects with an error.
      * @throws NotFoundError if the admin is not found.
      */
-    async getAdmin(_id: string): Promise<IGetAdminResponse> {
+    async getAdmin(_id: string): Promise<IAdminDto> {
         try {
             const admin = await this.adminRepository.findOne({ _id });
 
             if (!admin) throw new NotFoundError("Admin not found");
 
-            return { admin };
+            return admin
         } catch (err: any) {
             throw err;
         }
@@ -45,7 +45,7 @@ export class AdminService implements IAdminService {
     async updateAdmin(
         _id: string,
         admin: IAdminSchema
-    ): Promise<IGetAdminResponse> {
+    ): Promise<IAdminDto> {
         try {
             const updatedAdmin = await this.adminRepository.update(
                 { _id },
@@ -55,7 +55,7 @@ export class AdminService implements IAdminService {
 
             if (!updatedAdmin) throw new Error("Failed to update admin");
 
-            return { admin: updatedAdmin };
+            return updatedAdmin
         } catch (err: any) {
             throw err;
         }

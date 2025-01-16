@@ -1,6 +1,9 @@
 import { IAdminSchema } from "../modal/interface/IAdminSchema";
 
-/** Interaface for getAdmin response */
-export interface IGetAdminResponse {
-    admin: IAdminSchema;
+/** Dto for retrieving admin data */
+export interface IAdminDto {
+    profilePic: string;
+    name: string;
+    email: string;
+    role: string;
 }

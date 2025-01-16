@@ -5,7 +5,7 @@ import {
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
-import { IGetUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
+import { IUserDto } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
@@ -27,10 +27,10 @@ export class UserService implements IUserService {
      * Retrieves all users from the database.
      * @returns A promise that resolves to an object containing an array of all users if successful, otherwise rejects with an error.
      */
-    async getUsers(): Promise<IGetUsersResponse> {
-        try {
+    async getUsers(): Promise<IUserDto[]> {
+        try { 
             const users = await this.userRepository.find({});
-            return { users };
+            return users
         } catch (err: any) {
             throw err;
         }
@@ -41,7 +41,7 @@ export class UserService implements IUserService {
      * @param user - The user object to create a new user from.
      * @returns A promise that resolves to an object containing the newly created user if successful, otherwise rejects with an error.
      */
-    async createUser(user: IUserSchema): Promise<IGetUserResponse> {
+    async createUser(user: IUserSchema): Promise<IUserDto> {
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
@@ -53,7 +53,7 @@ export class UserService implements IUserService {
 
             sendInvitation(user.email, user.name, 'Invitation to join - CodeFlare'); // send invitation to user
 
-            return { user: newUser };
+            return newUser;
         } catch (err: any) {
             throw err;
         }
@@ -65,7 +65,7 @@ export class UserService implements IUserService {
      * @param user - The user object to update the user with.
      * @returns A promise that resolves to an object containing the updated user if successful, otherwise rejects with an error.
      */
-    async updateUser(_id: string, user: IUserSchema): Promise<IGetUserResponse> {
+    async updateUser(_id: string, user: IUserSchema): Promise<IUserDto> {
         try {
             const isUserExist = await this.userRepository.findOne({
                 _id: { $ne: _id },
@@ -82,7 +82,7 @@ export class UserService implements IUserService {
 
             if (!updatedUser) throw new Error("Failed to update the user");
 
-            return { user: updatedUser };
+            return updatedUser;
         } catch (err: any) {
             throw err;
         }
@@ -93,7 +93,7 @@ export class UserService implements IUserService {
      * @param _id - The id of the user to block.
      * @returns A promise that resolves to an object containing the blocked user if successful, otherwise rejects with an error.
      */
-    async changeUserStatus(_id: string): Promise<IGetUserResponse> {
+    async changeUserStatus(_id: string): Promise<IUserDto> {
         try {
             const user = await this.userRepository.findOne({ _id });
 
@@ -113,7 +113,7 @@ export class UserService implements IUserService {
                 );
             }
 
-            return { user: updatedUser };
+            return updatedUser;
         } catch (error: any) {
             throw error;
         }
@@ -125,7 +125,7 @@ export class UserService implements IUserService {
      * @param query - The query to search for.
      * @returns A promise that resolves to an object containing an array of users that match the search query.
      */
-    async searchUsers(query: string): Promise<IGetUsersResponse> {
+    async searchUsers(query: string): Promise<IUserDto[]> {
         try {
             if (!query) throw new Error("Search query is required");
 
@@ -137,7 +137,7 @@ export class UserService implements IUserService {
                 ],
             });
 
-            return { users };
+            return users;
         } catch (err: any) {
             throw err;
         }
