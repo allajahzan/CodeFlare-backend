@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use("/", checkAuth, router);
+app.use("/", router);
 
 // Error Handler
 app.use(errorHandler);

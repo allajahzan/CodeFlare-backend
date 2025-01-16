@@ -9,6 +9,7 @@ import { IGetUserResponse, IGetUsersResponse } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
+import { sendInvitation } from "../../utils/sendInvitation";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -44,13 +45,15 @@ export class UserService implements IUserService {
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
-            if (isUserExist) throw new ConflictError("User already exists");
+            // if (isUserExist) throw new ConflictError("User already exists");
 
-            const newUser = await this.userRepository.create(user);
+            // const newUser = await this.userRepository.create(user);
 
-            if (!newUser) throw new Error("Failed to add the user");
+            // if (!newUser) throw new Error("Failed to add the user");
 
-            return { user: newUser };
+            sendInvitation(user.email, user.name) // send mail to user
+
+            return { user: isUserExist as IUserSchema };
         } catch (err: any) {
             throw err;
         }
