@@ -1,5 +1,3 @@
-import { IUserSchema } from "../modal/interface/IUserSchema";
-
 /** DTO for retrieving user data  */
 export interface IUserDto {
     profilePic: string;
