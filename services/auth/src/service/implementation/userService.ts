@@ -33,10 +33,7 @@ export class UserService implements IUserService {
      * @param password - The password of the user to log in.
      * @returns A promise that resolves to an object containing the access and refresh tokens if the login is successful, otherwise the promise is rejected with an error.
      */
-    async userLogin(
-        email: string,
-        password: string
-    ): Promise<IUserLoginDto> {
+    async userLogin(email: string, password: string): Promise<IUserLoginDto> {
         try {
             const user = await this.userRespository.findUserByEmail(email);
 
@@ -82,6 +79,11 @@ export class UserService implements IUserService {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
             if (isUserExist) throw new ConflictError("User already exists");
+
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            password = hashedPassword;
 
             const newUser = await this.userRespository.create({
                 email,

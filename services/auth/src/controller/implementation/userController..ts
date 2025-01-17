@@ -53,7 +53,6 @@ export class UserController implements IUserController {
             const { email, password, role } = req.body;
 
             const data = await this.userService.userRegister(email, password, role);
-            console.log(data);
             SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
