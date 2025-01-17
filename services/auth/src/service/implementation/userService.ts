@@ -91,7 +91,7 @@ export class UserService implements IUserService {
 
             if (!newUser) throw new Error("Failed to create the user");
 
-            return { newUser };
+            return newUser;
         } catch (err: any) {
             throw err;
         }

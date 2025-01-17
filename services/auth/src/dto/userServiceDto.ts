@@ -8,7 +8,8 @@ export interface IUserLoginDto {
 
 /** Dto for userRegister */
 export interface IUserRegisterDto {
-    newUser: IUserSchema;
+    email: string;
+    role: string;
 }
 
 /** Dto for refreshToken */
