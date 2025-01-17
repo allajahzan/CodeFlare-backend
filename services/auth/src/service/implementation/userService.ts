@@ -1,7 +1,9 @@
 import {
+    comparePassword,
     ConflictError,
     ForbiddenError,
     generateJwtToken,
+    hashPassword,
     JwtPayloadType,
     UnauthorizedError,
 } from "@codeflare/common";
@@ -39,7 +41,7 @@ export class UserService implements IUserService {
 
             if (!user) throw new UnauthorizedError("User not found");
 
-            const isPsswordMatch = await bcrypt.compare(password, user.password);
+            const isPsswordMatch = await comparePassword(password, user.password);
 
             if (!isPsswordMatch) throw new UnauthorizedError("Invalid password");
 
@@ -80,8 +82,7 @@ export class UserService implements IUserService {
 
             if (isUserExist) throw new ConflictError("User already exists");
 
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+            const hashedPassword = await hashPassword(password); // hash password
 
             password = hashedPassword;
 
