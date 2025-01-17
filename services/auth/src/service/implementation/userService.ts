@@ -1,7 +1,9 @@
 import {
+    comparePassword,
     ConflictError,
     ForbiddenError,
     generateJwtToken,
+    hashPassword,
     JwtPayloadType,
     UnauthorizedError,
 } from "@codeflare/common";
@@ -33,16 +35,13 @@ export class UserService implements IUserService {
      * @param password - The password of the user to log in.
      * @returns A promise that resolves to an object containing the access and refresh tokens if the login is successful, otherwise the promise is rejected with an error.
      */
-    async userLogin(
-        email: string,
-        password: string
-    ): Promise<IUserLoginDto> {
+    async userLogin(email: string, password: string): Promise<IUserLoginDto> {
         try {
             const user = await this.userRespository.findUserByEmail(email);
 
             if (!user) throw new UnauthorizedError("User not found");
 
-            const isPsswordMatch = await bcrypt.compare(password, user.password);
+            const isPsswordMatch = await comparePassword(password, user.password);
 
             if (!isPsswordMatch) throw new UnauthorizedError("Invalid password");
 
@@ -83,6 +82,10 @@ export class UserService implements IUserService {
 
             if (isUserExist) throw new ConflictError("User already exists");
 
+            const hashedPassword = await hashPassword(password); // hash password
+
+            password = hashedPassword;
+
             const newUser = await this.userRespository.create({
                 email,
                 password,
@@ -91,7 +94,7 @@ export class UserService implements IUserService {
 
             if (!newUser) throw new Error("Failed to create the user");
 
-            return { newUser };
+            return newUser;
         } catch (err: any) {
             throw err;
         }

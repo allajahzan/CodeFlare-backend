@@ -1,5 +1,3 @@
-import { IUserSchema } from "../modal/interface/IUserSchema";
-
 /** Dto for userLogin */
 export interface IUserLoginDto {
     refreshToken: string;
@@ -8,7 +6,8 @@ export interface IUserLoginDto {
 
 /** Dto for userRegister */
 export interface IUserRegisterDto {
-    newUser: IUserSchema;
+    email: string;
+    role: string;
 }
 
 /** Dto for refreshToken */
