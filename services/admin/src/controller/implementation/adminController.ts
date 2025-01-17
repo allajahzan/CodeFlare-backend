@@ -32,9 +32,9 @@ export class AdminController implements IAdminController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { id: _id } = req.params;
+            const { id: _id } = req.query;
 
-            const data = await this.adminService.getAdmin(_id);
+            const data = await this.adminService.getAdmin(_id as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
             next(err);

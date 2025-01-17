@@ -12,7 +12,7 @@ const adminService = new AdminService(adminRepository);
 const adminController = new AdminController(adminService);
 
 // Get admin
-router.get("/:id", (req: Request, res: Response, next: NextFunction) =>
+router.get("/", (req: Request, res: Response, next: NextFunction) =>
     adminController.getAdmin(req, res, next)
 );
 
