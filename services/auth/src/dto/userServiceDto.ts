@@ -1,5 +1,3 @@
-import { IUserSchema } from "../modal/interface/IUserSchema";
-
 /** Dto for userLogin */
 export interface IUserLoginDto {
     refreshToken: string;
