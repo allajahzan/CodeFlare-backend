@@ -1,5 +1,6 @@
 /** Dto for userLogin */
 export interface IUserLoginDto {
+    role: string
     refreshToken: string;
     accessToken: string;
 }

@@ -44,6 +44,7 @@ export class UserController implements IUserController {
             });
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, {
+                role: data.role,
                 accessToken: data.accessToken,
             });
         } catch (err) {

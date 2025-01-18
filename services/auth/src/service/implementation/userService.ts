@@ -59,7 +59,7 @@ export class UserService implements IUserService {
                 "1m"
             );
 
-            return { accessToken, refreshToken };
+            return { role: user.role, accessToken, refreshToken };
         } catch (err: any) {
             throw err;
         }
