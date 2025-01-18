@@ -51,13 +51,13 @@ export class UserService implements IUserService {
 
             const payload = { _id: user._id as string, role: user.role };
 
-            const refreshToken = generateJwtToken(
+            const refreshToken = generateJwtToken( // Refresh token
                 payload,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string,
                 "1d"
             );
 
-            const accessToken = generateJwtToken(
+            const accessToken = generateJwtToken( // Access token
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
@@ -122,7 +122,7 @@ export class UserService implements IUserService {
 
             if (!payload) throw new ForbiddenError();
 
-            const accessToken = generateJwtToken(
+            const accessToken = generateJwtToken( // Generate acccess token
                 { _id: payload._id, role: payload.role },
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
