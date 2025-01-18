@@ -18,7 +18,7 @@ export const checkAuth = async (
     next: NextFunction
 ) => {
     try {
-        const x_user = req.headers["x-user"];
+        const x_user = req.headers["x-user"]; // Payload from request header
         if (!x_user) throw new UnauthorizedError("Unauthorized Access");
 
         const payload = JSON.parse(x_user as string);
@@ -27,6 +27,7 @@ export const checkAuth = async (
         const user = await new UserRepository(User).findOne({
             _id: payload.userId,
         });
+
         if (!user)
             throw new NotFoundError("No such user found. Unauthorized Access");
 
@@ -37,6 +38,8 @@ export const checkAuth = async (
             throw new UnauthorizedError(
                 "Your account has been blocked. Please contact the admin"
             );
+
+        req.headers["x-user-id"] = JSON.stringify({ _id: user._id }); // Set user _id as request header
 
         next();
     } catch (err) {

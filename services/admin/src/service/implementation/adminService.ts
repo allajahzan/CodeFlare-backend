@@ -1,4 +1,4 @@
-import { NotFoundError } from "@codeflare/common";
+import { ForbiddenError, NotFoundError, UnauthorizedError } from "@codeflare/common";
 import { AdminRepositoty } from "../../repository/implementation/adminRepository";
 import { IAdminRepostory } from "../../repository/interface/IAdminRepository";
 import { IAdminService } from "../interface/IAdminService";
@@ -23,9 +23,15 @@ export class AdminService implements IAdminService {
      * @returns A promise that resolves to an object containing the admin if found, otherwise rejects with an error.
      * @throws NotFoundError if the admin is not found.
      */
-    async getAdmin(_id: string): Promise<IAdminDto> {
+    async getAdmin(user: string): Promise<IAdminDto> {
         try {
-            const admin = await this.adminRepository.findOne({ _id });
+            if(!user) throw new ForbiddenError()
+
+            const data = JSON.parse(user as string)
+            
+            console.log(data)
+
+            const admin = await this.adminRepository.findOne({ _id : data._id });
 
             if (!admin) throw new NotFoundError("Admin not found");
 
@@ -43,12 +49,16 @@ export class AdminService implements IAdminService {
      * @throws Error if the updating of the admin fails.
      */
     async updateAdmin(
-        _id: string,
+        user: string,
         admin: IAdminSchema
     ): Promise<IAdminDto> {
         try {
+            if(!user) throw new ForbiddenError()
+
+            const data = JSON.parse(user as string)
+
             const updatedAdmin = await this.adminRepository.update(
-                { _id },
+                { _id : data._id },
                 { $set: admin },
                 { new: true }
             );

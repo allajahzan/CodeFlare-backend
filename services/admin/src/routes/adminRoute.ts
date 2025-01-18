@@ -17,7 +17,7 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Update admin
-router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
+router.put("/", (req: Request, res: Response, next: NextFunction) =>
     adminController.updateAdmin(req, res, next)
 );
 
