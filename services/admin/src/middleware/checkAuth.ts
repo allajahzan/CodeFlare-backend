@@ -18,18 +18,16 @@ export const checkAuth = async (
     next: NextFunction
 ) => {
     try {
-        const x_user = req.headers["x-user"]; // Payload from request header
-        if (!x_user) throw new UnauthorizedError("Unauthorized Access");
+        const userPayload = req.headers["x-user-payload"]; // Payload from request header
+        if (!userPayload) throw new UnauthorizedError("Unauthorized Access");
 
-        const payload = JSON.parse(x_user as string);
+        const payload = JSON.parse(userPayload as string);
         if (!payload) throw new UnauthorizedError("Unauthorized Access");
 
-        const user = await new UserRepository(User).findOne({
-            _id: payload.userId,
-        });
+        const user = await new UserRepository(User).findOne({_id: payload._id});
 
         if (!user)
-            throw new NotFoundError("No such user found. Unauthorized Access");
+            throw new NotFoundError("No such user found.");
 
         if (user.role !== payload.role)
             throw new UnauthorizedError("Unauthorized Access");
