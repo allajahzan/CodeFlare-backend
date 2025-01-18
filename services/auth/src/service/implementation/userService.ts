@@ -35,9 +35,9 @@ export class UserService implements IUserService {
      * @param password - The password of the user to log in.
      * @returns A promise that resolves to an object containing the access and refresh tokens if the login is successful, otherwise the promise is rejected with an error.
      */
-    async userLogin(email: string, password: string): Promise<IUserLoginDto> {
+    async userLogin(email: string, password: string, role: string): Promise<IUserLoginDto> {
         try {
-            const user = await this.userRespository.findUserByEmail(email);
+            const user = await this.userRespository.findOne({email, role});
 
             if (!user) throw new UnauthorizedError("User not found");
 

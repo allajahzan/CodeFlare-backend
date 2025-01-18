@@ -32,9 +32,9 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password } = req.body;
+            const { email, password, role } = req.body;
 
-            const data = await this.userService.userLogin(email, password);
+            const data = await this.userService.userLogin(email, password, role);
 
             res.cookie("refreshToken", data.refreshToken, {
                 httpOnly: true,
