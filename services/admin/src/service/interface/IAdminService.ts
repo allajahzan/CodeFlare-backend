@@ -3,6 +3,6 @@ import { IAdminSchema } from "../../modal/interface/IAdminSchema"
 
 /** Interface for Admin Service */
 export interface IAdminService {
-    getAdmin(user: any) : Promise<IAdminDto>
-    updateAdmin(user: any, admin: IAdminSchema) : Promise<IAdminDto>
+    getAdmin(payload: any) : Promise<IAdminDto>
+    updateAdmin(payload: any, admin: IAdminSchema) : Promise<IAdminDto>
 }

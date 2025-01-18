@@ -32,9 +32,9 @@ export class AdminController implements IAdminController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const user = req.headers['x-user-id'];
+            const payload = req.headers['x-user-id']; // Payload
 
-            const data = await this.adminService.getAdmin(user as any);
+            const data = await this.adminService.getAdmin(payload as any);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
             next(err);
@@ -55,9 +55,9 @@ export class AdminController implements IAdminController {
     ): Promise<void> {
         try {
             const admin = req.body;
-            const user = req.headers['x-user-id'];
+            const payload = req.headers['x-user-id']; // Payload
 
-            const data = await this.adminService.updateAdmin(user, admin);
+            const data = await this.adminService.updateAdmin(payload, admin);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
             next(err);

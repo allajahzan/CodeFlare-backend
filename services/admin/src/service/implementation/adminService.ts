@@ -23,17 +23,15 @@ export class AdminService implements IAdminService {
      * @returns A promise that resolves to an object containing the admin if found, otherwise rejects with an error.
      * @throws NotFoundError if the admin is not found.
      */
-    async getAdmin(user: string): Promise<IAdminDto> {
+    async getAdmin(payload: string): Promise<IAdminDto> {
         try {
-            if(!user) throw new ForbiddenError()
+            if(!payload) throw new UnauthorizedError('Athentication failed. Please login again!')
 
-            const data = JSON.parse(user as string)
-            
-            console.log(data)
+            const user = JSON.parse(payload as string)
+   
+            const admin = await this.adminRepository.findOne({ _id : user._id });
 
-            const admin = await this.adminRepository.findOne({ _id : data._id });
-
-            if (!admin) throw new NotFoundError("Admin not found");
+            if (!admin) throw new NotFoundError("Account not found. Please contact support!");
 
             return admin
         } catch (err: any) {
@@ -49,21 +47,21 @@ export class AdminService implements IAdminService {
      * @throws Error if the updating of the admin fails.
      */
     async updateAdmin(
-        user: string,
+        payload: string,
         admin: IAdminSchema
     ): Promise<IAdminDto> {
         try {
-            if(!user) throw new ForbiddenError()
+            if(!payload) throw new ForbiddenError()
 
-            const data = JSON.parse(user as string)
+            const user = JSON.parse(payload as string)
 
             const updatedAdmin = await this.adminRepository.update(
-                { _id : data._id },
+                { _id : user._id },
                 { $set: admin },
                 { new: true }
             );
 
-            if (!updatedAdmin) throw new Error("Failed to update admin");
+            if (!updatedAdmin) throw new Error("Failed to update profile!");
 
             return updatedAdmin
         } catch (err: any) {
