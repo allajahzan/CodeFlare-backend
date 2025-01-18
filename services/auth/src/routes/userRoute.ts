@@ -25,7 +25,6 @@ router.post("/register", (req: Request, res: Response, next: NextFunction) =>
 // User refresh token
 router.post(
     "/refresh-token",
-    checkAuth,
     (req: Request, res: Response, next: NextFunction) =>
         userController.refreshToken(req, res, next)
 );
