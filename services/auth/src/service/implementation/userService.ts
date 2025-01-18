@@ -37,6 +37,7 @@ export class UserService implements IUserService {
      */
     async userLogin(email: string, password: string, role: string): Promise<IUserLoginDto> {
         try {
+            
             const user = await this.userRespository.findOne({email, role});
 
             if (!user) throw new UnauthorizedError("User not found");

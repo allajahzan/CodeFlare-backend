@@ -38,7 +38,7 @@ export class UserController implements IUserController {
 
             res.cookie("refreshToken", data.refreshToken, {
                 httpOnly: true,
-                sameSite: "none",
+                sameSite: "lax",
                 secure: false,
                 maxAge: 1000 * 60 * 60 * 24,
             });
