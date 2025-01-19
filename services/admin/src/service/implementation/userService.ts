@@ -1,15 +1,10 @@
-import {
-    ConflictError,
-    HTTPStatusCodes,
-    NotFoundError,
-    ResponseMessage,
-    SendResponse,
-} from "@codeflare/common";
+import { ConflictError, NotFoundError } from "@codeflare/common";
 import { IUserDto } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
 import { IUserSchema } from "../../modal/interface/IUserSchema";
 import { sendInvitation } from "../../utils/sendInvitation";
+import axios from "axios";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -47,11 +42,20 @@ export class UserService implements IUserService {
 
             if (isUserExist) throw new ConflictError("User already exists");
 
+            // Send user data to auth service
+            const resp = await fetch(`${process.env.BASE_URL}/auth/user/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(user),
+            });
+
+            if (resp.status !== 201) throw new Error("Failed to add the user");
+
             const newUser = await this.userRepository.create(user);
 
             if (!newUser) throw new Error("Failed to add the user");
 
-            sendInvitation(user.email, user.name, "Invitation to join - CodeFlare"); // send invitation to user
+            sendInvitation(user.email, user.name, "Invitation to join - CodeFlare"); // Send invitation to user
 
             return newUser;
         } catch (err: any) {

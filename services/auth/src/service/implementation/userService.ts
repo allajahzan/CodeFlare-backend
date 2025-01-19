@@ -51,13 +51,15 @@ export class UserService implements IUserService {
 
             const payload = { _id: user._id as string, role: user.role };
 
-            const refreshToken = generateJwtToken( // Refresh token
+            const refreshToken = generateJwtToken(
+                // Refresh token
                 payload,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string,
                 "1d"
             );
 
-            const accessToken = generateJwtToken( // Access token
+            const accessToken = generateJwtToken(
+                // Access token
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
@@ -76,23 +78,14 @@ export class UserService implements IUserService {
      * @param role - The role of the user to register.
      * @returns A promise that resolves to the newly created user if successful, otherwise the promise is rejected with an error.
      */
-    async userRegister(
-        email: string,
-        password: string,
-        role: string
-    ): Promise<IUserRegisterDto> {
+    async userRegister(email: string, role: string): Promise<IUserRegisterDto> {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
             if (isUserExist) throw new ConflictError("User already exists");
 
-            const hashedPassword = await hashPassword(password); // hash password
-
-            password = hashedPassword;
-
             const newUser = await this.userRespository.create({
                 email,
-                password,
                 role,
             });
 
@@ -111,7 +104,7 @@ export class UserService implements IUserService {
      * @throws {ForbiddenError} If the token is not provided.
      * @throws {Error} If any error occurs during token verification or generation.
      */
-    async refreshToken(token: string): Promise<any> {
+    async refreshToken(token: string): Promise<IRefreshTokenDto> {
         try {
             if (!token) throw new ForbiddenError();
 
@@ -122,7 +115,8 @@ export class UserService implements IUserService {
 
             if (!payload) throw new ForbiddenError();
 
-            const accessToken = generateJwtToken( // Generate acccess token
+            const accessToken = generateJwtToken(
+                // Generate acccess token
                 { _id: payload._id, role: payload.role },
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"

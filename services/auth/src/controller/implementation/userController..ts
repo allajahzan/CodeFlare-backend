@@ -65,9 +65,9 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password, role } = req.body;
+            const { email, role } = req.body;
 
-            const data = await this.userService.userRegister(email, password, role);
+            const data = await this.userService.userRegister(email, role);
             SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
