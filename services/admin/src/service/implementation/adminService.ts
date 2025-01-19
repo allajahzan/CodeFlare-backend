@@ -51,7 +51,7 @@ export class AdminService implements IAdminService {
         admin: IAdminSchema
     ): Promise<IAdminDto> {
         try {
-            if(!payload) throw new ForbiddenError()
+            if(!payload) throw new UnauthorizedError("Athentication failed. Please login again!")
 
             const user = JSON.parse(payload as string)
 

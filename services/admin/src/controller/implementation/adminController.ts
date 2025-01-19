@@ -32,7 +32,9 @@ export class AdminController implements IAdminController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const payload = req.headers['x-user-id']; // Payload
+            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
+
+            const payload = req.headers["x-user-id"]; // Payload
 
             const data = await this.adminService.getAdmin(payload as any);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
@@ -55,7 +57,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> {
         try {
             const admin = req.body;
-            const payload = req.headers['x-user-id']; // Payload
+            const payload = req.headers["x-user-id"]; // Payload
 
             const data = await this.adminService.updateAdmin(payload, admin);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
