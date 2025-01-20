@@ -24,14 +24,11 @@ router.post("/register", (req: Request, res: Response, next: NextFunction) =>
 
 // Verify email
 router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =>
-    userController.userRegister(req, res, next)
+        userController.userRegister(req, res, next)
 );
 
 // User refresh token
-router.post(
-    "/refresh-token",
-    checkAuth,
-    (req: Request, res: Response, next: NextFunction) =>
+router.post("/refresh-token", (req: Request, res: Response, next: NextFunction) =>
         userController.refreshToken(req, res, next)
 );
 

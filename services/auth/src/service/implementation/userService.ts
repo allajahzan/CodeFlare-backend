@@ -48,7 +48,7 @@ export class UserService implements IUserService {
 
             if (!isPsswordMatch) throw new UnauthorizedError("Invalid password!");
 
-            const payload = { userId: user._id as string, role: user.role };
+            const payload = { _id: user._id as string, role: user.role };
 
             const refreshToken = generateJwtToken(
                 payload,
@@ -75,23 +75,14 @@ export class UserService implements IUserService {
      * @param role - The role of the user to register.
      * @returns A promise that resolves to the newly created user if successful, otherwise the promise is rejected with an error.
      */
-    async userRegister(
-        email: string,
-        password: string,
-        role: string
-    ): Promise<IUserRegisterDto> {
+    async userRegister(email: string, role: string): Promise<IUserRegisterDto> {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
             if (isUserExist) throw new ConflictError("Account already exists!");
 
-            const hashedPassword = await hashPassword(password); // hash password
-
-            password = hashedPassword;
-
             const newUser = await this.userRespository.create({
                 email,
-                password,
                 role,
             });
 

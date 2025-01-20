@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
-import { HTTPStatusCodes, ResponseMessage, SendResponse } from "@codeflare/common";
+import {
+    HTTPStatusCodes,
+    ResponseMessage,
+    SendResponse,
+} from "@codeflare/common";
 
 /** Implementation of User Controller */
 export class UserController implements IUserController {
@@ -28,9 +32,9 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password } = req.body;
+            const { email, password, role } = req.body;
 
-            const data = await this.userService.userLogin(email, password);
+            const data = await this.userService.userLogin(email, password, role);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
@@ -50,9 +54,9 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password, role } = req.body;
+            const { email, role } = req.body;
 
-            const data = await this.userService.userRegister(email, password, role);
+            const data = await this.userService.userRegister(email, role);
             SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
@@ -96,7 +100,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const refreshToken = req.cookies.refreshToken;
-            
+
             const data = await this.userService.refreshToken(refreshToken);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
