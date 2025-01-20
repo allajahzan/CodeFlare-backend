@@ -60,6 +60,28 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Handles user email verification by calling the user verification service
+     * @param req - The express request object containing the user's email and role.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the verification process is complete.
+     */
+    async userVerifyEmail(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { email, role } = req.body;
+
+            const data = await this.userService.userVerifyEmail(email, role);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
      * Handles refresh token requests by calling the refresh token service.
      *
      * @param req - The express request object containing the refresh token in cookies.

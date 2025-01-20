@@ -5,6 +5,7 @@ import {
     generateJwtToken,
     hashPassword,
     JwtPayloadType,
+    NotFoundError,
     UnauthorizedError,
 } from "@codeflare/common";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
@@ -16,6 +17,8 @@ import {
     IUserRegisterDto,
     IRefreshTokenDto,
 } from "../../dto/userServiceDto";
+import { sendOtp } from "../../utils/sendOtp";
+import { generateOTP } from "../../utils/generateOtp";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -39,11 +42,11 @@ export class UserService implements IUserService {
         try {
             const user = await this.userRespository.findUserByEmail(email);
 
-            if (!user) throw new UnauthorizedError("User not found");
+            if (!user) throw new UnauthorizedError("Account not found!");
 
             const isPsswordMatch = await comparePassword(password, user.password);
 
-            if (!isPsswordMatch) throw new UnauthorizedError("Invalid password");
+            if (!isPsswordMatch) throw new UnauthorizedError("Invalid password!");
 
             const payload = { userId: user._id as string, role: user.role };
 
@@ -51,13 +54,13 @@ export class UserService implements IUserService {
                 payload,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string,
                 "1d"
-            );
+            ); // Refresh token
 
             const accessToken = generateJwtToken(
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
-            );
+            ); // Access token
 
             return { accessToken, refreshToken };
         } catch (err: any) {
@@ -80,7 +83,7 @@ export class UserService implements IUserService {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
-            if (isUserExist) throw new ConflictError("User already exists");
+            if (isUserExist) throw new ConflictError("Account already exists!");
 
             const hashedPassword = await hashPassword(password); // hash password
 
@@ -92,9 +95,36 @@ export class UserService implements IUserService {
                 role,
             });
 
-            if (!newUser) throw new Error("Failed to create the user");
+            if (!newUser) throw new Error("Failed to add the user!");
 
             return newUser;
+        } catch (err: any) {
+            throw err;
+        }
+    }
+
+    /**
+     * Verifies the user's email by sending an OTP to the user's email address.
+     * @param email - The email of the user to verify.
+     * @param role - The role of the user to verify.
+     * @returns A promise that resolves if the email is verified successfully, otherwise the promise is rejected with an error.
+     */
+    async userVerifyEmail(email: string, role: string): Promise<void> {
+        try {
+            const isUserExist = await this.userRespository.findOne({ email, role });
+
+            if (!isUserExist)
+                throw new NotFoundError("Account not found. Please contact support!");
+
+            const otp = generateOTP(); // Generate OTP
+            const hashedOtp = await hashPassword(otp.toString());
+
+            await this.userRespository.update(
+                { email, role },
+                { $set: { otp: hashedOtp } }
+            ); // Store otp in database
+
+            sendOtp(email, role, otp, "Verify your account"); // Send OTP to user
         } catch (err: any) {
             throw err;
         }

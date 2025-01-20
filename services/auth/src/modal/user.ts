@@ -15,6 +15,10 @@ const userSchema = new Schema<IUserSchema>({
         type: String,
         required: true,
     },
+    otp: {
+        type: String,
+        required: false,
+    },
     isblock: {
         type: Boolean,
         default : false

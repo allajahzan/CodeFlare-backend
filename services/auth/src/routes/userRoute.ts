@@ -22,6 +22,11 @@ router.post("/register", (req: Request, res: Response, next: NextFunction) =>
     userController.userRegister(req, res, next)
 );
 
+// Verify email
+router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =>
+    userController.userRegister(req, res, next)
+);
+
 // User refresh token
 router.post(
     "/refresh-token",
