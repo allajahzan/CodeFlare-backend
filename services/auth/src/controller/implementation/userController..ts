@@ -20,7 +20,7 @@ export class UserController implements IUserController {
     }
 
     /**
-     * Handles user login requests by calling the user login service
+     * Handles user login requests by calling the user login service.
      * @param req - The express request object containing user login details.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.
@@ -35,7 +35,18 @@ export class UserController implements IUserController {
             const { email, password, role } = req.body;
 
             const data = await this.userService.userLogin(email, password, role);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+
+            res.cookie("refreshToken", data.refreshToken, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24,
+            });
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, {
+                role: data.role,
+                accessToken: data.accessToken,
+            });
         } catch (err) {
             next(err);
         }

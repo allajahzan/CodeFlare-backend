@@ -1,4 +1,4 @@
-import { NotFoundError } from "@codeflare/common";
+import { ForbiddenError, NotFoundError, UnauthorizedError } from "@codeflare/common";
 import { AdminRepositoty } from "../../repository/implementation/adminRepository";
 import { IAdminRepostory } from "../../repository/interface/IAdminRepository";
 import { IAdminService } from "../interface/IAdminService";
@@ -23,11 +23,15 @@ export class AdminService implements IAdminService {
      * @returns A promise that resolves to an object containing the admin if found, otherwise rejects with an error.
      * @throws NotFoundError if the admin is not found.
      */
-    async getAdmin(_id: string): Promise<IAdminDto> {
+    async getAdmin(payload: string): Promise<IAdminDto> {
         try {
-            const admin = await this.adminRepository.findOne({ _id });
+            if(!payload) throw new UnauthorizedError('Athentication failed. Please login again!')
 
-            if (!admin) throw new NotFoundError("Admin not found");
+            const user = JSON.parse(payload as string)
+   
+            const admin = await this.adminRepository.findOne({ _id : user._id });
+
+            if (!admin) throw new NotFoundError("Account not found. Please contact support!");
 
             return admin
         } catch (err: any) {
@@ -43,17 +47,21 @@ export class AdminService implements IAdminService {
      * @throws Error if the updating of the admin fails.
      */
     async updateAdmin(
-        _id: string,
+        payload: string,
         admin: IAdminSchema
     ): Promise<IAdminDto> {
         try {
+            if(!payload) throw new UnauthorizedError("Athentication failed. Please login again!")
+
+            const user = JSON.parse(payload as string)
+
             const updatedAdmin = await this.adminRepository.update(
-                { _id },
+                { _id : user._id },
                 { $set: admin },
                 { new: true }
             );
 
-            if (!updatedAdmin) throw new Error("Failed to update admin");
+            if (!updatedAdmin) throw new Error("Failed to update profile!");
 
             return updatedAdmin
         } catch (err: any) {

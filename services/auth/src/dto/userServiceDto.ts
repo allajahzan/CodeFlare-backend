@@ -1,9 +1,6 @@
 /** Dto for userLogin */
 export interface IUserLoginDto {
-<<<<<<< Updated upstream
-=======
-    role: string;
->>>>>>> Stashed changes
+    role: string
     refreshToken: string;
     accessToken: string;
 }

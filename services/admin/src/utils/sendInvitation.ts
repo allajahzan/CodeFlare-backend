@@ -1,8 +1,9 @@
 import { sendEmail } from "@codeflare/common";
 
 export const sendInvitation = (
-    email: string,
     name: string,
+    email: string,
+    role: string,
     subject: string
 ): void => {
     try {
@@ -18,8 +19,8 @@ export const sendInvitation = (
         </h1>
 
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
-            You've been invited to join our platform. To ensure the security of your account, please 
-            <a href="http://localhost:5173/admin/login" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
+            Dear ${name} you've been invited to join our platform as ${role}. To ensure the security of your account, please 
+            <a href="http://localhost:5173/${role}/verify-email" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
                 set up your password
             </a> to get started.
         </p>

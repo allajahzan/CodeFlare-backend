@@ -38,9 +38,13 @@ export class UserService implements IUserService {
      * @param password - The password of the user to log in.
      * @returns A promise that resolves to an object containing the access and refresh tokens if the login is successful, otherwise the promise is rejected with an error.
      */
-    async userLogin(email: string, password: string): Promise<IUserLoginDto> {
+    async userLogin(
+        email: string,
+        password: string,
+        role: string
+    ): Promise<IUserLoginDto> {
         try {
-            const user = await this.userRespository.findUserByEmail(email);
+            const user = await this.userRespository.findOne({ email, role });
 
             if (!user) throw new UnauthorizedError("Account not found!");
 
@@ -51,18 +55,20 @@ export class UserService implements IUserService {
             const payload = { _id: user._id as string, role: user.role };
 
             const refreshToken = generateJwtToken(
+                // Refresh token
                 payload,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string,
                 "1d"
             ); // Refresh token
 
             const accessToken = generateJwtToken(
+                // Access token
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
             ); // Access token
 
-            return { accessToken, refreshToken };
+            return { role: user.role, accessToken, refreshToken };
         } catch (err: any) {
             throw err;
         }
@@ -140,7 +146,8 @@ export class UserService implements IUserService {
             if (!payload) throw new ForbiddenError();
 
             const accessToken = generateJwtToken(
-                payload,
+                // Generate acccess token
+                { _id: payload._id, role: payload.role },
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
             );

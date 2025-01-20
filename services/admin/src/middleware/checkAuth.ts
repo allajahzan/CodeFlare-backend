@@ -1,7 +1,7 @@
 import { NotFoundError, UnauthorizedError } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
-import { UserRepository } from "../repository/implementation/userRepository";
-import User from "../modal/user";
+import { AdminRepositoty } from "../repository/implementation/adminRepository";
+import Admin from "../modal/admin";
 
 /**
  * Checks if the request is authenticated.
@@ -18,25 +18,19 @@ export const checkAuth = async (
     next: NextFunction
 ) => {
     try {
-        const x_user = req.headers["x-user"];
-        if (!x_user) throw new UnauthorizedError("Unauthorized Access");
+        const userPayload = req.headers["x-user-payload"]; // payload from request header
+        if (!userPayload) throw new UnauthorizedError("Authentication failed. Please login again!");
 
-        const payload = JSON.parse(x_user as string);
-        if (!payload) throw new UnauthorizedError("Unauthorized Access");
+        const payload = JSON.parse(userPayload as string);
+        if (!payload) throw new UnauthorizedError("Invalid authentication data. Please login again!");
 
-        const user = await new UserRepository(User).findOne({
-            _id: payload.userId,
-        });
-        if (!user)
-            throw new NotFoundError("No such user found. Unauthorized Access");
+        const admin = await new AdminRepositoty(Admin).findOne({ _id: payload._id }); // Find admin by _id
+        if (!admin) throw new NotFoundError("Account not found. Please contact support!");
 
-        if (user.role !== payload.role)
-            throw new UnauthorizedError("Unauthorized Access");
+        if (admin.role !== payload.role)
+            throw new UnauthorizedError("You do not have permission to access this resource!");
 
-        if (user.isblock)
-            throw new UnauthorizedError(
-                "Your account has been blocked. Please contact the admin"
-            );
+        req.headers["x-user-id"] = JSON.stringify({ _id: admin._id }); // Set _id as request header
 
         next();
     } catch (err) {

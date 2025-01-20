@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { checkAuth } from "../middleware/checkAuth";
 import { UserController } from "../controller/implementation/userController.";
 import { UserService } from "../service/implementation/userService";
 import { UserRepository } from "../repository/implementation/userRepository";
@@ -28,7 +27,7 @@ router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =
 );
 
 // User refresh token
-router.post("/refresh-token", (req: Request, res: Response, next: NextFunction) =>
+router.post( "/refresh-token", (req: Request, res: Response, next: NextFunction) =>
         userController.refreshToken(req, res, next)
 );
 
