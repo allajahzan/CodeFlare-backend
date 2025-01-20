@@ -118,14 +118,19 @@ export class UserService implements IUserService {
     async userVerifyEmail(email: string, token: string): Promise<void> {
         try {
             if (isTokenExpired(token))
-                throw new Error("Account verification link has expired"); // Check if token is expired
+                throw new Error(
+                    "Account verification link has expired. Please contact support!"
+                ); // Check if token is expired
 
             const payload = verifyJwtToken(
                 token,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string
             ); // Verify token
 
-            if (!payload) throw new Error("Account verification link has expired");
+            if (!payload)
+                throw new Error(
+                    "Account verification link has expired. Please contact support!"
+                );
 
             const { _id, role } = payload;
 
@@ -133,7 +138,7 @@ export class UserService implements IUserService {
                 _id,
                 email,
                 role,
-                token
+                token,
             });
 
             if (!user)
@@ -146,6 +151,47 @@ export class UserService implements IUserService {
             await this.userRespository.update({ email, role }, { $set: { otp } }); // Store otp in database
 
             sendOtp(email, role, otp, "Verify your account"); // Send OTP to user
+        } catch (err: any) {
+            throw err;
+        }
+    }
+
+    async userVerifyOtp(otp: string, token: string): Promise<void> {
+        try {
+            if (isTokenExpired(token))
+                throw new Error(
+                    "Account verification link has expired. Please contact support!"
+                ); // Check if token is expired
+
+            const payload = verifyJwtToken(
+                token,
+                process.env.JWT_ACCESS_TOKEN_SECRET as string
+            ); // Verify token
+
+            if (!payload)
+                throw new Error(
+                    "Account verification link has expired. Please contact support!"
+                );
+
+            const { _id, role } = payload;
+
+            const user = await this.userRespository.findOne({
+                _id,
+                role,
+                token,
+            });
+
+            if (!user)
+                throw new NotFoundError("Account not found. Please contact support!");
+
+            if (user.isVerify) throw new Error("Account is already verified!");
+
+            if (user.otp !== otp) throw new Error("Invalid OTP!"); // Verify OTP
+
+            await this.userRespository.update( 
+                { _id, role },
+                { $set: { isVerify: true } }
+            );
         } catch (err: any) {
             throw err;
         }

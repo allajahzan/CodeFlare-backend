@@ -33,7 +33,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email, password, role } = req.body;
-            
+
             const data = await this.userService.userLogin(email, password, role);
 
             res.cookie("refreshToken", data.refreshToken, {
@@ -90,7 +90,7 @@ export class UserController implements IUserController {
         try {
             const { email } = req.body;
             const { token } = req.query;
-            
+
             await this.userService.userVerifyEmail(email, token as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: any) {
@@ -99,8 +99,30 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Handles user OTP verification by calling the OTP verification service
+     * @param req - The express request object containing the OTP in the body and the verification token in the query.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the verification process is complete.
+     */
+    async userVerifyOtp(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { otp } = req.body;
+            const { token } = req.query;
+
+            await this.userService.userVerifyOtp(otp, token as string);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
      * Handles refresh token requests by calling the refresh token service.
-     *
      * @param req - The express request object containing the refresh token in cookies.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.

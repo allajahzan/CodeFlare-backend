@@ -5,5 +5,6 @@ export interface IUserService {
     userLogin(email: string, password: string, role:string): Promise<IUserLoginDto>;
     userRegister(_id: string,email: string, role: string, token: string): Promise<IUserRegisterDto>;
     userVerifyEmail(email:string, token: string) :  Promise<void>
+    userVerifyOtp(otp: string, token: string): Promise<void>
     refreshToken(token: string): Promise<IRefreshTokenDto>
 }
