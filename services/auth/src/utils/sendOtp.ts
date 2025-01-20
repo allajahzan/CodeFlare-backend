@@ -19,7 +19,7 @@ export const sendOtp = (
         </h1>
 
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
-            Dear ${role} Your OTP to verify your account is ${otp}.
+            Dear ${role}, your OTP to verify your account is ${otp}.
         </p>
 
         <div style="background-color: #f5f5f5; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">

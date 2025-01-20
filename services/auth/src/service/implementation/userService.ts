@@ -114,12 +114,8 @@ export class UserService implements IUserService {
                 throw new NotFoundError("Account not found. Please contact support!");
 
             const otp = generateOTP(); // Generate OTP
-            const hashedOtp = await hashPassword(otp.toString());
 
-            await this.userRespository.update(
-                { email, role },
-                { $set: { otp: hashedOtp } }
-            ); // Store otp in database
+            await this.userRespository.update({ email, role }, { $set: { otp } }); // Store otp in database
 
             sendOtp(email, role, otp, "Verify your account"); // Send OTP to user
         } catch (err: any) {
