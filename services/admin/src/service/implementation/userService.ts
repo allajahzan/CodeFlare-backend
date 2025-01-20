@@ -55,7 +55,12 @@ export class UserService implements IUserService {
 
             if (!newUser) throw new Error("Failed to add the user");
 
-            sendInvitation(user.email, user.name, "Invitation to join - CodeFlare"); // Send invitation to user
+            sendInvitation(
+                user.name,
+                user.email,
+                user.role,
+                "Invitation to join - CodeFlare"
+            ); // Send invitation to user
 
             return newUser;
         } catch (err: any) {
