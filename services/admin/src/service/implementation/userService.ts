@@ -55,7 +55,7 @@ export class UserService implements IUserService {
             const token = generateJwtToken(
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
-                "1m"
+                "24h"
             );
 
             // Send user data to auth service
