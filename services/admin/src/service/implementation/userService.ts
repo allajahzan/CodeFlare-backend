@@ -1,4 +1,8 @@
-import { ConflictError, NotFoundError } from "@codeflare/common";
+import {
+    ConflictError,
+    generateJwtToken,
+    NotFoundError,
+} from "@codeflare/common";
 import { IUserDto } from "../../dto/userServiceDto";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
@@ -42,23 +46,36 @@ export class UserService implements IUserService {
 
             if (isUserExist) throw new ConflictError("User already exists");
 
+            const newUser = await this.userRepository.create(user);
+
+            if (!newUser) throw new Error("Failed to add the user");
+
+            const payload = { _id: newUser._id as string, role: newUser.role }; // Generate JWT token to send with email
+
+            const token = generateJwtToken(
+                payload,
+                process.env.JWT_ACCESS_TOKEN_SECRET as string,
+                "1m"
+            );
+
             // Send user data to auth service
             const resp = await fetch(`${process.env.BASE_URL}/auth/user/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(user),
+                body: JSON.stringify({...user, token}),
             });
 
-            if (resp.status !== 201) throw new Error("Failed to add the user");
-
-            const newUser = await this.userRepository.create(user);
-
-            if (!newUser) throw new Error("Failed to add the user");
+            if (resp.status !== 201) {
+                // If user is not created
+                await this.userRepository.delete({ _id: newUser._id });
+                throw new Error("Failed to add the user");
+            }
 
             sendInvitation(
                 user.name,
                 user.email,
                 user.role,
+                token,
                 "Invitation to join - CodeFlare"
             ); // Send invitation to user
 
