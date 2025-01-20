@@ -11,7 +11,7 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.25",
+    "@codeflare/common": "^1.0.27",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",

@@ -88,9 +88,13 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, role } = req.body;
+            const { email } = req.body;
+            const { token } = req.query;
 
-            const data = await this.userService.userVerifyEmail(email, role);
+            const data = await this.userService.userVerifyEmail(
+                email,
+                token as string
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: any) {
             next(err);

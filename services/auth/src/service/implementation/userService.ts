@@ -4,9 +4,11 @@ import {
     ForbiddenError,
     generateJwtToken,
     hashPassword,
+    isTokenExpired,
     JwtPayloadType,
     NotFoundError,
     UnauthorizedError,
+    verifyJwtToken,
 } from "@codeflare/common";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserService } from "../interface/IUserService";
@@ -113,12 +115,31 @@ export class UserService implements IUserService {
      * @param role - The role of the user to verify.
      * @returns A promise that resolves if the email is verified successfully, otherwise the promise is rejected with an error.
      */
-    async userVerifyEmail(email: string, role: string): Promise<void> {
+    async userVerifyEmail(email: string, token: string): Promise<void> {
         try {
-            const isUserExist = await this.userRespository.findOne({ email, role });
+            if (isTokenExpired(token))
+                throw new Error("Account verification link has expired"); // Check if token is expired
 
-            if (!isUserExist)
+            const payload = verifyJwtToken(
+                token,
+                process.env.JWT_ACCESS_TOKEN_SECRET as string
+            ); // Verify token
+
+            if (!payload) throw new Error("Account verification link has expired");
+
+            const { _id, role } = payload;
+
+            const user = await this.userRespository.findOne({
+                _id,
+                email,
+                role,
+                token
+            });
+
+            if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
+
+            if (user.isVerify) throw new Error("Account is already verified!");
 
             const otp = generateOTP(); // Generate OTP
 
