@@ -9,7 +9,7 @@ const userSchema = new Schema<IUserSchema>({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
     },
     role: {
         type: String,
@@ -21,7 +21,7 @@ const userSchema = new Schema<IUserSchema>({
     },
     isblock: {
         type: Boolean,
-        default : false
+        default: false,
     },
 });
 

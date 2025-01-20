@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
-import { HTTPStatusCodes, ResponseMessage, SendResponse } from "@codeflare/common";
+import {
+    HTTPStatusCodes,
+    ResponseMessage,
+    SendResponse,
+} from "@codeflare/common";
 
 /** Implementation of User Controller */
 export class UserController implements IUserController {
@@ -16,7 +20,7 @@ export class UserController implements IUserController {
     }
 
     /**
-     * Handles user login requests by calling the user login service
+     * Handles user login requests by calling the user login service.
      * @param req - The express request object containing user login details.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.
@@ -28,10 +32,21 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password } = req.body;
+            const { email, password, role } = req.body;
 
-            const data = await this.userService.userLogin(email, password);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            const data = await this.userService.userLogin(email, password, role);
+
+            res.cookie("refreshToken", data.refreshToken, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24,
+            });
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, {
+                role: data.role,
+                accessToken: data.accessToken,
+            });
         } catch (err) {
             next(err);
         }
@@ -50,9 +65,9 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { email, password, role } = req.body;
+            const { email, role } = req.body;
 
-            const data = await this.userService.userRegister(email, password, role);
+            const data = await this.userService.userRegister(email, role);
             SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
@@ -96,7 +111,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const refreshToken = req.cookies.refreshToken;
-            
+
             const data = await this.userService.refreshToken(refreshToken);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
