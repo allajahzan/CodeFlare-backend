@@ -81,15 +81,22 @@ export class UserService implements IUserService {
      * @param role - The role of the user to register.
      * @returns A promise that resolves to the newly created user if successful, otherwise the promise is rejected with an error.
      */
-    async userRegister(email: string, role: string): Promise<IUserRegisterDto> {
+    async userRegister(
+        _id: string,
+        email: string,
+        role: string,
+        token: string
+    ): Promise<IUserRegisterDto> {
         try {
             const isUserExist = await this.userRespository.findUserByEmail(email);
 
             if (isUserExist) throw new ConflictError("Account already exists!");
 
             const newUser = await this.userRespository.create({
+                _id,
                 email,
                 role,
+                token,
             });
 
             if (!newUser) throw new Error("Failed to add the user!");

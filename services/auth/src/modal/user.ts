@@ -15,8 +15,16 @@ const userSchema = new Schema<IUserSchema>({
         type: String,
         required: true,
     },
+    token: {
+        type: String,
+        required: false
+    },
     otp: {
         type: String,
+        required: false,
+    },
+    isVerify: {
+        type: Boolean,
         required: false,
     },
     isblock: {

@@ -62,7 +62,7 @@ export class UserService implements IUserService {
             const resp = await fetch(`${process.env.BASE_URL}/auth/user/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({...user, token}),
+                body: JSON.stringify({newUser, token}),
             });
 
             if (resp.status !== 201) {
