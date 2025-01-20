@@ -4,9 +4,9 @@ gateway/node_modules
 
 # Services 
 
-# Authentication service
-services/auth/.env
-services/auth/node_modules
+# user service
+services/user/.env
+services/user/node_modules
 
 # Admin service
 services/admin/.env
