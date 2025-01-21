@@ -47,7 +47,7 @@ export class UserController implements IUserController {
                 role: data.role,
                 accessToken: data.accessToken,
             });
-        } catch (err) {
+        } catch (err: any) {
             next(err);
         }
     }
@@ -65,12 +65,11 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { newUser, token } = req.body;
-            const { _id, email, role } = newUser;
-
-            const data = await this.userService.userRegister(_id, email, role, token);
+            const { name, email, role, password } = req.body;
+            
+            const data = await this.userService.userRegister(name, email, role, password);
             SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
-        } catch (err) {
+        } catch (err: any) {
             next(err);
         }
     }
@@ -138,7 +137,140 @@ export class UserController implements IUserController {
 
             const data = await this.userService.refreshToken(refreshToken);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err) {
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
+     * Retrieves the user data based on the x-user-id header.
+     * @param req - The express request object containing the x-user-id header.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the user data retrieval process is complete.
+     */
+    async getUser(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
+
+            const payload = req.headers["x-user-id"]; // Payload
+
+            const data = await this.userService.getUser(payload as any);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
+     * Retrieves all users from the database by calling the user service.
+     * @param req - The express request object.
+     * @param res - The express response object used to send the list of users.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the retrieval process is complete.
+     */
+    async getStudents(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
+
+            const data = await this.userService.getUsers(["student"]); // Fetch users based on roles
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    async getCoordinatorsAndInstructors(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
+
+            const data = await this.userService.getUsers([
+                // Fetch users based on roles
+                "coordinators",
+                "instructors",
+            ]);
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
+     * Creates a new user in the database by calling the user service.
+     * @param req - The express request object containing the user to create.
+     * @param res - The express response object used to send the newly created user.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the creation process is complete.
+     */
+    async createUser(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const user = req.body;
+
+            const data = await this.userService.createUser(user);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
+     * Updates an existing user's details based on the provided ID from the request parameters.
+     * @param req - The express request object containing the user details in the request body and the user ID in the request parameters.
+     * @param res - The express response object to send the updated user data.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves when the user update process is complete.
+     */
+    async updateUser(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id: _id } = req.params;
+            const user = req.body;
+
+            const data = await this.userService.updateUser(_id, user);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
+            next(err);
+        }
+    }
+
+    /**
+     * Changes the status of a user with the given _id.
+     * @param req - The express request object containing the user ID in the request parameters.
+     * @param res - The express response object to send the updated user data.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves when the user status change process is complete.
+     */
+    async changeUserStatus(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id: _id } = req.params;
+
+            const data = await this.userService.changeUserStatus(_id);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: any) {
             next(err);
         }
     }

@@ -1,5 +1,5 @@
 import { BaseRepository } from "@codeflare/common";
-import { IAdminSchema } from "../../modal/interface/IAdminSchema";
+import { IAdminSchema } from "../../entities/IAdminSchema";
 import { Model } from "mongoose";
 import { IAdminRepostory } from "../interface/IAdminRepository";
 

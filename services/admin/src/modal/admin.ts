@@ -1,7 +1,7 @@
 /** Implementation for Admin Schema */
 
 import { model, Schema } from "mongoose";
-import { IAdminSchema } from "./interface/IAdminSchema";
+import { IAdminSchema } from "../entities/IAdminSchema";
 
 const adminSchema = new Schema<IAdminSchema>({
     profilePic: {

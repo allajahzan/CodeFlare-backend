@@ -3,7 +3,8 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
-import { errorHandler, verifyAccessToken } from "@codeflare/common";
+import { errorHandler } from "@codeflare/common";
+import { verifyToken } from "./middleware/verifyToken";
 
 // Create app
 const app = express();
@@ -30,14 +31,16 @@ const services = {
     admin: "http://localhost:3001/",
 };
 
+// Verify access token
+app.use(verifyToken)
+
 // Reverse proxy
 app.use(
-    "/api/auth",
+    "/api/user",
     createProxyMiddleware({ target: services.auth, changeOrigin: true })
 );
 app.use(
     "/api/admin",
-    verifyAccessToken(process.env.JWT_ACCESS_TOKEN_SECRET as string),
     createProxyMiddleware({ target: services.admin, changeOrigin: true })
 );
 
