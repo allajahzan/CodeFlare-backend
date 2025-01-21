@@ -2,7 +2,7 @@ import { ForbiddenError, NotFoundError, UnauthorizedError } from "@codeflare/com
 import { AdminRepositoty } from "../../repository/implementation/adminRepository";
 import { IAdminRepostory } from "../../repository/interface/IAdminRepository";
 import { IAdminService } from "../interface/IAdminService";
-import { IAdminSchema } from "../../modal/interface/IAdminSchema";
+import { IAdminSchema } from "../../entities/IAdminSchema";
 import { IAdminDto } from "../../dto/adminServiceDto";
 
 /** Implementaion of Admin Service */

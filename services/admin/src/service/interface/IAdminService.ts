@@ -1,5 +1,5 @@
 import { IAdminDto } from "../../dto/adminServiceDto"
-import { IAdminSchema } from "../../modal/interface/IAdminSchema"
+import { IAdminSchema } from "../../entities/IAdminSchema"
 
 /** Interface for Admin Service */
 export interface IAdminService {

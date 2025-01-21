@@ -1,6 +1,6 @@
 /** Dto for userLogin */
 export interface IUserLoginDto {
-    role: string
+    role: string;
     refreshToken: string;
     accessToken: string;
 }
@@ -9,6 +9,17 @@ export interface IUserLoginDto {
 export interface IUserRegisterDto {
     email: string;
     role: string;
+}
+
+export interface IUserDto {
+    name: string;
+    email: string;
+    phoneNo?: string;
+    role: string;
+    batches?: string[];
+    batch?: string;
+    week?: string;
+    createdAt: string;
 }
 
 /** Dto for refreshToken */

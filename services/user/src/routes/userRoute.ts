@@ -1,39 +1,44 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { UserController } from "../controller/implementation/userController.";
 import { UserService } from "../service/implementation/userService";
-import { UserRepository } from "../repository/implementation/userRepository";
-import User from "../modal/user";
+import { UserReporsitory } from "../repository/implementation/userRepository";
+import User from "../modal/userSchema";
 
 const router = Router();
 
 // Dependency Injection
-const userRepository = new UserRepository(User);
+const userRepository = new UserReporsitory(User);
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// User login
-router.post("/login", (req: Request, res: Response, next: NextFunction) =>
-    userController.userLogin(req, res, next)
+// Get students
+router.get("/student", (req: Request, res: Response, next: NextFunction) =>
+    userController.getStudents(req, res, next)
 );
 
-// User register
-router.post("/register", (req: Request, res: Response, next: NextFunction) =>
-    userController.userRegister(req, res, next)
+// Get Coordinators and Instructors
+router.get("/coordinator-instructor", (req: Request, res: Response, next: NextFunction) =>
+        userController.getCoordinatorsAndInstructors(req, res, next)
 );
 
-// Verify email
-router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =>
-        userController.userVerifyEmail(req, res, next)
+// Get user
+router.get("/", (req: Request, res: Response, next: NextFunction) =>
+    userController.getUser(req, res, next)
 );
 
-// Verify OTP
-router.post("/verify-otp", (req: Request, res: Response, next: NextFunction) =>
-    userController.userVerifyOtp(req, res, next)
+// Create user
+router.post("/", (req: Request, res: Response, next: NextFunction) =>
+    userController.createUser(req, res, next)
 );
 
-// User refresh token
-router.post( "/refresh-token", (req: Request, res: Response, next: NextFunction) =>
-        userController.refreshToken(req, res, next)
+// Update user
+router.put("/", (req: Request, res: Response, next: NextFunction) =>
+    userController.updateUser(req, res, next)
+);
+
+// Change user status
+router.patch("/", (req: Request, res: Response, next: NextFunction) =>
+    userController.changeUserStatus(req, res, next)
 );
 
 export { router as userRoute };
