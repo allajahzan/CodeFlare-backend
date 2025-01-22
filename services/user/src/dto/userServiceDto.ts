@@ -19,6 +19,7 @@ export interface IUserDto {
     batches?: string[];
     batch?: string;
     week?: string;
+    lastActive?: Date;
     createdAt: string;
 }
 

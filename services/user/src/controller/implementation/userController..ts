@@ -198,8 +198,8 @@ export class UserController implements IUserController {
 
             const data = await this.userService.getUsers([
                 // Fetch users based on roles
-                "coordinators",
-                "instructors",
+                "coordinator",
+                "instructor",
             ]);
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);

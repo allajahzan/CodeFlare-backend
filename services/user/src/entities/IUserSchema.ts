@@ -15,6 +15,5 @@ export interface IUserSchema extends Document {
     isVerify: boolean;
     isblock: boolean;
     createdAt: string;
-    token: string;
     otp: string;
 }

@@ -18,7 +18,7 @@ const userSchema = new Schema<IUserSchema>(
         },
         password: {
             type: String,
-            required: true,
+            required: false,
         },
         profilePic: {
             type: String,
@@ -51,10 +51,6 @@ const userSchema = new Schema<IUserSchema>(
         isblock: {
             type: Boolean,
             default: false,
-        },
-        token:{
-            type: String, 
-            required: false
         },
         otp: {
             type: String,

@@ -127,6 +127,9 @@ export class UserService implements IUserService {
      */
     async userVerifyEmail(email: string, token: string): Promise<void> {
         try {
+            if (!token)
+                throw new NotFoundError("Account not found. Please contact support!"); // No token
+
             if (isTokenExpired(token))
                 throw new Error(
                     "Account verification link has expired. Please contact support!"
@@ -148,8 +151,7 @@ export class UserService implements IUserService {
                 _id,
                 email,
                 role,
-                token,
-            });
+            }); // Find user
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
@@ -177,6 +179,9 @@ export class UserService implements IUserService {
      */
     async userVerifyOtp(otp: string, token: string): Promise<void> {
         try {
+            if (!token)
+                throw new NotFoundError("Account not found. Please contact support!"); // No Token
+
             if (isTokenExpired(token))
                 throw new Error(
                     "Account verification link has expired. Please contact support!"
@@ -197,8 +202,7 @@ export class UserService implements IUserService {
             const user = await this.userRepository.findOne({
                 _id,
                 role,
-                token,
-            });
+            }); // Find user
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
@@ -298,7 +302,7 @@ export class UserService implements IUserService {
             const users = await this.userRepository.find({ role: { $in: roles } });
 
             // Mapping data to return type
-            const userDto = users.map((user) => {
+            const userDto: IUserDto[] = users.map((user) => {
                 return {
                     name: user.name,
                     email: user.email,
@@ -307,6 +311,7 @@ export class UserService implements IUserService {
                     ...(user.batches ? { batches: user.batches } : {}),
                     ...(user.week ? { week: user.week } : {}),
                     ...(user.phoneNo ? { phoneNo: user.phoneNo } : {}),
+                    ...(user.lastActive ? { lastActive: user.lastActive } : {}),
                     createdAt: user.createdAt,
                 };
             });
