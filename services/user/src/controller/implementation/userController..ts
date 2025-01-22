@@ -30,7 +30,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { email, password, role } = req.body;
 
@@ -47,7 +47,7 @@ export class UserController implements IUserController {
                 role: data.role,
                 accessToken: data.accessToken,
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -63,13 +63,23 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { name, email, role, password } = req.body;
-            
-            const data = await this.userService.userRegister(name, email, role, password);
-            SendResponse(res, HTTPStatusCodes.CREATED, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+
+            const data = await this.userService.userRegister(
+                name,
+                email,
+                role,
+                password
+            );
+            return SendResponse(
+                res,
+                HTTPStatusCodes.CREATED,
+                ResponseMessage.SUCCESS,
+                data
+            );
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -85,14 +95,14 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { email } = req.body;
             const { token } = req.query;
 
             await this.userService.userVerifyEmail(email, token as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -108,14 +118,41 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { otp } = req.body;
             const { token } = req.query;
 
             await this.userService.userVerifyOtp(otp, token as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
-        } catch (err: any) {
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Handles user password reset requests by calling the password reset service.
+     * @param req - The express request object containing the new password and confirmation in the body, and the reset token in the query.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the password reset process is complete.
+     */
+    async userResetPassword(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<Response | void> {
+        try {
+            const { password, confirmPassword } = req.body;
+            const { token } = req.query;
+
+            await this.userService.userResetPassword(
+                password,
+                confirmPassword,
+                token as string
+            );
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -131,13 +168,13 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const refreshToken = req.cookies.refreshToken;
 
             const data = await this.userService.refreshToken(refreshToken);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -153,15 +190,15 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
             const payload = req.headers["x-user-id"]; // Payload
 
-            const data = await this.userService.getUser(payload as any);
+            const data = await this.userService.getUser(payload as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -177,13 +214,13 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
             const data = await this.userService.getUsers(["student"]); // Fetch users based on roles
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -192,7 +229,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
@@ -203,7 +240,7 @@ export class UserController implements IUserController {
             ]);
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -219,13 +256,13 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const user = req.body;
 
             const data = await this.userService.createUser(user);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -241,14 +278,14 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { id: _id } = req.params;
             const user = req.body;
 
             const data = await this.userService.updateUser(_id, user);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }
@@ -264,13 +301,13 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<void> {
+    ): Promise<Response | void> {
         try {
             const { id: _id } = req.params;
 
             const data = await this.userService.changeUserStatus(_id);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             next(err);
         }
     }

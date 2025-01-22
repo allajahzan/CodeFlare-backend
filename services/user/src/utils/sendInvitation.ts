@@ -9,7 +9,7 @@ export const sendInvitation = (
 ): void => {
     try {
         const html = `
-    <div style="max-width: 500px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
+    <div style="max-width: 600px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
         <!-- Modern Lock Icon -->
         <div style="margin-bottom: 32px;">
             <img src="https://cdn-icons-png.flaticon.com/512/18357/18357729.png" alt="Security Icon" style="width: 120px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));" />
@@ -20,8 +20,8 @@ export const sendInvitation = (
         </h1>
 
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
-            Dear ${name} you've been invited to join our platform as a ${role}. To ensure the security of your account, please 
-            <a href="http://localhost:5173/${role}/verify-email?token=${token}" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
+            Dear ${name}, you've been invited to join our platform as a ${role}. To ensure the security of your account, please 
+            <a href="http://localhost:5173/${role}/reset-password?token=${token}" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
                 set up your password
             </a> to get started.
         </p>

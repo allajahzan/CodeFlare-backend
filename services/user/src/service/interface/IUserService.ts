@@ -7,6 +7,7 @@ export interface IUserService {
     userRegister(name:string, email:string, role:string, password:string): Promise<IUserRegisterDto>;
     userVerifyEmail(email:string, token: string) :  Promise<void>
     userVerifyOtp(otp: string, token: string): Promise<void>
+    userResetPassword(password:string, confirmPassword:string, token:string) : Promise<void>
     refreshToken(token: string): Promise<IRefreshTokenDto>
     getUser(payload: any) : Promise<IUserDto>;
     getUsers(roles: string[]) : Promise<IUserDto[]>;
