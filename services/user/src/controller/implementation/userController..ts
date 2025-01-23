@@ -33,7 +33,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email, password, role } = req.body;
-
+            
             const data = await this.userService.userLogin(email, password, role);
 
             res.cookie("refreshToken", data.refreshToken, {
@@ -145,7 +145,7 @@ export class UserController implements IUserController {
         try {
             const { password, confirmPassword } = req.body;
             const { token } = req.query;
-            
+
             await this.userService.userResetPassword(
                 password,
                 confirmPassword,

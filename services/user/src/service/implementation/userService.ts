@@ -54,6 +54,8 @@ export class UserService implements IUserService {
 
             if (!user) throw new UnauthorizedError("Account not found!");
 
+            if (!user.password) throw new UnauthorizedError("You have to reset your password!"); // If no password is set
+
             const isPsswordMatch = await comparePassword(password, user.password);
 
             if (!isPsswordMatch) throw new UnauthorizedError("Invalid password!");
@@ -269,8 +271,8 @@ export class UserService implements IUserService {
                     "Reset password link has expired. Please request for forgot password!"
                 );
 
-            // Success response for reset password page load    
-            // There is no password or confirm password in that request    
+            // Success response for reset password page load
+            // There is no password or confirm password in that request
             if (!password && !confirmPassword) return;
 
             // Confirm password
