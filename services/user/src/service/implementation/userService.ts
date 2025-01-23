@@ -238,10 +238,10 @@ export class UserService implements IUserService {
     ): Promise<void> {
         try {
             if (!token) throw new NotFoundError("Token not found!"); // No token
-            
+
             if (isTokenExpired(token))
                 throw new ExpiredError(
-                    "Reset password link has expired. Please request for reset password again!"
+                    "Reset password link has expired. Please request for forgot password!"
                 ); // Check if token is expired
 
             const payload = verifyJwtToken(
@@ -251,7 +251,7 @@ export class UserService implements IUserService {
 
             if (!payload)
                 throw new ExpiredError(
-                    "Reset password link has expired. Please request for reset password again!"
+                    "Reset password link has expired. Please request for forgot password!"
                 );
 
             const { _id, role } = payload;
@@ -266,8 +266,12 @@ export class UserService implements IUserService {
 
             if (!user.token)
                 throw new ExpiredError(
-                    "Reset password link has expired. Please request for reset password again!"
+                    "Reset password link has expired. Please request for forgot password!"
                 );
+
+            // Success response for reset password page load    
+            // There is no password or confirm password in that request    
+            if (!password && !confirmPassword) return;
 
             // Confirm password
             if (password !== confirmPassword)
