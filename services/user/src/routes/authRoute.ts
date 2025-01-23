@@ -26,14 +26,14 @@ router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =
         userController.userVerifyEmail(req, res, next)
 );
 
-// Reset Password
+// Verify Otp
 router.post("/verify-otp", (req: Request, res: Response, next: NextFunction) =>
-    userController.userResetPassword(req, res, next)
+    userController.userVerifyOtp(req, res, next)
 );
 
-// Verify OTP
+// Reset password
 router.post("/reset-password", (req: Request, res: Response, next: NextFunction) =>
-    userController.userVerifyOtp(req, res, next)
+    userController.userResetPassword(req, res, next)
 );
 
 // User refresh token

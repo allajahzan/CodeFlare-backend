@@ -30,7 +30,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { email, password, role } = req.body;
 
@@ -63,7 +63,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { name, email, role, password } = req.body;
 
@@ -95,7 +95,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { email } = req.body;
             const { token } = req.query;
@@ -118,7 +118,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { otp } = req.body;
             const { token } = req.query;
@@ -141,11 +141,11 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { password, confirmPassword } = req.body;
             const { token } = req.query;
-
+            
             await this.userService.userResetPassword(
                 password,
                 confirmPassword,
@@ -168,7 +168,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const refreshToken = req.cookies.refreshToken;
 
@@ -190,7 +190,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
@@ -214,7 +214,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
@@ -229,7 +229,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
@@ -256,7 +256,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const user = req.body;
 
@@ -278,7 +278,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { id: _id } = req.params;
             const user = req.body;
@@ -301,7 +301,7 @@ export class UserController implements IUserController {
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> {
+    ): Promise<void> {
         try {
             const { id: _id } = req.params;
 

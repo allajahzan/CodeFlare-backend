@@ -16,7 +16,7 @@ export const verifyToken = (
 ) => {
     try {
         const status = isPublic(req);
-        console.log(status);
+        console.log(status? "It's a public route" : "It's a protected route");
 
         // If true, skip verify access token
         if (status) {

@@ -1,6 +1,8 @@
 import {
+    BadRequestError,
     comparePassword,
     ConflictError,
+    ExpiredError,
     ForbiddenError,
     generateJwtToken,
     hashPassword,
@@ -73,7 +75,7 @@ export class UserService implements IUserService {
             ); // Access token
 
             return { role: user.role, accessToken, refreshToken };
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -114,7 +116,7 @@ export class UserService implements IUserService {
             };
 
             return userRegisterDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -127,10 +129,10 @@ export class UserService implements IUserService {
      */
     async userVerifyEmail(email: string, token: string): Promise<void> {
         try {
-            if (!token) throw new Error("Token not found"); // No token
+            if (!token) throw new NotFoundError("Token not found!"); // No token
 
             if (isTokenExpired(token))
-                throw new Error(
+                throw new ExpiredError(
                     "Account verification link has expired. Please contact support!"
                 ); // Check if token is expired
 
@@ -140,7 +142,7 @@ export class UserService implements IUserService {
             ); // Verify token
 
             if (!payload)
-                throw new Error(
+                throw new ExpiredError(
                     "Account verification link has expired. Please contact support!"
                 );
 
@@ -155,14 +157,15 @@ export class UserService implements IUserService {
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
-            if (user.isVerify) throw new Error("Account is already verified!");
+            if (user.isVerify)
+                throw new BadRequestError("Account is already verified!");
 
             const otp = generateOTP(); // Generate OTP
 
             await this.userRepository.update({ email, role }, { $set: { otp } }); // Store otp in database
 
             sendOtp(email, role, otp, "Verify your account"); // Send OTP to user
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -178,10 +181,10 @@ export class UserService implements IUserService {
      */
     async userVerifyOtp(otp: string, token: string): Promise<void> {
         try {
-            if (!token) throw new Error("Token not found"); // No Token
+            if (!token) throw new NotFoundError("Token not found!"); // No Token
 
             if (isTokenExpired(token))
-                throw new Error(
+                throw new ExpiredError(
                     "Account verification link has expired. Please contact support!"
                 ); // Check if token is expired
 
@@ -191,7 +194,7 @@ export class UserService implements IUserService {
             ); // Verify token
 
             if (!payload)
-                throw new Error(
+                throw new ExpiredError(
                     "Account verification link has expired. Please contact support!"
                 );
 
@@ -205,15 +208,16 @@ export class UserService implements IUserService {
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
-            if (user.isVerify) throw new Error("Account is already verified!");
+            if (user.isVerify)
+                throw new BadRequestError("Account is already verified!");
 
-            if (user.otp !== otp) throw new Error("Invalid OTP!"); // Verify OTP
+            if (user.otp !== otp) throw new BadRequestError("Invalid OTP!"); // Verify OTP
 
             await this.userRepository.update(
                 { _id, role },
                 { $set: { isVerify: true } }
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -233,10 +237,10 @@ export class UserService implements IUserService {
         token: string
     ): Promise<void> {
         try {
-            if (!token) throw new Error("Token not found!"); // No token
-
+            if (!token) throw new NotFoundError("Token not found!"); // No token
+            
             if (isTokenExpired(token))
-                throw new Error(
+                throw new ExpiredError(
                     "Reset password link has expired. Please request for reset password again!"
                 ); // Check if token is expired
 
@@ -246,13 +250,9 @@ export class UserService implements IUserService {
             ); // Verify token
 
             if (!payload)
-                throw new Error(
+                throw new ExpiredError(
                     "Reset password link has expired. Please request for reset password again!"
                 );
-
-            // Confirm password
-            if (password !== confirmPassword)
-                throw new Error("Passwords are not matching!");
 
             const { _id, role } = payload;
 
@@ -264,13 +264,22 @@ export class UserService implements IUserService {
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
+            if (!user.token)
+                throw new ExpiredError(
+                    "Reset password link has expired. Please request for reset password again!"
+                );
+
+            // Confirm password
+            if (password !== confirmPassword)
+                throw new BadRequestError("Passwords are not matching!");
+
             const hashedPassword = await hashPassword(password); // Hash password
 
             await this.userRepository.update(
                 { _id, role },
-                { $set: { password: hashedPassword } }
+                { $set: { password: hashedPassword }, $unset: { token: 1 } }
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -293,6 +302,18 @@ export class UserService implements IUserService {
 
             if (!payload) throw new ForbiddenError();
 
+            const user = await this.userRepository.findOne({
+                _id: payload._id,
+                role: payload.role,
+            });
+
+            if (!user) throw new ForbiddenError();
+
+            if (user.isblock)
+                throw new UnauthorizedError(
+                    "Your account has been blocked. Please contact support!"
+                );
+
             const accessToken = generateJwtToken(
                 // Generate acccess token
                 { _id: payload._id, role: payload.role },
@@ -301,7 +322,7 @@ export class UserService implements IUserService {
             );
 
             return { accessToken };
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -341,7 +362,7 @@ export class UserService implements IUserService {
             };
 
             return userDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -372,7 +393,7 @@ export class UserService implements IUserService {
             });
 
             return userDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -388,11 +409,12 @@ export class UserService implements IUserService {
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
-            if (isUserExist) throw new ConflictError("User already exists");
+            if (isUserExist)
+                throw new ConflictError("An account with this email already exists!");
 
             const newUser = await this.userRepository.create(user);
 
-            if (!newUser) throw new Error("Failed to add the user");
+            if (!newUser) throw new Error("Failed to add the user!");
 
             const payload = { _id: newUser._id as string, role: newUser.role }; // Generate JWT token to send with email
 
@@ -401,6 +423,8 @@ export class UserService implements IUserService {
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "24h"
             );
+
+            await this.userRepository.update({ _id: newUser._id }, { token }); // Store token in database
 
             sendInvitation(
                 user.name,
@@ -419,11 +443,12 @@ export class UserService implements IUserService {
                 ...(newUser.batches ? { batches: newUser.batches } : {}),
                 ...(newUser.week ? { week: newUser.week } : {}),
                 ...(newUser.phoneNo ? { phoneNo: newUser.phoneNo } : {}),
+                ...(newUser.lastActive ? { lastActive: newUser.lastActive } : {}),
                 createdAt: newUser.createdAt,
             };
 
             return userDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -443,7 +468,8 @@ export class UserService implements IUserService {
                 email: user.email,
             });
 
-            if (isUserExist) throw new ConflictError("User already exists");
+            if (isUserExist)
+                throw new ConflictError("An account with this email already exists!");
 
             const updatedUser = await this.userRepository.update(
                 { _id },
@@ -451,7 +477,7 @@ export class UserService implements IUserService {
                 { new: true }
             );
 
-            if (!updatedUser) throw new Error("Failed to update the user");
+            if (!updatedUser) throw new Error("Failed to update the user!");
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -462,11 +488,14 @@ export class UserService implements IUserService {
                 ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
                 ...(updatedUser.week ? { week: updatedUser.week } : {}),
                 ...(updatedUser.phoneNo ? { phoneNo: updatedUser.phoneNo } : {}),
+                ...(updatedUser.lastActive
+                    ? { lastActive: updatedUser.lastActive }
+                    : {}),
                 createdAt: updatedUser.createdAt,
             };
 
             return userDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }
@@ -478,12 +507,12 @@ export class UserService implements IUserService {
      * @throws {NotFoundError} If the user is not found.
      * @throws {Error} If any error occurs during user blocking or unblocking.
      */
-    async changeUserStatus(_id: string): Promise<IUserDto> {
+    async changeUserStatus(_id: string): Promise<void> {
         try {
             const user = await this.userRepository.findOne({ _id });
 
             if (!user) {
-                throw new NotFoundError("User not found");
+                throw new NotFoundError("User not found!");
             }
 
             const updatedUser = user.isblock
@@ -493,25 +522,11 @@ export class UserService implements IUserService {
             if (!updatedUser) {
                 throw new Error(
                     user.isblock
-                        ? "Failed to unblock the user"
-                        : "Failed to block the user"
+                        ? "Failed to unblock the user!"
+                        : "Failed to block the user!"
                 );
             }
-
-            // Mapping data to return type
-            const userDto: IUserDto = {
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
-                ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
-                ...(updatedUser.week ? { week: updatedUser.week } : {}),
-                ...(updatedUser.phoneNo ? { phoneNo: updatedUser.phoneNo } : {}),
-                createdAt: updatedUser.createdAt,
-            };
-
-            return userDto;
-        } catch (err: any) {
+        } catch (err: unknown) {
             throw err;
         }
     }

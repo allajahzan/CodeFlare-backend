@@ -8,12 +8,13 @@ export interface IUserSchema extends Document {
     password: string;
     profilePic: string;
     role: string;
-    batch: string;
     week: string;
+    batch: string;
     batches: string[];
     lastActive: Date;
     isVerify: boolean;
     isblock: boolean;
-    createdAt: string;
+    token: string;
     otp: string;
+    createdAt: Date;
 }

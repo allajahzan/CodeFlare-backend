@@ -20,7 +20,7 @@ export interface IUserDto {
     batch?: string;
     week?: string;
     lastActive?: Date;
-    createdAt: string;
+    createdAt: Date;
 }
 
 /** Dto for refreshToken */

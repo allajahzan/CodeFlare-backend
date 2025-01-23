@@ -13,5 +13,5 @@ export interface IUserService {
     getUsers(roles: string[]) : Promise<IUserDto[]>;
     createUser(user: Partial<IUserSchema>): Promise<IUserDto>;
     updateUser(_id: string,user: Partial<IUserSchema>): Promise<IUserDto>;
-    changeUserStatus(_id: string): Promise<IUserDto>;
+    changeUserStatus(_id: string): Promise<void>;
 }

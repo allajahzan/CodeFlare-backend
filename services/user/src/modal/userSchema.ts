@@ -28,11 +28,11 @@ const userSchema = new Schema<IUserSchema>(
             type: String,
             required: true,
         },
-        batch: {
+        week: {
             type: String,
             required: false,
         },
-        week: {
+        batch: {
             type: String,
             required: false,
         },
@@ -51,6 +51,10 @@ const userSchema = new Schema<IUserSchema>(
         isblock: {
             type: Boolean,
             default: false,
+        },
+        token: {
+            type: String,
+            required: false,
         },
         otp: {
             type: String,
