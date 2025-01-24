@@ -357,6 +357,7 @@ export class UserService implements IUserService {
 
             // Mapping data to return type
             const userDto: IUserDto = {
+                _id: user._id as string,
                 name: user.name,
                 email: user.email,
                 role: user.role,
@@ -386,6 +387,7 @@ export class UserService implements IUserService {
             // Mapping data to return type
             const userDto: IUserDto[] = users.map((user) => {
                 return {
+                    _id: user._id as string,
                     name: user.name,
                     email: user.email,
                     role: user.role,
@@ -412,6 +414,9 @@ export class UserService implements IUserService {
      * @throws {Error} If any error occurs during user creation or sending invitation.
      */
     async createUser(user: IUserSchema): Promise<IUserDto> {
+
+        console.log(user);
+        
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
@@ -442,6 +447,7 @@ export class UserService implements IUserService {
 
             // Mapping data to return type
             const userDto: IUserDto = {
+                _id: newUser._id as string,
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
@@ -487,6 +493,7 @@ export class UserService implements IUserService {
 
             // Mapping data to return type
             const userDto: IUserDto = {
+                _id: updatedUser._id as string,
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,

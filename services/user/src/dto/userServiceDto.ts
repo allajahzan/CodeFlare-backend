@@ -12,6 +12,7 @@ export interface IUserRegisterDto {
 }
 
 export interface IUserDto {
+    _id: string;
     name: string;
     email: string;
     phoneNo?: string;
