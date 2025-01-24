@@ -262,7 +262,7 @@ export class UserService implements IUserService {
                 _id,
                 role,
             }); // Find user
-
+            
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
@@ -414,9 +414,6 @@ export class UserService implements IUserService {
      * @throws {Error} If any error occurs during user creation or sending invitation.
      */
     async createUser(user: IUserSchema): Promise<IUserDto> {
-
-        console.log(user);
-        
         try {
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
