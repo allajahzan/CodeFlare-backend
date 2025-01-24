@@ -5,7 +5,7 @@ import { IUserSchema } from "../../entities/IUserSchema";
 export interface IUserService {
     userLogin(email: string, password: string, role:string): Promise<IUserLoginDto>;
     userRegister(name:string, email:string, role:string, password:string): Promise<IUserRegisterDto>;
-    userVerifyEmail(email:string) :  Promise<void>
+    userVerifyEmail(email:string, role: string) :  Promise<void>
     userResetPassword(password:string, confirmPassword:string, token:string) : Promise<void>
     refreshToken(token: string): Promise<IRefreshTokenDto>
     getUser(payload: any) : Promise<IUserDto>;

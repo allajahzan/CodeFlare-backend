@@ -20,9 +20,9 @@ export const sendOtp = (
         </h1>
 
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
-            Dear ${name}, we got request from you to reset your codeflare password. 
+            Dear ${name}, we got a request from you to reset your codeflare password. 
             <a href="http://localhost:5173/${role}/reset-password?token=${token}" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
-              Click here to reset your password.
+              click here.
             </a>
         </p>
 

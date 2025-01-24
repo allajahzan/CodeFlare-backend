@@ -129,9 +129,9 @@ export class UserService implements IUserService {
      * @param role - The role of the user to verify.
      * @returns A promise that resolves if the email is verified successfully, otherwise the promise is rejected with an error.
      */
-    async userVerifyEmail(email: string): Promise<void> {
+    async userVerifyEmail(email: string, role: string): Promise<void> {
         try {
-            const user = await this.userRepository.findOne({ email }); // Find user
+            const user = await this.userRepository.findOne({ email, role }); // Find user
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
@@ -144,15 +144,9 @@ export class UserService implements IUserService {
                 "24h"
             );
 
-            await this.userRepository.update({ email }, { $set: { token } }); // Store token in database
+            await this.userRepository.update({ email, role }, { $set: { token } }); // Store token in database
 
-            sendOtp(
-                user.name,
-                email,
-                user.role,
-                token,
-                "Reset your password - CodeFlare"
-            ); // Send reset password link
+            sendOtp(user.name, email, role, token, "Reset your password - CodeFlare"); // Send reset password link
         } catch (err: unknown) {
             throw err;
         }
