@@ -22,13 +22,13 @@ export const sendOtp = (
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
             Dear ${name}, we got a request from you to reset your codeflare password. 
             <a href="http://localhost:5173/${role}/reset-password?token=${token}" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
-              click here.
+              click here to reset.
             </a>
         </p>
 
         <div style="background-color: #f5f5f5; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">
             <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 0; font-weight: 400;">
-                For your security, this OTP will expire within 30 seconds. Need help? Contact our support team at 
+                For your security, this reset link will expire within 24 hrs. Need help? Contact our support team at 
                 <a href="mailto:ahsanallajpk22@gmail.com" style="color: #0066ff; text-decoration: none; font-weight: 500;">
                     support@codeflare.com
                 </a>
