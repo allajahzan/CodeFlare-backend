@@ -27,8 +27,9 @@ export const verifyToken = (
         const verifyAccessTokenMiddleware = verifyAccessToken(
             process.env.JWT_ACCESS_TOKEN_SECRET as string
         );
+        
         verifyAccessTokenMiddleware(req, res, next);
-    } catch (err: any) {
+    } catch (err: unknown) {
         next(err);
     }
 };

@@ -56,21 +56,19 @@ export class UserService implements IUserService {
             if (!user.password)
                 throw new UnauthorizedError("You have to reset your password!"); // If no password is set
 
-            const isPsswordMatch = await comparePassword(password, user.password);
+            const isPsswordMatch = await comparePassword(password, user.password); // Compare password
 
             if (!isPsswordMatch) throw new UnauthorizedError("Invalid password!");
 
             const payload = { _id: user._id as string, role: user.role };
 
             const refreshToken = generateJwtToken(
-                // Refresh token
                 payload,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string,
                 "1d"
             ); // Refresh token
 
             const accessToken = generateJwtToken(
-                // Access token
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
@@ -131,18 +129,18 @@ export class UserService implements IUserService {
      */
     async userVerifyEmail(email: string, role: string): Promise<void> {
         try {
-            const user = await this.userRepository.findOne({ email, role }); // Find user
+            const user = await this.userRepository.findOne({ email, role });
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
-            const payload = { _id: user._id as string, role: user.role }; // Generate JWT token to send with email
+            const payload = { _id: user._id as string, role: user.role };
 
             const token = generateJwtToken(
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "24h"
-            );
+            ); // Generate JWT token to send with email
 
             await this.userRepository.update({ email, role }, { $set: { token } }); // Store token in database
 
@@ -167,17 +165,17 @@ export class UserService implements IUserService {
         token: string
     ): Promise<void> {
         try {
-            if (!token) throw new NotFoundError("Token not found!"); // No token
+            if (!token) throw new NotFoundError("Token not found!");
 
             if (isTokenExpired(token))
                 throw new ExpiredError(
                     "Reset password link has expired. Please request for forgot password!"
-                ); // Check if token is expired
+                );
 
             const payload = verifyJwtToken(
                 token,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string
-            ); // Verify token
+            ) as JwtPayloadType; // Verify token
 
             if (!payload)
                 throw new ExpiredError(
@@ -189,7 +187,7 @@ export class UserService implements IUserService {
             const user = await this.userRepository.findOne({
                 _id,
                 role,
-            }); // Find user
+            });
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
@@ -200,7 +198,6 @@ export class UserService implements IUserService {
                 );
 
             // Success response for reset password page load
-            // There is no password or confirm password in that request
             if (!password && !confirmPassword) return;
 
             // Confirm password
@@ -232,7 +229,7 @@ export class UserService implements IUserService {
             const payload = jwt.verify(
                 token,
                 process.env.JWT_REFRESH_TOKEN_SECRET as string
-            ) as JwtPayloadType;
+            ) as JwtPayloadType; // Verify token
 
             if (!payload) throw new ForbiddenError();
 
@@ -243,13 +240,14 @@ export class UserService implements IUserService {
 
             if (!user) throw new ForbiddenError();
 
+            // Check if user is blocked
             if (user.isblock)
                 throw new UnauthorizedError(
                     "Your account has been blocked. Please contact support!"
                 );
 
+            // Generate acccess token
             const accessToken = generateJwtToken(
-                // Generate acccess token
                 { _id: payload._id, role: payload.role },
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "1m"
@@ -268,7 +266,6 @@ export class UserService implements IUserService {
      * @throws {UnauthorizedError} If the payload is not provided.
      * @throws {NotFoundError} If the user is not found.
      */
-
     async getUser(payload: string): Promise<IUserDto> {
         try {
             if (!payload)

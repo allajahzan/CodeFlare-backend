@@ -33,9 +33,10 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email, password, role } = req.body;
-            
+
             const data = await this.userService.userLogin(email, password, role);
 
+            // Set refresh token in cookie
             res.cookie("refreshToken", data.refreshToken, {
                 httpOnly: true,
                 sameSite: "lax",
@@ -73,6 +74,7 @@ export class UserController implements IUserController {
                 role,
                 password
             );
+
             return SendResponse(
                 res,
                 HTTPStatusCodes.CREATED,
@@ -105,7 +107,7 @@ export class UserController implements IUserController {
             next(err);
         }
     }
-    
+
     /**
      * Handles user password reset requests by calling the password reset service.
      * @param req - The express request object containing the new password and confirmation in the body, and the reset token in the query.
@@ -156,6 +158,26 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Handles logout requests by calling the logout service.
+     * @param req - The express request object.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the logout process is complete.
+     */
+    async userLogout(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            res.clearCookie("refreshToken"); // Clear refresh token
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Retrieves the user data based on the x-user-id header.
      * @param req - The express request object containing the x-user-id header.
      * @param res - The express response object.
@@ -194,7 +216,7 @@ export class UserController implements IUserController {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
-            const data = await this.userService.getUsers(["student"]); // Fetch users based on roles
+            const data = await this.userService.getUsers(["student"]);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
@@ -210,7 +232,6 @@ export class UserController implements IUserController {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
             const data = await this.userService.getUsers([
-                // Fetch users based on roles
                 "coordinator",
                 "instructor",
             ]);

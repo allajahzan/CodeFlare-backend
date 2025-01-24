@@ -28,7 +28,7 @@ export const sendInvitation = (
 
         <div style="background-color: #f5f5f5; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">
             <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 0; font-weight: 400;">
-                For your security, this invitation will expire in 24 hours. Need help? Contact our support team at 
+                For your security, this invitation will expire in 24 hrs. Need help? Contact our support team at 
                 <a href="mailto:ahsanallajpk22@gmail.com" style="color: #0066ff; text-decoration: none; font-weight: 500;">
                     support@codeflare.com
                 </a>
@@ -46,7 +46,7 @@ export const sendInvitation = (
                 throw new Error(err);
             }
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         throw err;
     }
 };

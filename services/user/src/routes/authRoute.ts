@@ -36,4 +36,9 @@ router.post( "/refresh-token", (req: Request, res: Response, next: NextFunction)
         userController.refreshToken(req, res, next)
 );
 
+// User logout
+router.post("/logout", (req: Request, res: Response, next: NextFunction) =>
+    userController.userLogout(req, res, next)
+);
+
 export { router as authRoute };

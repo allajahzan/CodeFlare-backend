@@ -46,7 +46,7 @@ export const sendOtp = (
                 throw new Error(err);
             }
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         throw err;
     }
 };
