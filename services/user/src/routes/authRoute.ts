@@ -32,7 +32,7 @@ router.post("/reset-password", (req: Request, res: Response, next: NextFunction)
 );
 
 // User refresh token
-router.post( "/refresh-token", (req: Request, res: Response, next: NextFunction) =>
+router.get( "/refresh-token", (req: Request, res: Response, next: NextFunction) =>
         userController.refreshToken(req, res, next)
 );
 
