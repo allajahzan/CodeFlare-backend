@@ -55,10 +55,6 @@ const userSchema = new Schema<IUserSchema>(
         token: {
             type: String,
             required: false,
-        },
-        otp: {
-            type: String,
-            required: false
         }
     },
     { timestamps: true }

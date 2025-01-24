@@ -9,7 +9,7 @@ export const sendInvitation = (
 ): void => {
     try {
         const html = `
-    <div style="max-width: 600px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
+    <div style="max-width: 500px; margin: 40px auto; text-align: center; padding: 48px; font-family: 'Urbanist', sans-serif; color: #1a1a1a; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);">
         <!-- Modern Lock Icon -->
         <div style="margin-bottom: 32px;">
             <img src="https://cdn-icons-png.flaticon.com/512/18357/18357729.png" alt="Security Icon" style="width: 120px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));" />

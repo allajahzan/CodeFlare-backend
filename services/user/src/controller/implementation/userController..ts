@@ -98,38 +98,14 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { email } = req.body;
-            const { token } = req.query;
 
-            await this.userService.userVerifyEmail(email, token as string);
+            await this.userService.userVerifyEmail(email);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
     }
-
-    /**
-     * Handles user OTP verification by calling the OTP verification service
-     * @param req - The express request object containing the OTP in the body and the verification token in the query.
-     * @param res - The express response object.
-     * @param next - The next middleware function in the express stack.
-     * @returns A promise that resolves when the verification process is complete.
-     */
-    async userVerifyOtp(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            const { otp } = req.body;
-            const { token } = req.query;
-
-            await this.userService.userVerifyOtp(otp, token as string);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
-
+    
     /**
      * Handles user password reset requests by calling the password reset service.
      * @param req - The express request object containing the new password and confirmation in the body, and the reset token in the query.

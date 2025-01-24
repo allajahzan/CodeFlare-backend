@@ -19,8 +19,7 @@ import {
     IRefreshTokenDto,
     IUserDto,
 } from "../../dto/userServiceDto";
-import { sendOtp } from "../../utils/sendOtp";
-import { generateOTP } from "../../utils/generateOtp";
+import { sendOtp } from "../../utils/sendResetLink";
 import { sendInvitation } from "../../utils/sendInvitation";
 import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
@@ -54,7 +53,8 @@ export class UserService implements IUserService {
 
             if (!user) throw new UnauthorizedError("Account not found!");
 
-            if (!user.password) throw new UnauthorizedError("You have to reset your password!"); // If no password is set
+            if (!user.password)
+                throw new UnauthorizedError("You have to reset your password!"); // If no password is set
 
             const isPsswordMatch = await comparePassword(password, user.password);
 
@@ -129,96 +129,30 @@ export class UserService implements IUserService {
      * @param role - The role of the user to verify.
      * @returns A promise that resolves if the email is verified successfully, otherwise the promise is rejected with an error.
      */
-    async userVerifyEmail(email: string, token: string): Promise<void> {
+    async userVerifyEmail(email: string): Promise<void> {
         try {
-            if (!token) throw new NotFoundError("Token not found!"); // No token
-
-            if (isTokenExpired(token))
-                throw new ExpiredError(
-                    "Account verification link has expired. Please contact support!"
-                ); // Check if token is expired
-
-            const payload = verifyJwtToken(
-                token,
-                process.env.JWT_ACCESS_TOKEN_SECRET as string
-            ); // Verify token
-
-            if (!payload)
-                throw new ExpiredError(
-                    "Account verification link has expired. Please contact support!"
-                );
-
-            const { _id, role } = payload;
-
-            const user = await this.userRepository.findOne({
-                _id,
-                email,
-                role,
-            }); // Find user
+            const user = await this.userRepository.findOne({ email }); // Find user
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
-            if (user.isVerify)
-                throw new BadRequestError("Account is already verified!");
+            const payload = { _id: user._id as string, role: user.role }; // Generate JWT token to send with email
 
-            const otp = generateOTP(); // Generate OTP
-
-            await this.userRepository.update({ email, role }, { $set: { otp } }); // Store otp in database
-
-            sendOtp(email, role, otp, "Verify your account"); // Send OTP to user
-        } catch (err: unknown) {
-            throw err;
-        }
-    }
-
-    /**
-     * Verifies user OTP and sets isVerify flag in the database
-     * @param otp - OTP to verify
-     * @param token - Token to verify
-     * @throws {NotFoundError} If account is not found
-     * @throws {Error} If account is already verified
-     * @throws {Error} If invalid OTP
-     * @throws {Error} If account verification link has expired
-     */
-    async userVerifyOtp(otp: string, token: string): Promise<void> {
-        try {
-            if (!token) throw new NotFoundError("Token not found!"); // No Token
-
-            if (isTokenExpired(token))
-                throw new ExpiredError(
-                    "Account verification link has expired. Please contact support!"
-                ); // Check if token is expired
-
-            const payload = verifyJwtToken(
-                token,
-                process.env.JWT_ACCESS_TOKEN_SECRET as string
-            ); // Verify token
-
-            if (!payload)
-                throw new ExpiredError(
-                    "Account verification link has expired. Please contact support!"
-                );
-
-            const { _id, role } = payload;
-
-            const user = await this.userRepository.findOne({
-                _id,
-                role,
-            }); // Find user
-
-            if (!user)
-                throw new NotFoundError("Account not found. Please contact support!");
-
-            if (user.isVerify)
-                throw new BadRequestError("Account is already verified!");
-
-            if (user.otp !== otp) throw new BadRequestError("Invalid OTP!"); // Verify OTP
-
-            await this.userRepository.update(
-                { _id, role },
-                { $set: { isVerify: true } }
+            const token = generateJwtToken(
+                payload,
+                process.env.JWT_ACCESS_TOKEN_SECRET as string,
+                "24h"
             );
+
+            await this.userRepository.update({ email }, { $set: { token } }); // Store token in database
+
+            sendOtp(
+                user.name,
+                email,
+                user.role,
+                token,
+                "Reset your password - CodeFlare"
+            ); // Send reset password link
         } catch (err: unknown) {
             throw err;
         }
@@ -262,7 +196,7 @@ export class UserService implements IUserService {
                 _id,
                 role,
             }); // Find user
-            
+
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 

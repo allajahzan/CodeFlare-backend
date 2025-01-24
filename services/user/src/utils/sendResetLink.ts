@@ -1,9 +1,10 @@
 import { sendEmail } from "@codeflare/common";
 
 export const sendOtp = (
+    name: string,
     email: string,
     role: string,
-    otp: number,
+    token:string,
     subject: string
 ): void => {
     try {
@@ -15,11 +16,14 @@ export const sendOtp = (
         </div>
 
         <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 24px; color: #000000; letter-spacing: -0.02em;">
-            Welcome to CodeFlare
+            CodeFlare
         </h1>
 
         <p style="font-size: 16px; line-height: 1.7; color: #4a4a4a; margin: 0 0 32px; font-weight: 400; text-align: center; max-width: 480px; margin-left: auto; margin-right: auto;">
-            Dear ${role}, your OTP to verify your account is ${otp}.
+            Dear ${name}, we got request from you to reset your codeflare password. 
+            <a href="http://localhost:5173/${role}/reset-password?token=${token}" style="color: #0066ff; text-decoration: none; transition: color 0.2s ease;">
+              Click here to reset your password.
+            </a>
         </p>
 
         <div style="background-color: #f5f5f5; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">
