@@ -52,10 +52,10 @@ const userSchema = new Schema<IUserSchema>(
             type: Boolean,
             default: false,
         },
-        token: {
-            type: String,
-            required: false,
-        }
+        isTokenValid: {
+            type: Boolean,
+            default: true,
+        },
     },
     { timestamps: true }
 );

@@ -26,6 +26,11 @@ router.post("/verify-email", (req: Request, res: Response, next: NextFunction) =
         userController.userVerifyEmail(req, res, next)
 );
 
+// Check reset password link
+router.get("/check-reset-password-link", (req: Request, res: Response, next: NextFunction) =>
+        userController.checkResetPasswordLink(req, res, next)
+);
+
 // Reset password
 router.post("/reset-password", (req: Request, res: Response, next: NextFunction) =>
     userController.userResetPassword(req, res, next)

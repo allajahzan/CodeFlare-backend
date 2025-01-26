@@ -14,6 +14,6 @@ export interface IUserSchema extends Document {
     lastActive: Date;
     isVerify: boolean;
     isblock: boolean;
-    token: string;
+    isTokenValid: boolean;
     createdAt: Date;
 }

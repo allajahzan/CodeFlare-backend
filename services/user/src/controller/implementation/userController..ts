@@ -109,6 +109,28 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Handles checking the reset password link by calling the user reset password service
+     * @param req - The express request object containing the reset password link token.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the reset password link is verified successfully.
+     */
+    async checkResetPasswordLink(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { token } = req.query;
+
+            await this.userService.checkResetPasswordLink(token as string);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Handles user password reset requests by calling the password reset service.
      * @param req - The express request object containing the new password and confirmation in the body, and the reset token in the query.
      * @param res - The express response object.

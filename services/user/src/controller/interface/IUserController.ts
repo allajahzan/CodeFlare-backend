@@ -6,6 +6,7 @@ export interface IUserController {
     userLogin(req: Request, res: Response, next: NextFunction): Promise<void>;
     userRegister(req: Request, res: Response, next: NextFunction): Promise<void>;
     userVerifyEmail(req: Request, res: Response, next: NextFunction): Promise<void>;
+    checkResetPasswordLink(req: Request, res: Response, next: NextFunction): Promise<void>;
     userResetPassword(req: Request, res: Response, next: NextFunction) : Promise<void>;
     refreshToken(req: Request, res: Response, next: NextFunction): Promise<void>;
     userLogout(req: Request, res:Response, next: NextFunction) : Promise<void>;

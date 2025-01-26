@@ -58,7 +58,7 @@ export class UserService implements IUserService {
 
             const isPsswordMatch = await comparePassword(password, user.password); // Compare password
 
-            if (!isPsswordMatch) throw new UnauthorizedError("Invalid password!");
+            if (!isPsswordMatch) throw new UnauthorizedError("Incorrect password!");
 
             const payload = { _id: user._id as string, role: user.role };
 
@@ -151,6 +151,52 @@ export class UserService implements IUserService {
     }
 
     /**
+     * Checks if the password reset link is valid by verifying the token.
+     * @param token - The token used to verify the password reset link.
+     * @returns A promise that resolves if the link is valid, otherwise the promise is rejected with an error.
+     * @throws {NotFoundError} If the token is not found.
+     * @throws {ExpiredError} If the token is expired.
+     * @throws {NotFoundError} If the user associated with the token is not found.
+     */
+    async checkResetPasswordLink(token: string): Promise<void> {
+        try {
+            if (!token) throw new NotFoundError("Token not found!");
+
+            if (isTokenExpired(token))
+                throw new ExpiredError(
+                    "Reset password link has expired. Please request for forgot password!"
+                );
+
+            const payload = verifyJwtToken(
+                token,
+                process.env.JWT_ACCESS_TOKEN_SECRET as string
+            ) as JwtPayloadType; // Verify token
+
+            if (!payload)
+                throw new ExpiredError(
+                    "Reset password link has expired. Please request for forgot password!"
+                );
+
+            const { _id, role } = payload;
+
+            const user = await this.userRepository.findOne({
+                _id,
+                role,
+            });
+
+            if (!user)
+                throw new NotFoundError("Account not found. Please contact support!");
+
+            if (!user.isTokenValid)
+                throw new ExpiredError(
+                    "Reset password link has expired. Please request for forgot password!"
+                );
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
      * Resets the user's password using the provided token and new password.
      * @param password - The new password to set for the user.
      * @param confirmPassword - The confirmation of the new password to verify they match.
@@ -192,23 +238,16 @@ export class UserService implements IUserService {
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
-            if (!user.token)
+            if (!user.isTokenValid)
                 throw new ExpiredError(
                     "Reset password link has expired. Please request for forgot password!"
                 );
-
-            // Success response for reset password page load
-            if (!password && !confirmPassword) return;
-
-            // Confirm password
-            if (password !== confirmPassword)
-                throw new BadRequestError("Passwords are not matching!");
 
             const hashedPassword = await hashPassword(password); // Hash password
 
             await this.userRepository.update(
                 { _id, role },
-                { $set: { password: hashedPassword }, $unset: { token: 1 } }
+                { $set: { password: hashedPassword, isTokenValid: false } }
             );
         } catch (err: unknown) {
             throw err;
@@ -356,8 +395,6 @@ export class UserService implements IUserService {
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
                 "24h"
             );
-
-            await this.userRepository.update({ _id: newUser._id }, { token }); // Store token in database
 
             sendInvitation(
                 user.name,
