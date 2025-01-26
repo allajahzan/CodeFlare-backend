@@ -266,14 +266,14 @@ export class UserService implements IUserService {
      * @throws {UnauthorizedError} If the payload is not provided.
      * @throws {NotFoundError} If the user is not found.
      */
-    async getUser(payload: string): Promise<IUserDto> {
+    async getUser(userId: string): Promise<IUserDto> {
         try {
-            if (!payload)
+            if (!userId)
                 throw new UnauthorizedError(
                     "Athentication failed. Please login again!"
                 );
 
-            const { _id } = JSON.parse(payload as string);
+            const { _id } = JSON.parse(userId as string);
 
             const user = await this.userRepository.findOne({ _id });
 

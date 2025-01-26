@@ -192,9 +192,9 @@ export class UserController implements IUserController {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
-            const payload = req.headers["x-user-id"]; // Payload
+            const userId = req.headers["x-user-id"]; // userId
 
-            const data = await this.userService.getUser(payload as string);
+            const data = await this.userService.getUser(userId as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

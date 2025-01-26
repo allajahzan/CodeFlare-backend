@@ -1,4 +1,8 @@
-import { NotFoundError, UnauthorizedError } from "@codeflare/common";
+import {
+    JwtPayloadType,
+    NotFoundError,
+    UnauthorizedError,
+} from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
 import { UserReporsitory } from "../repository/implementation/userRepository";
 import User from "../modal/userSchema";
@@ -19,23 +23,25 @@ export const checkAuth = async (
 ) => {
     try {
         const userPayload = req.headers["x-user-payload"]; // payload from request header
-        
+
         if (!userPayload)
             throw new UnauthorizedError("Authentication failed. Please login again!");
 
-        const payload = JSON.parse(userPayload as string);
+        const payload = JSON.parse(userPayload as string) as JwtPayloadType;
 
         if (!payload)
             throw new UnauthorizedError(
                 "Invalid authentication data. Please login again!"
             );
 
-        const user = await new UserReporsitory(User).findOne({ _id: payload._id }); // Find user by _id
-        
+        const { _id, role } = payload;
+
+        const user = await new UserReporsitory(User).findOne({ _id }); // Find user by _id
+
         if (!user)
             throw new NotFoundError("Account not found. Please contact support!");
 
-        if (user.role !== payload.role)
+        if (user.role !== role)
             throw new UnauthorizedError(
                 "You do not have permission to access this resource!"
             );
