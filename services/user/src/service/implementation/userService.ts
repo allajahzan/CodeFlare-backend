@@ -207,7 +207,6 @@ export class UserService implements IUserService {
      */
     async userResetPassword(
         password: string,
-        confirmPassword: string,
         token: string
     ): Promise<void> {
         try {

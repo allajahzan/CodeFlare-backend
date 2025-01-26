@@ -8,7 +8,7 @@ export interface IUserService {
     userRegister(name: string, email: string, role: string, password: string): Promise<IUserRegisterDto>;
     userVerifyEmail(email: string, role: string): Promise<void>
     checkResetPasswordLink(token: string): Promise<void>
-    userResetPassword(password: string, confirmPassword: string, token: string): Promise<void>
+    userResetPassword(password: string, token: string): Promise<void>
     refreshToken(token: string): Promise<IRefreshTokenDto>
 
     // User CRUD related methods

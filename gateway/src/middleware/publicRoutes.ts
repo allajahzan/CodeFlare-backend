@@ -4,6 +4,7 @@ const PUBLIC_ROUTES: { method: string; path: string }[] = [
     { method: "POST", path: "/api/user/login" },
     { method: "POST", path: "/api/user/register" },
     { method: "POST", path: "/api/user/verify-email" },
+    { method: "GET", path: "/api/user/check-reset-password-link" },
     { method: "POST", path: "/api/user/reset-password" },
     { method: "GET", path: "/api/user/refresh-token" },
     { method: "POST", path: "/api/user/logout" },

@@ -121,6 +121,8 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
+            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
+            
             const { token } = req.query;
 
             await this.userService.checkResetPasswordLink(token as string);
@@ -148,7 +150,6 @@ export class UserController implements IUserController {
 
             await this.userService.userResetPassword(
                 password,
-                confirmPassword,
                 token as string
             );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
