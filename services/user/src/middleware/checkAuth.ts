@@ -4,7 +4,7 @@ import {
     UnauthorizedError,
 } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
-import { UserReporsitory } from "../repository/implementation/userRepository";
+import { UserRepository } from "../repository/implementation/userRepository";
 import User from "../modal/userSchema";
 
 /**
@@ -22,29 +22,33 @@ export const checkAuth = async (
     next: NextFunction
 ) => {
     try {
-        const userPayload = req.headers["x-user-payload"]; // payload from request header
+        const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+        const userRole = req.headers["x-user-role"]; // User role from request header
 
-        if (!userPayload)
+        if (!tokenPayload || !userRole) {
             throw new UnauthorizedError("Authentication failed. Please login again!");
+        }
 
-        const payload = JSON.parse(userPayload as string) as JwtPayloadType;
+        const payload = JSON.parse(tokenPayload as string) as JwtPayloadType;
+        const role = JSON.parse(userRole as string);
 
-        if (!payload)
+        if (!payload) {
             throw new UnauthorizedError(
                 "Invalid authentication data. Please login again!"
             );
+        }
 
-        const { _id, role } = payload;
-
-        const user = await new UserReporsitory(User).findOne({ _id }); // Find user by _id
-
-        if (!user)
-            throw new NotFoundError("Account not found. Please contact support!");
-
-        if (user.role !== role)
+        if (role && role !== payload.role) {
             throw new UnauthorizedError(
                 "You do not have permission to access this resource!"
             );
+        }
+
+        const user = await new UserRepository(User).findOne({ _id : payload._id }); // Find user by _id
+
+        if (!user) {
+            throw new NotFoundError("Account not found. Please contact support!");
+        }
 
         req.headers["x-user-id"] = JSON.stringify({ _id: user._id }); // Set _id in request header
 

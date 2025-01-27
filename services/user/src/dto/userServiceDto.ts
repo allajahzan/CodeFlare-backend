@@ -12,7 +12,7 @@ export interface IUserRegisterDto {
 }
 
 export interface IUserDto {
-    _id: string;
+    _id: string| unknown;
     name: string;
     email: string;
     phoneNo?: string;

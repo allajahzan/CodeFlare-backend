@@ -3,7 +3,7 @@ import { IUserSchema } from "../../entities/IUserSchema";
 import { Model } from "mongoose";
 import { IUserRepository } from "../interface/IUserRepository";
 /** Implementation of User Repository */
-export class UserReporsitory extends BaseRepository<IUserSchema> implements IUserRepository {
+export class UserRepository extends BaseRepository<IUserSchema> implements IUserRepository {
     /**
      * Constructs an instance of UserRepository.
      * @param model - The mongoose model representing the user schema, used for database operations.

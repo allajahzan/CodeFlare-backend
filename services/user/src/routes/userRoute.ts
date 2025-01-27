@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { UserController } from "../controller/implementation/userController.";
 import { UserService } from "../service/implementation/userService";
-import { UserReporsitory } from "../repository/implementation/userRepository";
+import { UserRepository } from "../repository/implementation/userRepository";
 import User from "../modal/userSchema";
 
 const router = Router();
 
 // Dependency Injection
-const userRepository = new UserReporsitory(User);
+const userRepository = new UserRepository(User);
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 

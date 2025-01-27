@@ -19,7 +19,7 @@ dotenv.config();
 app.use(
     cors({
         origin: "http://localhost:5173",
-        allowedHeaders: ["Authorization", "Content-Type"],
+        allowedHeaders: ["Authorization", "Content-Type", "x-user-role"],
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         credentials : true
     })

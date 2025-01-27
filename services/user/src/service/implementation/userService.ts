@@ -450,22 +450,24 @@ export class UserService implements IUserService {
             if (!updatedUser) throw new Error("Failed to update the user!");
 
             // Mapping data to return type
-            const userDto: IUserDto = {
-                _id: updatedUser._id as string,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                role: updatedUser.role,
-                ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
-                ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
-                ...(updatedUser.week ? { week: updatedUser.week } : {}),
-                ...(updatedUser.phoneNo ? { phoneNo: updatedUser.phoneNo } : {}),
-                ...(updatedUser.lastActive
-                    ? { lastActive: updatedUser.lastActive }
-                    : {}),
-                createdAt: updatedUser.createdAt,
-            };
+            // const userDto: IUserDto = {
+            //     _id: updatedUser._id as string,
+            //     name: updatedUser.name,
+            //     email: updatedUser.email,
+            //     role: updatedUser.role,
+            //     ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
+            //     ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
+            //     ...(updatedUser.week ? { week: updatedUser.week } : {}),
+            //     ...(updatedUser.phoneNo ? { phoneNo: updatedUser.phoneNo } : {}),
+            //     ...(updatedUser.lastActive
+            //         ? { lastActive: updatedUser.lastActive }
+            //         : {}),
+            //     createdAt: updatedUser.createdAt,
+            // };
 
-            return userDto;
+            console.log(updatedUser)
+
+            return updatedUser;
         } catch (err: unknown) {
             throw err;
         }
