@@ -32,12 +32,12 @@ router.post("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Update user
-router.put("/", (req: Request, res: Response, next: NextFunction) =>
+router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
     userController.updateUser(req, res, next)
 );
 
 // Change user status
-router.patch("/", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/:id", (req: Request, res: Response, next: NextFunction) =>
     userController.changeUserStatus(req, res, next)
 );
 
