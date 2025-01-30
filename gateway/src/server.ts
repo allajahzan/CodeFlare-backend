@@ -5,12 +5,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { errorHandler } from "@codeflare/common";
 import { verifyToken } from "./middleware/verifyToken";
+import {logger, morganMiddleware} from './middleware/centralized-logging'
 
 // Create app
 const app = express();
 
-// Logging
-app.use(morgan("dev"));
+// Centralized Logging
+app.use(morganMiddleware)
 
 // Env config
 dotenv.config();
@@ -49,5 +50,5 @@ app.use(errorHandler)
 
 // Port listening
 app.listen(process.env.PORT, () => {
-    console.log(`api gateway is running on port ${process.env.PORT}`);
+    logger.info(`api gateway is running on port ${process.env.PORT}`);
 });

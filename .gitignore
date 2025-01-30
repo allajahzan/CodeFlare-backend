@@ -1,6 +1,7 @@
 # Gateway
 gateway/.env
 gateway/node_modules
+gateway/logs
 
 # Services 
 

@@ -449,7 +449,7 @@ export class UserService implements IUserService {
 
             if (!updatedUser) throw new Error("Failed to update the user!");
 
-            // Mapping data to return type
+            // // Mapping data to return type
             // const userDto: IUserDto = {
             //     _id: updatedUser._id as string,
             //     name: updatedUser.name,
@@ -464,8 +464,6 @@ export class UserService implements IUserService {
             //         : {}),
             //     createdAt: updatedUser.createdAt,
             // };
-
-            console.log(updatedUser)
 
             return updatedUser;
         } catch (err: unknown) {
