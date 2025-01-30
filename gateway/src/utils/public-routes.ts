@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request } from "express";
 
 const PUBLIC_ROUTES: { method: string; path: string }[] = [
     { method: "POST", path: "/api/user/login" },

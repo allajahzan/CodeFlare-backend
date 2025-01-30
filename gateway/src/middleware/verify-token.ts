@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { isPublic } from "./publicRoutes";
+import { isPublic } from "../utils/public-routes";
 import { verifyAccessToken } from "@codeflare/common";
 
 /**
