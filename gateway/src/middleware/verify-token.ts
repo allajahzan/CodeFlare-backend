@@ -20,8 +20,12 @@ export const verifyToken = (
 
         // If true, skip verify access token
         if (status) {
+            console.log('asdfasdf');
             return next();
         }
+
+        
+        
 
         // Verify access token
         const verifyAccessTokenMiddleware = verifyAccessToken(

@@ -142,7 +142,10 @@ export class UserService implements IUserService {
                 "24h"
             ); // Generate JWT token to send with email
 
-            await this.userRepository.update({ email, role }, { $set: { token } }); // Store token in database
+            await this.userRepository.update(
+                { email, role },
+                { $set: { isTokenValid: true } }
+            ); // Update isTokenValid
 
             sendOtp(user.name, email, role, token, "Reset your password - CodeFlare"); // Send reset password link
         } catch (err: unknown) {
@@ -205,10 +208,7 @@ export class UserService implements IUserService {
      * @throws {Error} If the token is not found, expired, or invalid, or if the passwords do not match.
      * @throws {NotFoundError} If the user account associated with the token is not found.
      */
-    async userResetPassword(
-        password: string,
-        token: string
-    ): Promise<void> {
+    async userResetPassword(password: string, token: string): Promise<void> {
         try {
             if (!token) throw new NotFoundError("Token not found!");
 

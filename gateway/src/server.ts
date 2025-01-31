@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 import { errorHandler } from "@codeflare/common";
 import { verifyToken } from "./middleware/verify-token";
 import {logger, morganMiddleware} from './middleware/centralized-logging'
-import { connectRedis } from "./config/redis";
 
 // Create app
 const app = express();
@@ -13,13 +12,8 @@ const app = express();
 // Centralized Logging
 app.use(morganMiddleware)
 
-app.use(express.json())
-
 // Env config
 dotenv.config();
-
-// Connect to redis
-connectRedis();
 
 // Cors origin policy
 app.use(

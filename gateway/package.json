@@ -12,20 +12,19 @@
   "license": "ISC",
   "dependencies": {
     "@codeflare/common": "^1.0.32",
-    "@types/morgan": "^1.9.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "http-proxy-middleware": "^3.0.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "redis": "^4.7.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/morgan": "^1.9.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
