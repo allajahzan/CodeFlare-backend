@@ -4,6 +4,14 @@ import { IUserSchema } from "../entities/IUserSchema";
 /** Implementaion of Base User Schema */
 const userSchema = new Schema<IUserSchema>(
     {
+        coordinatorId: {
+            type: Schema.Types.ObjectId,
+            required: false,
+        },
+        instructorId: {
+            type: Schema.Types.ObjectId,
+            required: false,
+        },  
         name: {
             type: String,
             required: true,

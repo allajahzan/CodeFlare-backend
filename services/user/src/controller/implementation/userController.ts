@@ -122,7 +122,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
-            
+
             const { token } = req.query;
 
             await this.userService.checkResetPasswordLink(token as string);
@@ -148,10 +148,7 @@ export class UserController implements IUserController {
             const { password, confirmPassword } = req.body;
             const { token } = req.query;
 
-            await this.userService.userResetPassword(
-                password,
-                token as string
-            );
+            await this.userService.userResetPassword(password, token as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
@@ -215,9 +212,9 @@ export class UserController implements IUserController {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
-            const userId = req.headers["x-user-id"]; // userId
+            const requesterId = req.headers["x-user-id"]; // userId
 
-            const data = await this.userService.getUser(userId as string);
+            const data = await this.userService.getUser(requesterId as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
@@ -239,13 +236,26 @@ export class UserController implements IUserController {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
-            const data = await this.userService.getUsers(["student"]);
+            const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+
+            const data = await this.userService.getUsers(
+                ["student"],
+                tokenPayload as string
+            );
+
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
     }
 
+    /**
+     * Retrieves all coordinators and instructors from the database by calling the user service.
+     * @param req - The express request object.
+     * @param res - The express response object used to send the list of coordinators and instructors.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the retrieval process is complete.
+     */
     async getCoordinatorsAndInstructors(
         req: Request,
         res: Response,
@@ -280,7 +290,13 @@ export class UserController implements IUserController {
         try {
             const user = req.body;
 
-            const data = await this.userService.createUser(user);
+            const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+
+            const data = await this.userService.createUser(
+                user,
+                tokenPayload as string
+            );
+
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

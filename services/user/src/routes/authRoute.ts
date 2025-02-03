@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { UserController } from "../controller/implementation/userController.";
+import { UserController } from "../controller/implementation/userController";
 import { UserService } from "../service/implementation/userService";
 import { UserRepository } from "../repository/implementation/userRepository";
 import User from "../modal/userSchema";

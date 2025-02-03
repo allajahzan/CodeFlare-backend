@@ -24,6 +24,7 @@ import { sendInvitation } from "../../utils/sendInvitation";
 import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
+import { ObjectId } from "mongoose";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -298,20 +299,20 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Retrieves a user from the database using the provided payload.
-     * @param payload - The payload containing user information in JSON string format.
-     * @returns A promise that resolves to an object containing the user if found, otherwise rejects with an error.
-     * @throws {UnauthorizedError} If the payload is not provided.
+     * Retrieves the user data based on the x-user-id header.
+     * @param requesterId - The x-user-id header containing the user id.
+     * @returns A promise that resolves to an object containing the user data if found, otherwise the promise is rejected with an error.
+     * @throws {UnauthorizedError} If the requesterId is not provided or is invalid.
      * @throws {NotFoundError} If the user is not found.
      */
-    async getUser(userId: string): Promise<IUserDto> {
+    async getUser(requesterId: string): Promise<IUserDto> {
         try {
-            if (!userId)
+            if (!requesterId)
                 throw new UnauthorizedError(
                     "Athentication failed. Please login again!"
                 );
 
-            const { _id } = JSON.parse(userId as string);
+            const { _id } = JSON.parse(requesterId as string);
 
             const user = await this.userRepository.findOne({ _id });
 
@@ -338,14 +339,39 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Retrieves a list of users from the database with the specified roles.
-     * @param roles - An array of role strings to filter the users by.
-     * @returns A promise that resolves to an array of user objects matching the specified roles.
-     * @throws {Error} If any error occurs during the retrieval of users.
+     * Retrieves a list of users based on the given roles and the token payload.
+     * @param roles - The roles of the users to retrieve.
+     * @param tokenPayload - The JSON web token payload containing the requester id and role.
+     * @returns A promise that resolves to an array of user objects if the users are found, otherwise the promise is rejected with an error.
+     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
+     * @throws {NotFoundError} If no users are found with the given roles and requester id.
      */
-    async getUsers(roles: string[]): Promise<IUserDto[]> {
+    async getUsers(roles: string[], tokenPayload: string): Promise<IUserDto[]> {
         try {
-            const users = await this.userRepository.find({ role: { $in: roles } });
+            let users;
+
+            // No token, so request is form admin
+            if (!tokenPayload) {
+                users = await this.userRepository.find({
+                    role: { $in: roles },
+                });
+            } else {
+                const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
+
+                if (role === "coordinator" || role === "instructor") {
+                    const searchField =
+                        role === "coordinator" ? "coordinatorId" : "instructorId"; // Which field based on role
+
+                    users = await this.userRepository.find({
+                        [searchField]: _id,
+                        role: { $in: roles },
+                    });
+                } else {
+                    throw new UnauthorizedError(
+                        "You do not have permission to fetch these users."
+                    );
+                }
+            }
 
             // Mapping data to return type
             const userDto: IUserDto[] = users.map((user) => {
@@ -370,20 +396,39 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Creates a new user in the database with the given user object.
-     * @param user - The user object to create a new user from.
-     * @returns A promise that resolves to an object containing the newly created user if successful, otherwise rejects with an error.
-     * @throws {ConflictError} If the user already exists.
-     * @throws {Error} If any error occurs during user creation or sending invitation.
+     * Creates a new user in the database with the given user data and the role of the requester.
+     * @param user - The user data to create a new user with.
+     * @param tokenPayload - The x-user-payload header containing the requester id and role.
+     * @returns A promise that resolves to an object containing the newly created user if successful, otherwise the promise is rejected with an error.
+     * @throws {UnauthorizedError} If the token is not provided or is invalid.
+     * @throws {ConflictError} If the user already exists with the same email.
+     * @throws {Error} If any error occurs during the creation of a new user.
      */
-    async createUser(user: IUserSchema): Promise<IUserDto> {
+    async createUser(user: IUserSchema, tokenPayload: string): Promise<IUserDto> {
         try {
+            if (!tokenPayload)
+                throw new UnauthorizedError(
+                    "Athentication failed. Please login again!"
+                );
+
+            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
+
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
             if (isUserExist)
                 throw new ConflictError("An account with this email already exists!");
 
-            const newUser = await this.userRepository.create(user);
+            const additionalFields =
+                role === "coordinator"
+                    ? { coordinatorId: _id as unknown as ObjectId }
+                    : role === "instructor"
+                        ? { instructorId: _id as unknown as ObjectId }
+                        : {};
+
+            const newUser = await this.userRepository.create({
+                ...user,
+                ...additionalFields, // Add only if role is "coordinator" or "instructor"
+            });
 
             if (!newUser) throw new Error("Failed to add the user!");
 
