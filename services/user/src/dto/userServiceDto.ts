@@ -11,6 +11,12 @@ export interface IUserRegisterDto {
     role: string;
 }
 
+/** Dto for refreshToken */
+export interface IRefreshTokenDto {
+    accessToken: string;
+}
+
+/** Dto for User */
 export interface IUserDto {
     _id: string| unknown;
     name: string;
@@ -22,9 +28,4 @@ export interface IUserDto {
     week?: string;
     lastActive?: Date;
     createdAt: Date;
-}
-
-/** Dto for refreshToken */
-export interface IRefreshTokenDto {
-    accessToken: string;
 }

@@ -1,9 +1,9 @@
-import { Document, ObjectId } from "mongoose";
+import { Document, Schema } from "mongoose";
 
 /** Interface for Base User Schema */
 export interface IUserSchema extends Document {
-    coordinatorId: ObjectId;
-    instructorId: ObjectId;
+    coordinatorId: Schema.Types.ObjectId;
+    instructorId: Schema.Types.ObjectId;
     name: string;
     email: string;
     phoneNo: string;
