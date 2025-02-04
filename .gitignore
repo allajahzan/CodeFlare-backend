@@ -21,4 +21,6 @@ services/notification/node_modules
 services/coordinator/.env
 services/coordinator/node_modules
 
-
+# Communication serrvice
+services/communication/.env
+services/communication/node_modules
