@@ -1,3 +1,7 @@
+import { status } from "@grpc/grpc-js";
+import User from "../../modal/userSchema";
+import { UserRepository } from "../../repository/implementation/userRepository";
+
 /**
  * Handles notification request.
  * @param {Object} call - gRPC call object with request data.
@@ -6,12 +10,28 @@
  */
 export const getUser = async (call: any, callback: any) => {
     try {
-        const { id } = call.request
+        const { _id } = call.request;
 
-        console.log(id)
-        
+        const user = await new UserRepository(User).findOne({ _id }); // Find user by _id
+
+        console.log(user);
+
+        if (!user) {
+            return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
+        }
+
+        // Map user data to response type
+        const formattedUser = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profilePic: user.profilePic || "",
+        };
+
+        callback(null, formattedUser); // Success respnose
     } catch (err) {
-        console.log(err)
-        callback(null, { status: 403, msg: 'not valid request' })
+        console.log(err);
+        callback({ status: status.INTERNAL, msg: "Internal Server Error" }, null);
     }
-}
+};

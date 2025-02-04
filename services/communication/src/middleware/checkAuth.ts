@@ -1,10 +1,10 @@
 import {
     JwtPayloadType,
-    NotFoundError,
     UnauthorizedError,
 } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
-import axios from "axios";
+import { getUser } from "../grpc/client/userClient";
+
 /**
  * Checks if the request is authenticated.
  * @param req - The express request object.
@@ -30,11 +30,6 @@ export const checkAuth = async (
         const payload = JSON.parse(tokenPayload as string) as JwtPayloadType;
         const role = JSON.parse(userRole as string);
 
-        console.log(payload);
-        console.log(role);
-        
-        
-
         if (!payload) {
             throw new UnauthorizedError(
                 "Invalid authentication data. Please login again!"
@@ -47,9 +42,10 @@ export const checkAuth = async (
             );
         }
 
+        await getUser(payload._id as string)
+
         next();
     } catch (err) {
-        console.log(err)
         next(err);
     }
 };

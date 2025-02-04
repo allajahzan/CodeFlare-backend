@@ -24,7 +24,7 @@ export const startGrpcServer = () => {
             "0.0.0.0:50052",
             grpc.ServerCredentials.createInsecure(),
             () => {
-                console.log("GRPC server for user service is running on port 50052");
+                console.log("GRPC server for user service running on port 50052");
             }
         );
     } catch (err) {
