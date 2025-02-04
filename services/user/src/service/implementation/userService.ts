@@ -346,25 +346,39 @@ export class UserService implements IUserService {
      * @throws {UnauthorizedError} If the token payload is invalid or not provided.
      * @throws {NotFoundError} If no users are found with the given roles and requester id.
      */
-    async getUsers(roles: string[], tokenPayload: string): Promise<IUserDto[]> {
+    async getUsers(tokenPayload: string): Promise<IUserDto[]> {
         try {
             let users;
 
-            // No token, so request is form admin
+            // No token, so request is from admin
             if (!tokenPayload) {
                 users = await this.userRepository.find({
-                    role: { $in: roles },
+                    role: { $in: ["coordinator", "instructors"] },
                 });
             } else {
                 const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
                 if (role === "coordinator" || role === "instructor") {
                     const searchField =
-                        role === "coordinator" ? "coordinatorId" : "instructorId"; // Which field based on role
+                        role === "coordinator" ? "coordinatorId" : "instructorId"; // Which field, based on role
 
                     users = await this.userRepository.find({
                         [searchField]: _id,
-                        role: { $in: roles },
+                        role: { $in: ["student"] },
+                    });
+                } else if (role === "student") {
+                    const student = await this.userRepository.findOne({ _id }); // Find the student
+
+                    if (!student) {
+                        throw new UnauthorizedError("Student not found.");
+                    }
+
+                    users = await this.userRepository.find({
+                        $or: [
+                            { batch: student.batch, role: "student" }, // Students in the same batch
+                            { _id: student.coordinatorId, role: "coordinator" }, // Coordinator of the batch
+                            { _id: student.instructorId, role: "instructor" }, // Instructor of the batch
+                        ],
                     });
                 } else {
                     throw new UnauthorizedError(

@@ -13,8 +13,7 @@ export interface IUserController {
 
     // User CRUD related methods
     getUser(req: Request, res:Response, next: NextFunction) : Promise<void>
-    getCoordinatorsAndInstructors(req: Request, res: Response, next: NextFunction) : Promise<void>;
-    getStudents(req: Request, res:Response, next: NextFunction) : Promise<void>
+    getUsers(req: Request, res:Response, next: NextFunction) : Promise<void>
     createUser(req: Request, res: Response, next: NextFunction): Promise<void>;
     updateUser(req: Request, res: Response, next: NextFunction): Promise<void>;
     changeUserStatus(req: Request, res: Response, next: NextFunction): Promise<void>;

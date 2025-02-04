@@ -13,7 +13,7 @@ export interface IUserService {
 
     // User CRUD related methods
     getUser(requesterId: string): Promise<IUserDto>;
-    getUsers(roles: string[], tokenPayload?: string): Promise<IUserDto[]>;
+    getUsers(tokenPayload?: string): Promise<IUserDto[]>;
     createUser(user: Partial<IUserSchema>, tokenPayload: string): Promise<IUserDto>;
     updateUser(_id: string, user: Partial<IUserSchema>): Promise<IUserDto>;
     changeUserStatus(_id: string): Promise<void>;

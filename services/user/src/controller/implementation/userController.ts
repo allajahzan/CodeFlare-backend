@@ -222,13 +222,13 @@ export class UserController implements IUserController {
     }
 
     /**
-     * Retrieves all users from the database by calling the user service.
-     * @param req - The express request object.
+     * Retrieves a list of users based on the requester's token payload.
+     * @param req - The express request object containing headers with token payload.
      * @param res - The express response object used to send the list of users.
      * @param next - The next middleware function in the express stack.
-     * @returns A promise that resolves when the retrieval process is complete.
+     * @returns A promise that resolves when the user list retrieval process is complete.
      */
-    async getStudents(
+    async getUsers(
         req: Request,
         res: Response,
         next: NextFunction
@@ -238,36 +238,7 @@ export class UserController implements IUserController {
 
             const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
 
-            const data = await this.userService.getUsers(
-                ["student"],
-                tokenPayload as string
-            );
-
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
-
-    /**
-     * Retrieves all coordinators and instructors from the database by calling the user service.
-     * @param req - The express request object.
-     * @param res - The express response object used to send the list of coordinators and instructors.
-     * @param next - The next middleware function in the express stack.
-     * @returns A promise that resolves when the retrieval process is complete.
-     */
-    async getCoordinatorsAndInstructors(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
-
-            const data = await this.userService.getUsers([
-                "coordinator",
-                "instructor",
-            ]);
+            const data = await this.userService.getUsers(tokenPayload as string);
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {

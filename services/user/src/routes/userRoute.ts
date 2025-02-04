@@ -11,19 +11,14 @@ const userRepository = new UserRepository(User);
 const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
-// Get students
-router.get("/student", (req: Request, res: Response, next: NextFunction) =>
-    userController.getStudents(req, res, next)
-);
-
-// Get Coordinators and Instructors
-router.get("/coordinator-instructor", (req: Request, res: Response, next: NextFunction) =>
-        userController.getCoordinatorsAndInstructors(req, res, next)
-);
-
 // Get user
 router.get("/", (req: Request, res: Response, next: NextFunction) =>
     userController.getUser(req, res, next)
+);
+
+// Get users
+router.get("/users", (req: Request, res: Response, next: NextFunction) =>
+    userController.getUsers(req, res, next)
 );
 
 // Create user
