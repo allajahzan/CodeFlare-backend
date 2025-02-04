@@ -1,5 +1,5 @@
 import { status } from "@grpc/grpc-js";
-import User from "../../modal/userSchema";
+import User from "../../model/userSchema";
 import { UserRepository } from "../../repository/implementation/userRepository";
 
 /**

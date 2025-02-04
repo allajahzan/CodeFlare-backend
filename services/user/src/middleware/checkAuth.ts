@@ -5,7 +5,7 @@ import {
 } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
 import { UserRepository } from "../repository/implementation/userRepository";
-import User from "../modal/userSchema";
+import User from "../model/userSchema";
 
 /**
  * Checks if the request is authenticated.
