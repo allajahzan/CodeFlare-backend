@@ -25,7 +25,7 @@ const startServer = async () => {
 
         //listen to port
         app.listen(process.env.PORT, () =>
-            console.log("Authentication service running on port 3000")
+            console.log("User service running on port 3000")
         );
     } catch (err: any) {
         console.log(err.message);
