@@ -30,6 +30,11 @@ export const checkAuth = async (
         const payload = JSON.parse(tokenPayload as string) as JwtPayloadType;
         const role = JSON.parse(userRole as string);
 
+        console.log(payload);
+        console.log(role);
+        
+        
+
         if (!payload) {
             throw new UnauthorizedError(
                 "Invalid authentication data. Please login again!"
@@ -42,18 +47,9 @@ export const checkAuth = async (
             );
         }
 
-        const resp = await axios.get("http://localhost:3000/user");
-        const user = resp.data.data;
-
-        console.log(user);
-        
-
-        if (!user) {
-            throw new NotFoundError("Account not found. Please contact support!");
-        }
-
         next();
     } catch (err) {
+        console.log(err)
         next(err);
     }
 };

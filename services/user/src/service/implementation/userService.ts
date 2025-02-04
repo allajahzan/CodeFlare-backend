@@ -72,7 +72,7 @@ export class UserService implements IUserService {
             const accessToken = generateJwtToken(
                 payload,
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
-                "1m"
+                "5m"
             ); // Access token
 
             return { role: user.role, accessToken, refreshToken };
@@ -289,7 +289,7 @@ export class UserService implements IUserService {
             const accessToken = generateJwtToken(
                 { _id: payload._id, role: payload.role },
                 process.env.JWT_ACCESS_TOKEN_SECRET as string,
-                "1m"
+                "5m"
             );
 
             return { accessToken };
