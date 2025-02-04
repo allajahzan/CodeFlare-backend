@@ -1,4 +1,4 @@
-import { model, ObjectId, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 import { IChatSchema } from "../entities/IchatSchema";
 
 /** Implementation for Chat Schema */

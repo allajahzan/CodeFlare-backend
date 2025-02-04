@@ -1,4 +1,4 @@
-import { ObjectId, Schema } from "mongoose";
+import { Schema } from "mongoose";
 
 /** Interface for Chat Schema */
 export interface IChatSchema {
