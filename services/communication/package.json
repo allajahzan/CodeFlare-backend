@@ -4,7 +4,9 @@
   "description": "communication service",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build" : "tsc",
+    "run" : "ts-node src/server.ts",
+    "dev" : "nodemon src/server.ts"
   },
   "author": "allaj",
   "license": "ISC",
