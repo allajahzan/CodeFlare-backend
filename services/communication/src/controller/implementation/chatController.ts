@@ -19,6 +19,7 @@ export class ChatController implements IChatController{
 
     async getChats(req: Request, res: Response, next: NextFunction): Promise<void> {
        try{
+        
        }catch(err){
         next(err)
        }

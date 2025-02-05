@@ -1,7 +1,7 @@
 import { BaseRepository } from "@codeflare/common";
 import { IChatRepository } from "../interface/IChatRepository";
 import { IChatSchema } from "../../entities/IChatSchema";
-import { FilterQuery, Model, QueryOptions, UpdateQuery } from "mongoose";
+import { FilterQuery, Model, QueryOptions, UpdateQuery, ObjectId } from "mongoose";
 
 /** Implementation for Chat Repository */
 export class ChatRepository extends BaseRepository<IChatSchema> implements IChatRepository {
