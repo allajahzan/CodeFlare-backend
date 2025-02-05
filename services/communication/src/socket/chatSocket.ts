@@ -37,24 +37,13 @@ export const chatSocket = (server: any) => {
                     }
 
                     const chatRepository = new ChatRepository(Chat); // Instance of chat repository
+
+                    let chat = await chatRepository.findOneAndUpdate(
+                        { participants: [senderId, receiverId] },
+                        { $set: { lastMessage: message } },
+                        { new: true, upsert: true }
+                    );
                     
-
-                    let chat = await chatRepository.findOne({
-                        participants: [senderId, receiverId],
-                    });
-
-                    if (chat) {
-                        await chatRepository.update(
-                            { participants: [senderId, receiverId] },
-                            { lastMessage: message }
-                        );
-                    } else {
-                        await chatRepository.create({
-                            participants: [senderId, receiverId],
-                            lastMessage: message,
-                        });
-                    }
-
                 }
             );
 
