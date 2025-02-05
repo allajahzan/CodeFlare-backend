@@ -1,6 +1,9 @@
 import { Server } from "socket.io";
 import Chat from "../model/chatSchema";
 import { ChatRepository } from "../repository/implementation/chatRepository";
+import { MessageRepository } from "../repository/implementation/messageRepository";
+import Message from "../model/messageSchema";
+import { ObjectId } from "mongoose";
 
 let users: { [key: string]: string } = {};
 
@@ -37,13 +40,22 @@ export const chatSocket = (server: any) => {
                     }
 
                     const chatRepository = new ChatRepository(Chat); // Instance of chat repository
+                    const messageRepository = new MessageRepository(Message); // Instance of message repository
 
                     let chat = await chatRepository.findOneAndUpdate(
                         { participants: [senderId, receiverId] },
                         { $set: { lastMessage: message } },
                         { new: true, upsert: true }
                     );
-                    
+
+                    if (chat) {
+                        await messageRepository.create({
+                            chatId: chat._id as ObjectId,
+                            senderId,
+                            receiverId,
+                            message
+                        })    
+                    }
                 }
             );
 

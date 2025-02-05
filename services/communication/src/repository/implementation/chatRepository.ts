@@ -4,9 +4,7 @@ import { IChatSchema } from "../../entities/IChatSchema";
 import { FilterQuery, Model, QueryOptions, UpdateQuery } from "mongoose";
 
 /** Implementation for Chat Repository */
-export class ChatRepository
-    extends BaseRepository<IChatSchema>
-    implements IChatRepository {
+export class ChatRepository extends BaseRepository<IChatSchema> implements IChatRepository {
     /**
      * Creates a new instance of the ChatRepository
      * @param model - Mongoose model for ChatSchema
