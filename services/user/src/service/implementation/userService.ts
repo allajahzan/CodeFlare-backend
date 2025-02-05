@@ -352,13 +352,17 @@ export class UserService implements IUserService {
 
             // No token, so request is from admin
             if (!tokenPayload) {
-                users = await this.userRepository.find({
-                    role: { $in: ["coordinator", "instructors"] },
-                });
+                throw new UnauthorizedError(
+                    "You do not have permission to access this resource."
+                );
             } else {
                 const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
-                if (role === "coordinator" || role === "instructor") {
+                if (role === "admin") {
+                    users = await this.userRepository.find({
+                        role: { $in: ["coordinator", "instructor"] },
+                    });
+                } else if (role === "coordinator" || role === "instructor") {
                     const searchField =
                         role === "coordinator" ? "coordinatorId" : "instructorId"; // Which field, based on role
 
@@ -375,7 +379,7 @@ export class UserService implements IUserService {
 
                     users = await this.userRepository.find({
                         $or: [
-                            { batch: student.batch, role: "student" }, // Students in the same batch
+                            { batch: student.batch, role: "student", _id: { $ne: _id } }, // Students in the same batch
                             { _id: student.coordinatorId, role: "coordinator" }, // Coordinator of the batch
                             { _id: student.instructorId, role: "instructor" }, // Instructor of the batch
                         ],

@@ -25,25 +25,38 @@ export const chatSocket = (server: any) => {
             });
 
             // When a user send private message
-            socket.on("privateMessage", async ({ senderId, receiverId, message }) => {
-                const receiverSocketId = users[receiverId];
+            socket.on(
+                "sendPrivateMessage",
+                async ({ senderId, receiverId, message }) => {
+                    const receiverSocketId = users[receiverId];
 
-                if (receiverSocketId) {
-                    socket
-                        .to(receiverSocketId)
-                        .emit("privateMessage", { senderId, message });
+                    if (receiverSocketId) {
+                        socket
+                            .to(receiverSocketId)
+                            .emit("receivePrivateMessage", { senderId, receiverId, message });
+                    }
+
+                    const chatRepository = new ChatRepository(Chat); // Instance of chat repository
+                    
+
+                    let chat = await chatRepository.findOne({
+                        participants: [senderId, receiverId],
+                    });
+
+                    if (chat) {
+                        await chatRepository.update(
+                            { participants: [senderId, receiverId] },
+                            { lastMessage: message }
+                        );
+                    } else {
+                        await chatRepository.create({
+                            participants: [senderId, receiverId],
+                            lastMessage: message,
+                        });
+                    }
+
                 }
-
-                const chatRepository = new ChatRepository(Chat); // Instance of chat repository
-
-                const chat = await chatRepository.update(
-                    { participants: [senderId, receiverId] },
-                    { $set: { lastMessage: message } },
-                    { new: true }
-                );
-
-                console.log(chat);
-            });
+            );
 
             // when socket disconnects
             socket.on("disconnect", () => {
