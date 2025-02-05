@@ -33,6 +33,8 @@ export const chatSocket = (server: any) => {
                 async ({ senderId, receiverId, message }) => {
                     const receiverSocketId = users[receiverId];
 
+                    console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
+
                     if (receiverSocketId) {
                         socket
                             .to(receiverSocketId)
@@ -53,8 +55,8 @@ export const chatSocket = (server: any) => {
                             chatId: chat._id as ObjectId,
                             senderId,
                             receiverId,
-                            message
-                        })    
+                            message,
+                        });
                     }
                 }
             );
