@@ -14,8 +14,6 @@ export const getUser = async (call: any, callback: any) => {
 
         const user = await new UserRepository(User).findOne({ _id }); // Find user by _id
 
-        console.log(user);
-
         if (!user) {
             return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
         }

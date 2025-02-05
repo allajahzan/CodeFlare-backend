@@ -10,16 +10,13 @@ export class ChatController implements IChatController{
         this.chatService = chatService
     }
 
-    async send(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try{
-        }catch(err){
-            next(err)
-        }
-    }
-
     async getChats(req: Request, res: Response, next: NextFunction): Promise<void> {
        try{
-        
+            const { _id, email } = req.body;
+
+            console.log(req.body);
+            
+
        }catch(err){
         next(err)
        }

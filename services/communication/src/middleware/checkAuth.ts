@@ -42,7 +42,8 @@ export const checkAuth = async (
             );
         }
 
-        await getUser(payload._id as string)
+        const user = await getUser(payload._id as string);
+        req.body.user = user;
 
         next();
     } catch (err) {
