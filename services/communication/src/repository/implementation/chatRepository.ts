@@ -1,7 +1,13 @@
 import { BaseRepository } from "@codeflare/common";
 import { IChatRepository } from "../interface/IChatRepository";
 import { IChatSchema } from "../../entities/IChatSchema";
-import { FilterQuery, Model, QueryOptions, UpdateQuery, ObjectId } from "mongoose";
+import {
+    FilterQuery,
+    Model,
+    QueryOptions,
+    UpdateQuery,
+    ObjectId,
+} from "mongoose";
 
 /** Implementation for Chat Repository */
 export class ChatRepository extends BaseRepository<IChatSchema> implements IChatRepository {
@@ -27,6 +33,20 @@ export class ChatRepository extends BaseRepository<IChatSchema> implements IChat
     ): Promise<IChatSchema | null> {
         try {
             return await this.model.findOneAndUpdate(query, data, option);
+        } catch (err: any) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves a chat document by its id.
+     * @param _id - The id of the a participant - sender
+     * @returns A promise that resolves to the chat document if found, otherwise null if the chat is not found.
+     */
+    async getChatsById(_id: string): Promise<IChatSchema [] | null> {
+        try {
+            const chat = await this.model.find({participants: (_id as unknown) as ObjectId}).sort({ updatedAt: -1 });
+            return chat;
         } catch (err: any) {
             return null;
         }
