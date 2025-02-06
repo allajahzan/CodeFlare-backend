@@ -16,7 +16,7 @@ const messageService = new MessageService(messageRepository);
 const messageController = new MessageController(messageService);
 
 // Get messages
-router.get("/", (req: Request, res: Response, next: NextFunction) =>
+router.get("/:chatId", (req: Request, res: Response, next: NextFunction) =>
     messageController.getMessages(req, res, next)
 );
 

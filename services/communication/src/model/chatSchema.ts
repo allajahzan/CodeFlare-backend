@@ -7,6 +7,7 @@ const chatSchema = new Schema<IChatSchema>(
         participants: {
             type: [Schema.Types.ObjectId],
             required: true,
+            index: true,
         },
         lastMessage: {
             type: String,

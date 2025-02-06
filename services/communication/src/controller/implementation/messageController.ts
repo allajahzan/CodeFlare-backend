@@ -33,7 +33,7 @@ export class MessageController implements IMessageController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { chatId } = req.body;
+            const { chatId } = req.params;
 
             const data = await this.messageService.getMessages(chatId);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
