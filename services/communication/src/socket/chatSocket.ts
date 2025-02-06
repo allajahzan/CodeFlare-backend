@@ -61,6 +61,12 @@ export const chatSocket = (server: any) => {
                         });
                     }
 
+                    // Update last message
+                    await chatRepository.update(
+                        { _id: newChat?._id },
+                        { $set: { lastMessage: message } }
+                    );
+
                     // Message promise
                     const messagePromise = messageRepository.create({
                         chatId: newChat?._id as ObjectId,
