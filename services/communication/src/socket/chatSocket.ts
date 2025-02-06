@@ -77,6 +77,7 @@ export const chatSocket = (server: any) => {
 
                     // Chat response
                     const chat = {
+                        chatId: newChat?.id as string,
                         sender,
                         receiver,
                         lastMessage: message,
