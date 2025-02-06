@@ -55,12 +55,4 @@ export class ChatService implements IChatService {
             throw err;
         }
     }
-
-    async getMessages(chatId: string): Promise<void> {
-        try {
-            console.log(chatId);
-        } catch (err: unknown) {
-            throw err;
-        }
-    }
 }

@@ -7,7 +7,7 @@ import {
 } from "@codeflare/common";
 import { IChatService } from "../../service/interface/IChatService";
 
-/** Implementation for chat controller */
+/** Implementation for Chat Controller */
 export class ChatController implements IChatController {
     private chatService: IChatService;
 
@@ -32,17 +32,6 @@ export class ChatController implements IChatController {
 
             const data = await this.chatService.getChats(_id);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
-        } catch (err) {
-            next(err);
-        }
-    }
-
-    async getMessages(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
         } catch (err) {
             next(err);
         }
