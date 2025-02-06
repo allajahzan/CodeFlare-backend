@@ -1,13 +1,37 @@
-import { model, Schema } from "mongoose";
+import { Document, Schema, model, Types } from "mongoose";
 import { IChatSchema } from "../entities/IChatSchema";
 
-/** Implementation for Chat Schema */
+/** Chat Schema */
 const chatSchema = new Schema<IChatSchema>(
     {
-        participants: {
-            type: [Schema.Types.ObjectId],
-            required: true,
-            index: true,
+        participants: [
+            {
+                type: Schema.Types.ObjectId,
+                required: true,
+                index: true,
+            },
+        ],
+        sender: {
+            _id: {
+                type: Schema.Types.ObjectId,
+                required: true,
+                index: true,
+            },
+            name: { type: String, required: true },
+            email: { type: String, required: true },
+            role: { type: String, required: true },
+            profilePic: { type: String },
+        },
+        receiver: {
+            _id: {
+                type: Schema.Types.ObjectId,
+                required: true,
+                index: true,
+            },
+            name: { type: String, required: true },
+            email: { type: String, required: true },
+            role: { type: String, required: true },
+            profilePic: { type: String },
         },
         lastMessage: {
             type: String,

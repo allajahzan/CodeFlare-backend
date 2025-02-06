@@ -41,62 +41,65 @@ export const chatSocket = (server: any) => {
 
                     console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
 
-                    // Send message back to receiver
-                    if (receiverSocketId) {
-                        socket
-                            .to(receiverSocketId)
-                            .emit("receivePrivateMessage", { senderId, receiverId, message });
-                    }
-
-                    // Save chat
-                    let newChat = await chatRepository.findOne({
+                    // Find chat
+                    let chatPromise = chatRepository.findOne({
                         participants: { $all: [senderId, receiverId] },
                     });
 
-                    // If no existing chat, create a new one
-                    if (!newChat) {
-                        newChat = await chatRepository.create({
-                            participants: [senderId, receiverId], // Maintain a consistent order
-                            lastMessage: message,
+                    // Get sender and receiver details from user service with gRPC and also chat
+                    let [sender, receiver, chat] = await Promise.all([
+                        getUser(senderId),
+                        getUser(receiverId),
+                        chatPromise,
+                    ]);
+
+                    // Send message back to receiver
+                    if (receiverSocketId) {
+                        socket.to(receiverSocketId).emit("receivePrivateMessage", {
+                            senderId,
+                            receiverId,
+                            sender,
+                            message,
                         });
                     }
 
-                    // Update last message
-                    await chatRepository.update(
-                        { _id: newChat?._id },
-                        { $set: { lastMessage: message } }
-                    );
+                    // If no existing chat, create a new one
+                    if (!chat) {
+                        chat = await chatRepository.create({
+                            participants: [senderId, receiverId],
+                            sender,
+                            receiver,
+                            lastMessage: message,
+                        });
+                    } else {
+                        // Update last message
+                        await chatRepository.update(
+                            { _id: chat?._id },
+                            { $set: { lastMessage: message, sender, receiver } }
+                        );
+                    }
 
-                    // Message promise
-                    const messagePromise = messageRepository.create({
-                        chatId: newChat?._id as ObjectId,
+                    // Sender-Receiver chat Info
+                    const chatInfo = {
+                        chatId: chat?.id as string,
+                        senderId,
+                        receiverId,
+                    };
+
+                    // Emit chat Info to both users
+                    if (senderSocketId || receiverSocketId) {
+                        io.to(senderSocketId)
+                            .to(receiverSocketId)
+                            .emit("chatInfo", { chatInfo });
+                    }
+
+                    // Save Message
+                    await messageRepository.create({
+                        chatId: chat?._id as ObjectId,
                         senderId,
                         receiverId,
                         message,
                     });
-
-                    // Get sender and receiver details
-                    const [sender, receiver] = await Promise.all([
-                        getUser(senderId),
-                        getUser(receiverId),
-                    ]);
-
-                    // Chat response
-                    const chat = {
-                        chatId: newChat?.id as string,
-                        sender,
-                        receiver,
-                        lastMessage: message,
-                        updatedAt: new Date(),
-                    };
-
-                    // Emit chat update to both users
-                    if (senderSocketId || receiverSocketId) {
-                        io.to(senderSocketId).to(receiverSocketId).emit("chats", { chat });
-                    }
-
-                    // Save messages
-                    await messagePromise;
                 }
             );
 
