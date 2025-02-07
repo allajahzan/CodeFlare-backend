@@ -20,6 +20,11 @@ const messageSchema = new Schema<IMessageSchema>(
             required: true,
             index: true,
         },
+        content: {
+            type: String,
+            enum: ["text", "image", "file"],
+            required: true,
+        },
         message: {
             type: String,
             required: true,

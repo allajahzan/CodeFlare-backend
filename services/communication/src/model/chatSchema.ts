@@ -33,6 +33,11 @@ const chatSchema = new Schema<IChatSchema>(
             role: { type: String, required: true },
             profilePic: { type: String },
         },
+        content: {
+            type: String,
+            enum: ["text", "image", "file"],
+            required: true,
+        },
         lastMessage: {
             type: String,
             required: true,

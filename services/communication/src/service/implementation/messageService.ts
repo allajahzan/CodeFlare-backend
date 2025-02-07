@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { IMessageSchema } from "../../entities/IMessageSchema";
 import { IMessageRepository } from "../../repository/interface/IMessageRepository";
 import { IMessageService } from "../interface/IMessageService";
@@ -22,7 +23,7 @@ export class MessageService implements IMessageService {
      */
     async getMessages(chatId: string): Promise<IMessageSchema[] | null> {
         try {
-            const messages = this.messageRepository.findLast_20_Messages(chatId, 0);
+            const messages = this.messageRepository.getMessages(chatId, 0);
             return messages;
         } catch (err: unknown) {
             throw err;

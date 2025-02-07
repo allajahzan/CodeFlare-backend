@@ -14,6 +14,7 @@ export interface IChatSchema extends Document {
     participants: Schema.Types.ObjectId[];
     sender: IUser;
     receiver: IUser;
+    content: string;
     lastMessage: string;
     updatedAt: Date;
 }

@@ -22,7 +22,7 @@ export const chatSocket = (server: any) => {
         io.on("connection", (socket) => {
             console.log("socket connected", socket.id);
 
-            // When a user registers
+            // When a user registers =======================================================================
             socket.on("registerUser", (userId) => {
                 users[userId] = socket.id;
                 console.log(
@@ -30,10 +30,10 @@ export const chatSocket = (server: any) => {
                 );
             });
 
-            // When a user send private message
+            // When a user send private message ============================================================
             socket.on(
                 "sendPrivateMessage",
-                async ({ senderId, receiverId, message }) => {
+                async ({ senderId, receiverId, content, message }) => {
                     const receiverSocketId = users[receiverId];
                     const senderSocketId = users[senderId];
 
@@ -59,6 +59,7 @@ export const chatSocket = (server: any) => {
                             senderId,
                             receiverId,
                             sender,
+                            content,
                             message,
                         });
                     }
@@ -69,13 +70,14 @@ export const chatSocket = (server: any) => {
                             participants: [senderId, receiverId],
                             sender,
                             receiver,
+                            content,
                             lastMessage: message,
                         });
                     } else {
                         // Update last message
                         await chatRepository.update(
                             { _id: chat?._id },
-                            { $set: { lastMessage: message, sender, receiver } }
+                            { $set: { lastMessage: message, sender, receiver, content } }
                         );
                     }
 
@@ -85,7 +87,7 @@ export const chatSocket = (server: any) => {
                         senderId,
                         receiverId,
                     };
-
+                    
                     // Emit chat Info to both users
                     if (senderSocketId || receiverSocketId) {
                         io.to(senderSocketId)
@@ -98,22 +100,23 @@ export const chatSocket = (server: any) => {
                         chatId: chat?._id as ObjectId,
                         senderId,
                         receiverId,
+                        content,
                         message,
                     });
                 }
             );
 
-            // Load more messages when scroll to top
+            // Load more messages when scroll to top =======================================================
             socket.on("loadMoreMessages", async ({ userId, chatId, skip }) => {
-                const messages = await messageRepository.findLast_20_Messages(
+                const messages = await messageRepository.getMessages(
                     chatId,
                     skip
                 );
 
-                io.emit("loadedMoreMessages", { messages, chatId, userId });
+                io.emit("loadedMessages", { messages, chatId, userId });
             });
 
-            // when socket disconnects
+            // when socket disconnects =====================================================================
             socket.on("disconnect", () => {
                 for (let userId in users) {
                     if (users[userId] === socket.id) {

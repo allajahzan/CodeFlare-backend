@@ -1,8 +1,4 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { ChatController } from "../controller/implementation/chatController";
-import { ChatService } from "../service/implementation/chatService";
-import { ChatRepository } from "../repository/implementation/chatRepository";
-import Chat from "../model/chatSchema";
 import { MessageController } from "../controller/implementation/messageController";
 import { MessageService } from "../service/implementation/messageService";
 import { MessageRepository } from "../repository/implementation/messageRepository";

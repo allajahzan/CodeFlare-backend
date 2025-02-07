@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { IChatController } from "../interface/IChatController";
 import { IMessageController } from "../interface/IMessageController";
 import {
     HTTPStatusCodes,

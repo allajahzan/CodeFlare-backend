@@ -39,7 +39,7 @@ export class MessageRepository extends BaseRepository<IMessageSchema> implements
      * @returns A promise that resolves to the list of message documents or null if no messages are found.
      * @throws An error if there is a problem retrieving the messages.
      */
-    async findLast_20_Messages(
+    async getMessages(
         chatId: string,
         skip: number
     ): Promise<IMessageSchema[] | null> {
