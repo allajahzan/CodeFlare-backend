@@ -27,7 +27,31 @@ export class MessageRepository extends BaseRepository<IMessageSchema> implements
     ): Promise<IMessageSchema | null> {
         try {
             return await this.model.findOneAndUpdate(query, data, option);
-        } catch (err: any) {
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves the list of messages for a chat with id `chatId` by retrieving the last 20 messages in descending order of their updated time.
+     * @param chatId - The id of the chat to retrieve messages for.
+     * @param skip - The skip value for pagination.
+     * @returns A promise that resolves to the list of message documents or null if no messages are found.
+     * @throws An error if there is a problem retrieving the messages.
+     */
+    async findLast_20_Messages(
+        chatId: string,
+        skip: number
+    ): Promise<IMessageSchema[] | null> {
+        try {
+            return (
+                await this.model
+                    .find({ chatId })
+                    .sort({ updatedAt: -1 })
+                    .skip(skip)
+                    .limit(20)
+            ).reverse();
+        } catch (err: unknown) {
             return null;
         }
     }

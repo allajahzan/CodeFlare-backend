@@ -22,7 +22,7 @@ export class MessageService implements IMessageService {
      */
     async getMessages(chatId: string): Promise<IMessageSchema[] | null> {
         try {
-            const messages = this.messageRepository.find({ chatId });
+            const messages = this.messageRepository.findLast_20_Messages(chatId, 0);
             return messages;
         } catch (err: unknown) {
             throw err;

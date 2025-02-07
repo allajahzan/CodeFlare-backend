@@ -55,7 +55,7 @@ export const chatSocket = (server: any) => {
 
                     // Send message back to receiver
                     if (receiverSocketId) {
-                        socket.to(receiverSocketId).emit("receivePrivateMessage", {
+                        io.to(receiverSocketId).emit("receivePrivateMessage", {
                             senderId,
                             receiverId,
                             sender,
@@ -102,6 +102,16 @@ export const chatSocket = (server: any) => {
                     });
                 }
             );
+
+            // Load more messages when scroll to top
+            socket.on("loadMoreMessages", async ({ userId, chatId, skip }) => {
+                const messages = await messageRepository.findLast_20_Messages(
+                    chatId,
+                    skip
+                );
+
+                io.emit("loadedMoreMessages", { messages, chatId, userId });
+            });
 
             // when socket disconnects
             socket.on("disconnect", () => {

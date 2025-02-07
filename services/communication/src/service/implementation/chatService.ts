@@ -1,5 +1,4 @@
 import { IChatSchema } from "../../entities/IChatSchema";
-import { getUser } from "../../grpc/client/userClient";
 import { IChatRepository } from "../../repository/interface/IChatRepository";
 import { IChatService } from "../interface/IChatService";
 
@@ -27,30 +26,7 @@ export class ChatService implements IChatService {
             const chats = await this.chatRepository.getChatsById(_id);
             if (!chats || !chats.length) return null;
 
-            // Get unique user ids
-            const userIds = new Set<string>();
-            chats.forEach((chat) => {
-                userIds.add(chat.participants[0].toString());
-                userIds.add(chat.participants[1].toString());
-            });
-
-            // Fetch user details using gRPC
-            const userDetailsMap = new Map<string, any>(); // Store user details
-            for (const userId of userIds) {
-                const userDetails = await getUser(userId); // gRPC call
-                if (userDetails) {
-                    userDetailsMap.set(userId, userDetails);
-                }
-            }
-
-            // Replace senderId and receiverId with full user details
-            const formattedChats = chats.map(chat => ({
-                chat,
-                sender: userDetailsMap.get(chat.participants[0].toString()) || null,
-                receiver: userDetailsMap.get(chat.participants[1].toString()) || null,
-            }));
-
-            return formattedChats as any;
+            return chats;
         } catch (err: unknown) {
             throw err;
         }
