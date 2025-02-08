@@ -6,7 +6,7 @@ import Message from "../model/messageSchema";
 import { ObjectId } from "mongoose";
 import { getUser } from "../grpc/client/userClient";
 
-let users: { [key: string]: string } = {};
+let users = new Map();
 const chatRepository = new ChatRepository(Chat); // Instance of chat repository
 const messageRepository = new MessageRepository(Message); // Instance of message repository
 
@@ -24,18 +24,25 @@ export const chatSocket = (server: any) => {
 
             // When a user registers =======================================================================
             socket.on("registerUser", (userId) => {
-                users[userId] = socket.id;
+                users.set(userId, socket.id);
                 console.log(
                     `User with ID ${userId} registered with socket ID: ${socket.id}`
                 );
+            });
+
+            // Get online users ======================================================================
+            socket.on("userOnline", (receiverId) => {
+                if (users.has(receiverId)) {
+                    io.emit('userOnline', {receiverId, isOnline:true});
+                }
             });
 
             // When a user send private message ============================================================
             socket.on(
                 "sendPrivateMessage",
                 async ({ senderId, receiverId, content, message }) => {
-                    const receiverSocketId = users[receiverId];
-                    const senderSocketId = users[senderId];
+                    const receiverSocketId = users.get(receiverId);
+                    const senderSocketId = users.get(senderId);
 
                     console.log(receiverSocketId, senderSocketId);
 
@@ -87,7 +94,7 @@ export const chatSocket = (server: any) => {
                         senderId,
                         receiverId,
                     };
-                    
+
                     // Emit chat Info to both users
                     if (senderSocketId || receiverSocketId) {
                         io.to(senderSocketId)
@@ -108,10 +115,7 @@ export const chatSocket = (server: any) => {
 
             // Load more messages when scroll to top =======================================================
             socket.on("loadMoreMessages", async ({ userId, chatId, skip }) => {
-                const messages = await messageRepository.getMessages(
-                    chatId,
-                    skip
-                );
+                const messages = await messageRepository.getMessages(chatId, skip);
 
                 io.emit("loadedMessages", { messages, chatId, userId });
             });
@@ -119,12 +123,14 @@ export const chatSocket = (server: any) => {
             // when socket disconnects =====================================================================
             socket.on("disconnect", () => {
                 for (let userId in users) {
-                    if (users[userId] === socket.id) {
-                        delete users[userId];
+                    if (users.get(userId) === socket.id) {
+                        users.delete(userId);
                         break;
                     }
                 }
                 console.log("socket disconnected", socket.id);
+
+                io.emit("userOnline", [...users.keys()]);
             });
         });
     } catch (err: unknown) {
