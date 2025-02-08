@@ -23,9 +23,11 @@ export interface IUserDto {
     email: string;
     phoneNo?: string;
     role: string;
+    profilePic?: string;
     batches?: string[];
     batch?: string;
     week?: string;
     lastActive?: Date;
     createdAt: Date;
+    isBlock?: boolean;
 }

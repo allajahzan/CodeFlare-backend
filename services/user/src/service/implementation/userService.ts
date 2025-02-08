@@ -54,6 +54,12 @@ export class UserService implements IUserService {
 
             if (!user) throw new UnauthorizedError("Account not found!");
 
+            if (user.isblock) {
+                throw new UnauthorizedError(
+                    "Your account is blocked. Please contact support!"
+                );
+            }
+
             if (!user.password)
                 throw new UnauthorizedError("You have to reset your password!"); // If no password is set
 
@@ -398,6 +404,8 @@ export class UserService implements IUserService {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    isBlock: user.isblock,
+                    profilePic: user.profilePic,
                     ...(user.batch ? { batch: user.batch } : {}),
                     ...(user.batches ? { batches: user.batches } : {}),
                     ...(user.week ? { week: user.week } : {}),

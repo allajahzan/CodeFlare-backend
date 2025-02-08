@@ -311,7 +311,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { id: _id } = req.params;
-
+            
             const data = await this.userService.changeUserStatus(_id);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
