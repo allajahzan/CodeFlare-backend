@@ -22,7 +22,7 @@ export const chatSocket = (server: any) => {
         io.on("connection", (socket) => {
             console.log("socket connected", socket.id);
 
-            // When a user registers =======================================================================
+            // When a user registers ======================================================================
             socket.on("registerUser", (userId) => {
                 users.set(userId, socket.id);
                 console.log(
@@ -30,10 +30,20 @@ export const chatSocket = (server: any) => {
                 );
             });
 
-            // Get online users ======================================================================
+            // Get online users ===========================================================================
             socket.on("userOnline", (receiverId) => {
                 if (users.has(receiverId)) {
-                    io.emit('userOnline', {receiverId, isOnline:true});
+                    io.emit("userOnline", { receiverId, isOnline: true });
+                }
+            });
+
+            // when a user types ==========================================================================
+            socket.on("userTyping", ({ senderId, receiverId, isTyping }) => {
+                if (users.has(receiverId)) {
+                    io.emit("userTyping", {
+                        senderId,
+                        isTyping,
+                    });
                 }
             });
 
