@@ -40,8 +40,9 @@ export const chatSocket = (server: any) => {
             // when a user types ==========================================================================
             socket.on("userTyping", ({ senderId, receiverId, isTyping }) => {
                 if (users.has(receiverId)) {
-                    io.emit("userTyping", {
+                    io.to(users.get(receiverId)).emit("userTyping", {
                         senderId,
+                        receiverId,
                         isTyping,
                     });
                 }
