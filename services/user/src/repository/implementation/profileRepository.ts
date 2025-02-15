@@ -4,9 +4,7 @@ import { IProfileSchema } from "../../entities/IProfileSchema";
 import { Model, ObjectId } from "mongoose";
 
 /** Implementation of Profile Repository  */
-export class ProfileRepository
-    extends BaseRepository<IProfileSchema>
-    implements IProfileRepository {
+export class ProfileRepository extends BaseRepository<IProfileSchema> implements IProfileRepository {
     /**
      * Constructs an instance of ProfileRepository.
      * @param model - The mongoose model representing the profile schema, used for database operations.
@@ -41,7 +39,11 @@ export class ProfileRepository
         profile: Partial<IProfileSchema>
     ): Promise<void | null> {
         try {
-            await this.model.updateOne({ userId: _id }, { $set: profile });
+            await this.model.updateOne(
+                { userId: _id },
+                { $set: profile },
+                { upsert: true }
+            );
         } catch (err: unknown) {
             return null;
         }

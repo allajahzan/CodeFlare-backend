@@ -15,18 +15,23 @@ const profileService = new ProfileService(profileRepository, userRespository);
 const profileController = new ProfileController(profileService);
 
 // Get profile
-router.get("/", (req: Request, res: Response, next: NextFunction) => {
+router.get("/profile", (req: Request, res: Response, next: NextFunction) => {
     profileController.getProfileByUserId(req, res, next);
 });
 
 // Update profile
-router.post("/", (req: Request, res: Response, next: NextFunction) => {
+router.post("/profile", (req: Request, res: Response, next: NextFunction) => {
     profileController.updateProfileByUserId(req, res, next);
 });
 
 // Change profile pic
-router.patch("/", (req: Request, res: Response, next: NextFunction) => {
+router.patch("/profile-pic", (req: Request, res: Response, next: NextFunction) => {
     profileController.changeProfilePic(req, res, next);
+});
+
+// Change password
+router.patch("/password", (req: Request, res: Response, next: NextFunction) => {
+    profileController.changePassword(req, res, next);
 });
 
 export { router as profileRoute };

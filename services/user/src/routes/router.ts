@@ -12,6 +12,6 @@ router.use("/", authRoute);
 router.use("/", checkAuth, userRoute);
 
 // profileRoute
-router.use("/profile", checkAuth, profileRoute);
+router.use("/", checkAuth, profileRoute);
 
 export default router;

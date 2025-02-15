@@ -32,19 +32,19 @@ const profileSchema = new Schema<IProfileSchema>({
     },
     portfolio: {
         type: String,
-        required: false,
+        required: true,
     },
     github: {
         type: String,
-        required: false,
+        required: true,
     },
     linkedin: {
         type: String,
-        required: false,
+        required: true,
     },
     instagram: {
         type: String,
-        required: false,
+        required: true,
     },
 });
 
