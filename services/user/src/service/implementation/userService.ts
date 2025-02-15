@@ -358,7 +358,7 @@ export class UserService implements IUserService {
             // No token
             if (!tokenPayload) {
                 throw new UnauthorizedError(
-                    "You do not have permission to access this resource."
+                    "You do not have permission to access this resource!"
                 );
             } else {
                 const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
@@ -398,7 +398,7 @@ export class UserService implements IUserService {
                     });
                 } else {
                     throw new UnauthorizedError(
-                        "You do not have permission to fetch these users."
+                        "You do not have permission to fetch these users!"
                     );
                 }
             }

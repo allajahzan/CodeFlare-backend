@@ -96,4 +96,33 @@ export class ProfileController implements IProfileController {
             next(err);
         }
     }
+
+    /**
+     * Updates the user's password based on the provided current and new passwords.
+     * @param req - The express request object containing the current and new passwords in the body, and the token payload in the x-user-payload header.
+     * @param res - The express response object.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the password is updated successfully.
+     * @throws An error if there is a problem updating the password.
+     */
+    async changePassword(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            const tokenPayload = req.headers["x-user-payload"];
+
+            await this.profileService.changePassword(
+                tokenPayload as string,
+                currentPassword,
+                newPassword
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }

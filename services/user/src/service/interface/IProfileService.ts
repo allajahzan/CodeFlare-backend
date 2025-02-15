@@ -6,4 +6,5 @@ export interface IProfileService {
     getProfileByUserId(tokenPayload: string): Promise<IProfileDto | null>;
     updateProfileByUserId(tokenPayload: string, profile: Partial<IProfileSchema>): Promise<void>;
     changeProfilePic(tokenPayload: string, imageUrl: string): Promise<void>;
+    changePassword(tokenPayload: string, currentPassword: string, newPassword: string): Promise<void>;
 }
