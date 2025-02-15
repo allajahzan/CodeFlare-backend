@@ -355,7 +355,7 @@ export class UserService implements IUserService {
         try {
             let users;
 
-            // No token, so request is from admin
+            // No token
             if (!tokenPayload) {
                 throw new UnauthorizedError(
                     "You do not have permission to access this resource."
@@ -363,18 +363,26 @@ export class UserService implements IUserService {
             } else {
                 const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
+                // Admin
                 if (role === "admin") {
                     users = await this.userRepository.find({
                         role: { $in: ["coordinator", "instructor"] },
                     });
+
+                    // Coordinator or instructor
                 } else if (role === "coordinator" || role === "instructor") {
-                    const searchField =
-                        role === "coordinator" ? "coordinatorId" : "instructorId"; // Which field, based on role
+                    const user = await this.userRepository.findOne({ _id }); // Find the coordinator or intructor
+
+                    if (!user) {
+                        throw new UnauthorizedError("User not found.");
+                    }
 
                     users = await this.userRepository.find({
-                        [searchField]: _id,
                         role: { $in: ["student"] },
+                        batch: { $in: user.batches }, // Students of perticular batches
                     });
+
+                    // Student
                 } else if (role === "student") {
                     const student = await this.userRepository.findOne({ _id }); // Find the student
 
@@ -385,7 +393,7 @@ export class UserService implements IUserService {
                     users = await this.userRepository.find({
                         $or: [
                             { batch: student.batch, role: "student", _id: { $ne: _id } }, // Students in the same batch
-                            { batches : {$in : [student.batch]} }, // Coordinator and Instructors of the batch
+                            { batches: { $in: [student.batch] } }, // Coordinator and Instructors of the batch
                         ],
                     });
                 } else {
@@ -396,8 +404,10 @@ export class UserService implements IUserService {
             }
 
             // Mapping data to return type
-            const userDto: IUserDto[] = users.map((user) => {
-                return {
+            const userDto: IUserDto[] = [];
+            for (let i = 0; i < users.length; i++) {
+                const user = users[i];
+                userDto.push({
                     _id: user._id as string,
                     name: user.name,
                     email: user.email,
@@ -409,8 +419,8 @@ export class UserService implements IUserService {
                     ...(user.week ? { week: user.week } : {}),
                     ...(user.lastActive ? { lastActive: user.lastActive } : {}),
                     createdAt: user.createdAt,
-                };
-            });
+                });
+            }
 
             return userDto;
         } catch (err: unknown) {
@@ -506,23 +516,22 @@ export class UserService implements IUserService {
 
             if (!updatedUser) throw new Error("Failed to update the user!");
 
-            // // Mapping data to return type
-            // const userDto: IUserDto = {
-            //     _id: updatedUser._id as string,
-            //     name: updatedUser.name,
-            //     email: updatedUser.email,
-            //     role: updatedUser.role,
-            //     ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
-            //     ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
-            //     ...(updatedUser.week ? { week: updatedUser.week } : {}),
-            //     ...(updatedUser.phoneNo ? { phoneNo: updatedUser.phoneNo } : {}),
-            //     ...(updatedUser.lastActive
-            //         ? { lastActive: updatedUser.lastActive }
-            //         : {}),
-            //     createdAt: updatedUser.createdAt,
-            // };
+            // Mapping data to return type
+            const userDto: IUserDto = {
+                _id: updatedUser._id as string,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
+                ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
+                ...(updatedUser.week ? { week: updatedUser.week } : {}),
+                ...(updatedUser.lastActive
+                    ? { lastActive: updatedUser.lastActive }
+                    : {}),
+                createdAt: updatedUser.createdAt,
+            };
 
-            return updatedUser;
+            return userDto;
         } catch (err: unknown) {
             throw err;
         }
