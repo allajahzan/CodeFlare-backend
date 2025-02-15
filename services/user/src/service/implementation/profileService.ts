@@ -30,7 +30,7 @@ export class ProfileService implements IProfileService {
      * @returns A promise that resolves to the profile document if found, otherwise null.
      * @throws {UnauthorizedError} If the token payload is invalid or not provided.
      */
-    async getProfileByUserid(tokenPayload: string): Promise<IProfileDto | null> {
+    async getProfileByUserId(tokenPayload: string): Promise<IProfileDto | null> {
         try {
             if (!tokenPayload) {
                 throw new UnauthorizedError(
@@ -66,7 +66,7 @@ export class ProfileService implements IProfileService {
 
             const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id
 
-            await this.profileRepository.update({ userId: _id }, { $set: profile });
+            await this.profileRepository.updateProfileByUserId(_id, profile);
         } catch (err: unknown) {
             throw err;
         }

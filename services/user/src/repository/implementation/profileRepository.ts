@@ -4,7 +4,9 @@ import { IProfileSchema } from "../../entities/IProfileSchema";
 import { Model, ObjectId } from "mongoose";
 
 /** Implementation of Profile Repository  */
-class ProfileRepository  extends BaseRepository<IProfileSchema> implements IProfileRepository {
+export class ProfileRepository
+    extends BaseRepository<IProfileSchema>
+    implements IProfileRepository {
     /**
      * Constructs an instance of ProfileRepository.
      * @param model - The mongoose model representing the profile schema, used for database operations.
@@ -22,6 +24,24 @@ class ProfileRepository  extends BaseRepository<IProfileSchema> implements IProf
     async getProfileByUserId(_id: string): Promise<IProfileSchema | null> {
         try {
             return await this.model.findOne({ userId: _id as unknown as ObjectId });
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Updates the profile of a user with the given user id.
+     * @param _id - The id of the user to update the profile for.
+     * @param profile - The profile document to update the user with.
+     * @returns A promise that resolves if the profile is updated successfully, otherwise null.
+     * @throws An error if there is a problem updating the profile.
+     */
+    async updateProfileByUserId(
+        _id: string,
+        profile: Partial<IProfileSchema>
+    ): Promise<void | null> {
+        try {
+            await this.model.updateOne({ userId: _id }, { $set: profile });
         } catch (err: unknown) {
             return null;
         }
