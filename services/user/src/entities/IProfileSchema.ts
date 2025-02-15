@@ -9,4 +9,8 @@ export interface IProfileSchema extends Document {
     techSkills: string;
     work: string;
     education: string;
+    portfolio: string;
+    github: string;
+    linkedin: string;
+    instagram: string;
 }
