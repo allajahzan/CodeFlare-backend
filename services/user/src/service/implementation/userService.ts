@@ -334,7 +334,6 @@ export class UserService implements IUserService {
                 ...(user.batch ? { batch: user.batch } : {}),
                 ...(user.batches ? { batches: user.batches } : {}),
                 ...(user.week ? { week: user.week } : {}),
-                ...(user.phoneNo ? { phoneNo: user.phoneNo } : {}),
                 createdAt: user.createdAt,
             };
 
@@ -386,8 +385,7 @@ export class UserService implements IUserService {
                     users = await this.userRepository.find({
                         $or: [
                             { batch: student.batch, role: "student", _id: { $ne: _id } }, // Students in the same batch
-                            { _id: student.coordinatorId, role: "coordinator" }, // Coordinator of the batch
-                            { _id: student.instructorId, role: "instructor" }, // Instructor of the batch
+                            { batches : {$in : [student.batch]} }, // Coordinator and Instructors of the batch
                         ],
                     });
                 } else {
@@ -409,7 +407,6 @@ export class UserService implements IUserService {
                     ...(user.batch ? { batch: user.batch } : {}),
                     ...(user.batches ? { batches: user.batches } : {}),
                     ...(user.week ? { week: user.week } : {}),
-                    ...(user.phoneNo ? { phoneNo: user.phoneNo } : {}),
                     ...(user.lastActive ? { lastActive: user.lastActive } : {}),
                     createdAt: user.createdAt,
                 };
@@ -437,23 +434,13 @@ export class UserService implements IUserService {
                     "Athentication failed. Please login again!"
                 );
 
-            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
-
             const isUserExist = await this.userRepository.findUserByEmail(user.email);
 
             if (isUserExist)
                 throw new ConflictError("An account with this email already exists!");
 
-            const additionalFields =
-                role === "coordinator"
-                    ? { coordinatorId: _id as unknown as ObjectId }
-                    : role === "instructor"
-                        ? { instructorId: _id as unknown as ObjectId }
-                        : {};
-
             const newUser = await this.userRepository.create({
                 ...user,
-                ...additionalFields, // Add only if role is "coordinator" or "instructor"
             });
 
             if (!newUser) throw new Error("Failed to add the user!");
@@ -483,7 +470,6 @@ export class UserService implements IUserService {
                 ...(newUser.batch ? { batch: newUser.batch } : {}),
                 ...(newUser.batches ? { batches: newUser.batches } : {}),
                 ...(newUser.week ? { week: newUser.week } : {}),
-                ...(newUser.phoneNo ? { phoneNo: newUser.phoneNo } : {}),
                 ...(newUser.lastActive ? { lastActive: newUser.lastActive } : {}),
                 createdAt: newUser.createdAt,
             };

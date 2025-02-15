@@ -1,12 +1,9 @@
 import { Document, Schema } from "mongoose";
 
-/** Interface for Base User Schema */
+/** Interface for User Schema */
 export interface IUserSchema extends Document {
-    coordinatorId: Schema.Types.ObjectId;
-    instructorId: Schema.Types.ObjectId;
     name: string;
     email: string;
-    phoneNo: string;
     password: string;
     profilePic: string;
     role: string;
@@ -14,7 +11,6 @@ export interface IUserSchema extends Document {
     batch: string;
     batches: string[];
     lastActive: Date;
-    isVerify: boolean;
     isblock: boolean;
     isTokenValid: boolean;
     createdAt: Date;

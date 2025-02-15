@@ -3,15 +3,7 @@ import { IUserSchema } from "../entities/IUserSchema";
 
 /** Implementaion of Base User Schema */
 const userSchema = new Schema<IUserSchema>(
-    {
-        coordinatorId: {
-            type: Schema.Types.ObjectId,
-            required: false,
-        },
-        instructorId: {
-            type: Schema.Types.ObjectId,
-            required: false,
-        },  
+    { 
         name: {
             type: String,
             required: true,
@@ -19,10 +11,6 @@ const userSchema = new Schema<IUserSchema>(
         email: {
             type: String,
             required: true,
-        },
-        phoneNo: {
-            type: String,
-            required: false,
         },
         password: {
             type: String,
@@ -50,10 +38,6 @@ const userSchema = new Schema<IUserSchema>(
         },
         lastActive: {
             type: Date,
-            required: false,
-        },
-        isVerify: {
-            type: Boolean,
             required: false,
         },
         isblock: {
