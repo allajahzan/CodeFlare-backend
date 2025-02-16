@@ -4,6 +4,7 @@ import { IProfileSchema } from "../entities/IProfileSchema";
 const profileSchema = new Schema<IProfileSchema>({
     userId: {
         type: Schema.Types.ObjectId,
+        ref: "User",
         required: true,
     },
     bio: {

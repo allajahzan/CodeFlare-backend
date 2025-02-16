@@ -12,6 +12,7 @@ import { IProfileRepository } from "../../repository/interface/IProfileRepositor
 import { IProfileService } from "../interface/IProfileService";
 import { IProfileSchema } from "../../entities/IProfileSchema";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
+import { IUserSchema } from "../../entities/IUserSchema";
 
 export class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
@@ -61,7 +62,7 @@ export class ProfileService implements IProfileService {
      */
     async updateProfileByUserId(
         tokenPayload: string,
-        profile: IProfileSchema
+        profile: IProfileSchema | IUserSchema
     ): Promise<void> {
         try {
             if (!tokenPayload) {
@@ -72,7 +73,21 @@ export class ProfileService implements IProfileService {
 
             const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id
 
-            await this.profileRepository.updateProfileByUserId(_id, profile);
+            const { name, phoneNumber } = profile as IUserSchema;
+
+            const userPromise = this.userRepository.update(
+                // Update user
+                { _id },
+                { name, phoneNumber }
+            );
+
+            const profilePromise = this.profileRepository.updateProfileByUserId(
+                // Update profile
+                _id,
+                profile as IProfileSchema
+            );
+
+            await Promise.all([userPromise, profilePromise]);
         } catch (err: unknown) {
             throw err;
         }
@@ -138,7 +153,7 @@ export class ProfileService implements IProfileService {
                 currentPassword,
                 user.password
             ); // Compare password
-            
+
             if (!isPsswordMatch) throw new UnauthorizedError("Incorrect password!");
 
             const hashedPassword = await hashPassword(newPassword);

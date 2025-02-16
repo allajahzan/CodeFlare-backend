@@ -30,7 +30,7 @@ router.patch("/profile-pic", (req: Request, res: Response, next: NextFunction) =
 });
 
 // Change password
-router.patch("/password", (req: Request, res: Response, next: NextFunction) => {
+router.patch("/change-password", (req: Request, res: Response, next: NextFunction) => {
     profileController.changePassword(req, res, next);
 });
 

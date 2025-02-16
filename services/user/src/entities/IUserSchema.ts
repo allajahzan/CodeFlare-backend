@@ -4,6 +4,7 @@ import { Document, Schema } from "mongoose";
 export interface IUserSchema extends Document {
     name: string;
     email: string;
+    phoneNumber: string;
     password: string;
     profilePic: string;
     role: string;

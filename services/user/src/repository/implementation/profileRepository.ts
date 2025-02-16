@@ -1,10 +1,12 @@
 import { BaseRepository } from "@codeflare/common";
 import { IProfileRepository } from "../interface/IProfileRepository";
 import { IProfileSchema } from "../../entities/IProfileSchema";
-import { Model, ObjectId } from "mongoose";
+import { Model, ObjectId, Types } from "mongoose";
 
 /** Implementation of Profile Repository  */
-export class ProfileRepository extends BaseRepository<IProfileSchema> implements IProfileRepository {
+export class ProfileRepository
+    extends BaseRepository<IProfileSchema>
+    implements IProfileRepository {
     /**
      * Constructs an instance of ProfileRepository.
      * @param model - The mongoose model representing the profile schema, used for database operations.
@@ -21,7 +23,21 @@ export class ProfileRepository extends BaseRepository<IProfileSchema> implements
      */
     async getProfileByUserId(_id: string): Promise<IProfileSchema | null> {
         try {
-            return await this.model.findOne({ userId: _id as unknown as ObjectId });
+            // Lookup to get user details from user collection
+            const profile = await this.model.aggregate([
+                { $match: { userId: new Types.ObjectId(_id) } },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "userDetails",
+                    },
+                },
+                { $unwind: "$userDetails" },
+            ]);
+
+            return profile[0];
         } catch (err: unknown) {
             return null;
         }
