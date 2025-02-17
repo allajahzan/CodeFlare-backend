@@ -452,9 +452,7 @@ export class UserService implements IUserService {
             if (isUserExist)
                 throw new ConflictError("An account with this email already exists!");
 
-            const newUser = await this.userRepository.create({
-                ...user,
-            });
+            const newUser = await this.userRepository.create(user);
 
             if (!newUser) throw new Error("Failed to add the user!");
 
