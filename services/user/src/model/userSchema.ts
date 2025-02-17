@@ -7,10 +7,12 @@ const userSchema = new Schema<IUserSchema>(
         name: {
             type: String,
             required: true,
+            index: true,
         },
         email: {
             type: String,
             required: true,
+            index: true,
         },
         phoneNumber : {
             type: String,
@@ -27,6 +29,7 @@ const userSchema = new Schema<IUserSchema>(
         role: {
             type: String,
             required: true,
+            index: true,
         },
         week: {
             type: String,
@@ -47,6 +50,7 @@ const userSchema = new Schema<IUserSchema>(
         isblock: {
             type: Boolean,
             default: false,
+            index: true,
         },
         isTokenValid: {
             type: Boolean,

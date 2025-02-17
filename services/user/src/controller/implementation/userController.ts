@@ -311,8 +311,35 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             const { id: _id } = req.params;
-            
+
             const data = await this.userService.changeUserStatus(_id);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Searches for users based on the given keyword from the request query.
+     * @param req - The express request object containing the keyword in the request query.
+     * @param res - The express response object used to send the list of users.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves when the user search process is complete.
+     */
+    async searchUsers(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { keyword, isBlocked } = req.query;
+            const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+
+            const data = await this.userService.searchUsers(
+                tokenPayload as string,
+                keyword as string,
+                isBlocked as string
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

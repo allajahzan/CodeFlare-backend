@@ -21,6 +21,11 @@ router.get("/users", (req: Request, res: Response, next: NextFunction) =>
     userController.getUsers(req, res, next)
 );
 
+// Search users
+router.get("/search", (req: Request, res: Response, next: NextFunction) =>
+    userController.searchUsers(req, res, next)
+);
+
 // Create user
 router.post("/", (req: Request, res: Response, next: NextFunction) =>
     userController.createUser(req, res, next)

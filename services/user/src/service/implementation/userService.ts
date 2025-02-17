@@ -352,7 +352,7 @@ export class UserService implements IUserService {
      * @throws {UnauthorizedError} If the token payload is invalid or not provided.
      * @throws {NotFoundError} If no users are found with the given roles and requester id.
      */
-    async getUsers(tokenPayload: string): Promise<IUserDto[]> {
+    async getUsers(tokenPayload: string, status: string): Promise<IUserDto[]> {
         try {
             let users;
 
@@ -368,6 +368,7 @@ export class UserService implements IUserService {
                 if (role === "admin") {
                     users = await this.userRepository.find({
                         role: { $in: ["coordinator", "instructor"] },
+                        ...(status !== undefined ? { isblock: status === "true" } : {}), // If status is there
                     });
 
                     // Coordinator or instructor
@@ -381,6 +382,7 @@ export class UserService implements IUserService {
                     users = await this.userRepository.find({
                         role: { $in: ["student"] },
                         batch: { $in: user.batches }, // Students of perticular batches
+                        ...(status !== undefined ? { isblock: status === "true" } : {}), // If status is there
                     });
 
                     // Student
@@ -523,6 +525,9 @@ export class UserService implements IUserService {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
+                ...(updatedUser.profilePic
+                    ? { profilePic: updatedUser.profilePic }
+                    : {}),
                 ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
                 ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
                 ...(updatedUser.week ? { week: updatedUser.week } : {}),
@@ -564,6 +569,56 @@ export class UserService implements IUserService {
                         : "Failed to block the user!"
                 );
             }
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Searches for users based on the given keyword and status from the request query.
+     * @param tokenPayload - The JSON web token payload containing the requester id and role.
+     * @param keyword - The keyword to search for in the user's name, email, or batch.
+     * @param status - The status of the users to search for ("true" or "false").
+     * @returns A promise that resolves to an array of user objects if the users are found, otherwise rejects with an error.
+     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
+     * @throws {NotFoundError} If the user is not found.
+     * @throws {Error} If any error occurs during the user search process.
+     */
+    async searchUsers(
+        tokenPayload: string,
+        keyword: string,
+        isBlocked: string
+    ): Promise<IUserDto[]> {
+        try {
+            let users;
+
+            // No token
+            if (!tokenPayload) {
+                throw new UnauthorizedError(
+                    "You do not have permission to access this resource!"
+                );
+            }
+
+            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType;
+
+            const user = await this.userRepository.findOne({ _id });
+
+            if (!user) {
+                throw new NotFoundError("User not found!");
+            }
+
+            if (role === "admin") {
+                users = await this.userRepository.searchUser(keyword, isBlocked, [
+                    "coordinator",
+                    "instructor",
+                ]);
+            } else if (role === "coordinator" || role === "instructor") {
+                users = await this.userRepository.searchUser(keyword, isBlocked, [
+                    "student",
+                ]);
+            }
+
+            return users as IUserSchema[];
         } catch (err: unknown) {
             throw err;
         }

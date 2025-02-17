@@ -3,7 +3,9 @@ import { IUserSchema } from "../../entities/IUserSchema";
 import { Model } from "mongoose";
 import { IUserRepository } from "../interface/IUserRepository";
 /** Implementation of User Repository */
-export class UserRepository extends BaseRepository<IUserSchema> implements IUserRepository {
+export class UserRepository
+    extends BaseRepository<IUserSchema>
+    implements IUserRepository {
     /**
      * Constructs an instance of UserRepository.
      * @param model - The mongoose model representing the user schema, used for database operations.
@@ -57,6 +59,42 @@ export class UserRepository extends BaseRepository<IUserSchema> implements IUser
                 { new: true }
             );
         } catch (err: any) {
+            return null;
+        }
+    }
+
+    /**
+     * Searches for users based on the given keyword from the request query.
+     * @param keyword - The keyword to search for in the user's name, email, batch, or batches.
+     * @param status - The status of the user to search for, either "true" or "false".
+     * @param roles - The roles of the users to search for.
+     * @returns A promise that resolves to an array of users matching the search criteria if successful, otherwise null.
+     */
+    async searchUser(
+        keyword: string,
+        isBlocked: string,
+        roles: string[]
+    ): Promise<IUserSchema[] | null> {
+        try {
+            return this.model.aggregate([
+                {
+                    $match: {
+                        role: { $in: roles },
+                        ...(isBlocked !== undefined && { isblock: isBlocked === "true" }),
+                    },
+                },
+                {
+                    $match: keyword
+                        ? {
+                            $or: [
+                                { name: { $regex: keyword, $options: "i" } },
+                                { email: { $regex: keyword, $options: "i" } },
+                            ],
+                        }
+                        : {},
+                },
+            ]);
+        } catch (err: unknown) {
             return null;
         }
     }
