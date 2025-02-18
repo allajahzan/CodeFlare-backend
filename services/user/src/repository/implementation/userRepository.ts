@@ -73,6 +73,9 @@ export class UserRepository
     async searchUser(
         keyword: string,
         isBlocked: string,
+        sort: string,
+        order: number,
+        category: string,
         roles: string[]
     ): Promise<IUserSchema[] | null> {
         try {
@@ -90,6 +93,18 @@ export class UserRepository
                                 { name: { $regex: keyword, $options: "i" } },
                                 { email: { $regex: keyword, $options: "i" } },
                             ],
+                        }
+                        : {},
+                },
+                {
+                    $sort: {
+                        [sort]: order === 1 ? 1 : -1,
+                    },
+                },
+                {
+                    $match: category
+                        ? {
+                            role: category,
                         }
                         : {},
                 },

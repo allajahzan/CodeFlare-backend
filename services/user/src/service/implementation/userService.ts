@@ -585,7 +585,10 @@ export class UserService implements IUserService {
     async searchUsers(
         tokenPayload: string,
         keyword: string,
-        isBlocked: string
+        isBlocked: string,
+        sort: string,
+        order: number,
+        category: string
     ): Promise<IUserDto[]> {
         try {
             let users;
@@ -606,14 +609,23 @@ export class UserService implements IUserService {
             }
 
             if (role === "admin") {
-                users = await this.userRepository.searchUser(keyword, isBlocked, [
-                    "coordinator",
-                    "instructor",
-                ]);
+                users = await this.userRepository.searchUser(
+                    keyword,
+                    isBlocked,
+                    sort,
+                    order,
+                    category,
+                    ["coordinator", "instructor"]
+                );
             } else if (role === "coordinator" || role === "instructor") {
-                users = await this.userRepository.searchUser(keyword, isBlocked, [
-                    "student",
-                ]);
+                users = await this.userRepository.searchUser(
+                    keyword,
+                    isBlocked,
+                    sort,
+                    order,
+                    category,
+                    ["student"]
+                );
             }
 
             return users as IUserSchema[];

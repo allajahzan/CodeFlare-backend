@@ -332,13 +332,16 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, isBlocked } = req.query;
+            const { keyword, isBlocked, sort, order, category } = req.query;
             const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
 
             const data = await this.userService.searchUsers(
                 tokenPayload as string,
                 keyword as string,
-                isBlocked as string
+                isBlocked as string,
+                sort as string,
+                Number(order as string),
+                category as string
             );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
