@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { adminRoute } from "./adminRoute";
+import { adminRoute } from "./batchRoute";
 
 const router = Router();
 
 // adminRoute
-router.use("/admin", adminRoute)
+router.use("/batch", adminRoute)
 
 export default router;

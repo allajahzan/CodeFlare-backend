@@ -5,6 +5,7 @@ import { envChecker } from "@codeflare/common";
  */
 export const isEnvDefined = () => {
     envChecker(process.env.PORT as string, "PORT");
+    envChecker(process.env.BASE_URL as string, "BASE_URL");
     envChecker(process.env.MONGO_DB_URL as string, "MONDO_DB_URL");
     envChecker(process.env.JWT_REFRESH_TOKEN_SECRET as string, "JWT_REFRESH_TOKEN_SECRET");
     envChecker(process.env.JWT_ACCESS_TOKEN_SECRET as string, "JWT_ACCESS_TOKEN_SECRET");

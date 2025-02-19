@@ -1,7 +1,7 @@
 import { NotFoundError, UnauthorizedError } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
-import { AdminRepositoty } from "../repository/implementation/adminRepository";
-import Admin from "../modal/admin";
+import { AdminRepositoty } from "../repository/implementation/batchRepository";
+import Admin from "../modal/batch";
 
 /**
  * Checks if the request is authenticated.
