@@ -56,8 +56,9 @@ export class BatchController implements IBatchController {
         try {
             const { name } = req.body;
 
-            await this.batchService.addBatch(name);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            const data = await this.batchService.addBatch(name);
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

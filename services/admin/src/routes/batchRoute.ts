@@ -22,7 +22,7 @@ router.post("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Update batch
-router.put("/", (req: Request, res: Response, next: NextFunction) =>
+router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
     batchController.updateBatch(req, res, next)
 );
 
