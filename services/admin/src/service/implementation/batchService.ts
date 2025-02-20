@@ -94,4 +94,30 @@ export class BatchService implements IBatchService {
             throw err;
         }
     }
+
+    /**
+     * Searches for batches based on the given keyword from the request query.
+     * @param keyword - The keyword to search for in the batch's name.
+     * @param sort - The field to sort the results by.
+     * @param order - The order of the sorting, either ascending (1) or descending (-1).
+     * @returns A promise that resolves to an array of batches matching the search criteria if successful, otherwise an empty array.
+     * @throws An error if there is a problem searching for the batches.
+     */
+    async searchBatches(
+        keyword: string,
+        sort: string,
+        order: number
+    ): Promise<IBatchDto[]> {
+        try {
+            const batches = await this.batchRepository.searchBatch(
+                keyword,
+                sort,
+                order
+            );
+
+            return batches ? (batches as IBatchDto[]) : [];
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
 }

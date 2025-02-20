@@ -88,4 +88,32 @@ export class BatchController implements IBatchController {
             next(err);
         }
     }
+
+    /**
+     * Searches for batches based on the given keyword from the request query.
+     * @param req - The express request object containing the keyword, sort and order in the request query.
+     * @param res - The express response object used to send the list of batches.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the batch search process is complete.
+     * @throws An error if there is a problem searching for the batches.
+     */
+    async searchBatches(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { keyword, sort, order } = req.query;
+
+            const data = await this.batchService.searchBatches(
+                keyword as string,
+                sort as string,
+                Number(order)
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }

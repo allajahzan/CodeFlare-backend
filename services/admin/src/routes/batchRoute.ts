@@ -26,4 +26,9 @@ router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
     batchController.updateBatch(req, res, next)
 );
 
+// Search batches
+router.get("/search", (req: Request, res: Response, next: NextFunction) =>
+    batchController.searchBatches(req, res, next)
+);
+
 export { router as adminRoute };

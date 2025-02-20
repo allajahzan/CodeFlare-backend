@@ -628,7 +628,7 @@ export class UserService implements IUserService {
                 );
             }
 
-            return users as IUserSchema[];
+            return users ? (users as IUserDto[]) : [];
         } catch (err: unknown) {
             throw err;
         }

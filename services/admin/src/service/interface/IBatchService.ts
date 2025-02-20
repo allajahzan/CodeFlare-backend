@@ -6,4 +6,5 @@ export interface IBatchService {
     getBatches(): Promise<IBatchDto[]>;
     addBatch(name: string): Promise<IBatchDto>;
     updateBatch(_id: string, name: string): Promise<void>;
+    searchBatches(keyword: string, sort: string, order: number): Promise<IBatchDto[]>;
 }
