@@ -415,6 +415,7 @@ export class UserService implements IUserService {
                 }
             }
 
+            // Users info with batch details
             const usersWithBatchDetails = await getUsersWithBatchDetails(
                 users as IUserSchema[]
             );
@@ -631,6 +632,7 @@ export class UserService implements IUserService {
                 );
             }
 
+            // Users info with batch details
             const usersWithBatchDetails = await getUsersWithBatchDetails(
                 users as IUserSchema[]
             );

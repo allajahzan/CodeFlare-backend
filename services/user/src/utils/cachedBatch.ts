@@ -53,10 +53,16 @@ export const getCachedBatches = async (batchIds: ObjectId[]) => {
  */
 export const getUsersWithBatchDetails = async (users: IUserSchema[]) => {
     try {
+
+        // plane users
+        const planeUsers = users.map(user => 
+            user.toObject ? user.toObject() : user
+        );
+        
         // Unique batch ids
         const uniqueBatchIds = [
             ...new Set(
-                users.flatMap((user) => [
+                planeUsers.flatMap((user) => [
                     ...(user.batches?.length ? user.batches : []),
                     ...(user.batch ? [user.batch] : []),
                 ])
@@ -66,8 +72,8 @@ export const getUsersWithBatchDetails = async (users: IUserSchema[]) => {
         // Fetch batch details from cache
         const cachedBatches = await getCachedBatches(uniqueBatchIds);
 
-        // Map users with batch details
-        return users.map((user) => ({
+        // Map planeUsers with batch details
+        return planeUsers.map((user : IUserSchema) => ({
             ...user,
             ...(user.batch
                 ? {
