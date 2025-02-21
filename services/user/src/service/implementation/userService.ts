@@ -341,7 +341,7 @@ export class UserService implements IUserService {
                 email: user.email,
                 role: user.role,
                 ...(user.profilePic ? { profilePic: user.profilePic } : {}),
-                ...(user.batch ? { batch: batch || { _id: "", name: "" } } : {}),
+                ...(user.batch ? { batch: batch } : {}),
                 ...(user.batches ? { batches: batches } : {}),
                 ...(user.week ? { week: user.week } : {}),
                 createdAt: user.createdAt,
@@ -361,7 +361,7 @@ export class UserService implements IUserService {
      * @throws {UnauthorizedError} If the token payload is invalid or not provided.
      * @throws {NotFoundError} If no users are found with the given roles and requester id.
      */
-    async getUsers(tokenPayload: string, status: string): Promise<any> {
+    async getUsers(tokenPayload: string, status: string): Promise<IUserDto[]> {
         try {
             let users;
 
@@ -415,26 +415,11 @@ export class UserService implements IUserService {
                 }
             }
 
-            // Mapping data to return type
-            // const userDto: IUserDto[] = [];
-            // for (let i = 0; i < users.length; i++) {
-            //     const user = users[i];
-            //     userDto.push({
-            //         _id: user._id as string,
-            //         name: user.name,
-            //         email: user.email,
-            //         role: user.role,
-            //         isBlock: user.isblock,
-            //         ...(user.profilePic ? { profilePic: user.profilePic } : {}),
-            //         ...(user.batch ? { batch: user.batch } : {}),
-            //         ...(user.batches ? { batches: user.batches } : {}),
-            //         ...(user.week ? { week: user.week } : {}),
-            //         ...(user.lastActive ? { lastActive: user.lastActive } : {}),
-            //         createdAt: user.createdAt,
-            //     });
-            // }
+            const usersWithBatchDetails = await getUsersWithBatchDetails(
+                users as IUserSchema[]
+            );
 
-            return users;
+            return usersWithBatchDetails as IUserDto[];
         } catch (err: unknown) {
             throw err;
         }
@@ -493,7 +478,7 @@ export class UserService implements IUserService {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
-                ...(newUser.batch ? { batch: batch || { _id: "", name: "" } } : {}),
+                ...(newUser.batch ? { batch: batch } : {}),
                 ...(newUser.batches ? { batches: batches } : {}),
                 ...(newUser.week ? { week: newUser.week } : {}),
                 ...(newUser.lastActive ? { lastActive: newUser.lastActive } : {}),
@@ -526,8 +511,7 @@ export class UserService implements IUserService {
 
             const updatedUser = await this.userRepository.update(
                 { _id },
-                { $set: user },
-                { new: true }
+                { $set: user }
             );
 
             if (!updatedUser) throw new Error("Failed to update the user!");
@@ -545,7 +529,7 @@ export class UserService implements IUserService {
                 ...(updatedUser.profilePic
                     ? { profilePic: updatedUser.profilePic }
                     : {}),
-                ...(updatedUser.batch ? { batch: batch || { _id: "", name: "" } } : {}),
+                ...(updatedUser.batch ? { batch: batch } : {}),
                 ...(updatedUser.batches ? { batches: batches } : {}),
                 ...(updatedUser.week ? { week: updatedUser.week } : {}),
                 ...(updatedUser.lastActive
