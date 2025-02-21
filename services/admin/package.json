@@ -11,7 +11,7 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.32",
+    "@codeflare/common": "^1.0.38",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

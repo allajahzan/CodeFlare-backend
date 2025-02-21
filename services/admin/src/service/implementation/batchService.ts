@@ -3,6 +3,7 @@ import { IBatchService } from "../interface/IBatchService";
 import { ConflictError } from "@codeflare/common";
 import { IBatchDto } from "../../dto/batchServiceDto";
 import { ObjectId } from "mongoose";
+import { cacheBatch } from "../../utils/catchBatch";
 
 /** Implementaion of Batch Service */
 export class BatchService implements IBatchService {
@@ -61,6 +62,9 @@ export class BatchService implements IBatchService {
                 _id: newbatch._id as unknown as ObjectId,
                 name: newbatch.name,
             };
+
+            // Cache batch to redis
+            await cacheBatch(batchDto);
 
             return batchDto;
         } catch (err: unknown) {
