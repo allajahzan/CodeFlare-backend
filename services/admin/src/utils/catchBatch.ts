@@ -8,18 +8,36 @@ import Batch from "../modal/batch";
  * @param batch - The batch to cache.
  */
 export const cacheBatch = async (batch: IBatchDto) => {
-  try {
-    const data = await redisClient.get("batches");
-    const batches = data ? JSON.parse(data) : [];
-    await redisClient.set(
-      "batches",
-      JSON.stringify([...batches, batch])
-    );
+    try {
+        const data = await redisClient.get("batches");
+        const batches = data ? JSON.parse(data) : [];
+        await redisClient.set("batches", JSON.stringify([...batches, batch]));
 
-    console.log(batch, "Cached");
-  } catch (err: unknown) {
-    throw err;
-  }
+        console.log(batch, "Cached");
+    } catch (err: unknown) {
+        throw err;
+    }
+};
+
+export const cacheUpdatedBatch = async (batch: IBatchDto) => {
+    try {
+        const data = await redisClient.get("batches");
+        const batches = data ? JSON.parse(data) : [];
+
+        const updatedBatches = batches.map((b: IBatchDto) => {
+            if (b._id === batch._id) {
+                return batch;
+            } else {
+                return b;
+            }
+        });
+
+        await redisClient.set("batches", JSON.stringify(updatedBatches));
+
+        console.log(batch, "Cached updated batch");
+    } catch (err: unknown) {
+        throw err;
+    }
 };
 
 /**
@@ -29,11 +47,11 @@ export const cacheBatch = async (batch: IBatchDto) => {
  * @throws An error if there is a problem retrieving batches or setting them in Redis.
  */
 export const cacheAllBatch = async () => {
-  try {
-    const batches = await new BatchRepository(Batch).find({});
-    await redisClient.set("batches", JSON.stringify(batches));
-    console.log("Cached all batches")
-  } catch (err: unknown) {
-    throw err;
-  }
+    try {
+        const batches = await new BatchRepository(Batch).find({});
+        await redisClient.set("batches", JSON.stringify(batches));
+        console.log("Cached all batches");
+    } catch (err: unknown) {
+        throw err;
+    }
 };
