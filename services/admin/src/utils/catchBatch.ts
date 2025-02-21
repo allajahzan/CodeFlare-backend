@@ -54,8 +54,9 @@ export const cacheUpdatedBatch = async (batch: IBatchDto) => {
  */
 export const cacheAllBatch = async () => {
     try {
-        const batches = await new BatchRepository(Batch).find({});
-        await redisClient.set("batches", JSON.stringify(batches));
+        const batches = await new BatchRepository(Batch).find({});  
+        const tranformedBatches = batches.map((b) => ({ _id: b._id, name: b.name }));      
+        await redisClient.set("batches", JSON.stringify(tranformedBatches));
         console.log("Cached all batches");
     } catch (err: unknown) {
         throw err;
