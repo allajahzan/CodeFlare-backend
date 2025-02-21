@@ -19,6 +19,12 @@ export const cacheBatch = async (batch: IBatchDto) => {
     }
 };
 
+/**
+ * Updates the batch cache in Redis with the provided batch.
+ * Replaces the existing batch with the same id in the cache with the updated batch.
+ * @param batch - The updated batch to cache.
+ * @throws An error if there is a problem retrieving or setting the data in Redis.
+ */
 export const cacheUpdatedBatch = async (batch: IBatchDto) => {
     try {
         const data = await redisClient.get("batches");
