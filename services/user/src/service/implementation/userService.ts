@@ -25,6 +25,11 @@ import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
 import { ObjectId } from "mongoose";
+import {
+    getCachedBatch,
+    getCachedBatches,
+    getUsersWithBatchDetails,
+} from "../../utils/cachedBatch";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -325,6 +330,10 @@ export class UserService implements IUserService {
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
 
+            // Get batch details
+            const batch = await getCachedBatch(user.batch as unknown as string);
+            const batches = await getCachedBatches(user.batches);
+
             // Mapping data to return type
             const userDto: IUserDto = {
                 _id: user._id as string,
@@ -332,8 +341,8 @@ export class UserService implements IUserService {
                 email: user.email,
                 role: user.role,
                 ...(user.profilePic ? { profilePic: user.profilePic } : {}),
-                ...(user.batch ? { batch: user.batch } : {}),
-                ...(user.batches ? { batches: user.batches } : {}),
+                ...(user.batch ? { batch: batch } : {}),
+                ...(user.batches ? { batches: batches } : {}),
                 ...(user.week ? { week: user.week } : {}),
                 createdAt: user.createdAt,
             };
@@ -406,26 +415,12 @@ export class UserService implements IUserService {
                 }
             }
 
-            // Mapping data to return type
-            const userDto: IUserDto[] = [];
-            for (let i = 0; i < users.length; i++) {
-                const user = users[i];
-                userDto.push({
-                    _id: user._id as string,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    isBlock: user.isblock,
-                    ...(user.profilePic ? { profilePic: user.profilePic } : {}),
-                    ...(user.batch ? { batch: user.batch } : {}),
-                    ...(user.batches ? { batches: user.batches } : {}),
-                    ...(user.week ? { week: user.week } : {}),
-                    ...(user.lastActive ? { lastActive: user.lastActive } : {}),
-                    createdAt: user.createdAt,
-                });
-            }
+            // Users info with batch details
+            const usersWithBatchDetails = await getUsersWithBatchDetails(
+                users as IUserSchema[]
+            );
 
-            return userDto;
+            return usersWithBatchDetails as IUserDto[];
         } catch (err: unknown) {
             throw err;
         }
@@ -442,6 +437,8 @@ export class UserService implements IUserService {
      */
     async createUser(user: IUserSchema, tokenPayload: string): Promise<IUserDto> {
         try {
+            console.log(user);
+
             if (!tokenPayload)
                 throw new UnauthorizedError(
                     "Athentication failed. Please login again!"
@@ -472,14 +469,18 @@ export class UserService implements IUserService {
                 "Invitation to join - CodeFlare"
             ); // Send invitation to user
 
+            // Get batch details
+            const batch = await getCachedBatch(user.batch as unknown as string);
+            const batches = await getCachedBatches(user.batches);
+
             // Mapping data to return type
             const userDto: IUserDto = {
                 _id: newUser._id as string,
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
-                ...(newUser.batch ? { batch: newUser.batch } : {}),
-                ...(newUser.batches ? { batches: newUser.batches } : {}),
+                ...(newUser.batch ? { batch: batch } : {}),
+                ...(newUser.batches ? { batches: batches } : {}),
                 ...(newUser.week ? { week: newUser.week } : {}),
                 ...(newUser.lastActive ? { lastActive: newUser.lastActive } : {}),
                 createdAt: newUser.createdAt,
@@ -511,11 +512,14 @@ export class UserService implements IUserService {
 
             const updatedUser = await this.userRepository.update(
                 { _id },
-                { $set: user },
-                { new: true }
+                { $set: user }
             );
 
             if (!updatedUser) throw new Error("Failed to update the user!");
+
+            // Get batch details
+            const batch = await getCachedBatch(user.batch as unknown as string);
+            const batches = await getCachedBatches(user.batches);
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -526,8 +530,8 @@ export class UserService implements IUserService {
                 ...(updatedUser.profilePic
                     ? { profilePic: updatedUser.profilePic }
                     : {}),
-                ...(updatedUser.batch ? { batch: updatedUser.batch } : {}),
-                ...(updatedUser.batches ? { batches: updatedUser.batches } : {}),
+                ...(updatedUser.batch ? { batch: batch } : {}),
+                ...(updatedUser.batches ? { batches: batches } : {}),
                 ...(updatedUser.week ? { week: updatedUser.week } : {}),
                 ...(updatedUser.lastActive
                     ? { lastActive: updatedUser.lastActive }
@@ -588,7 +592,8 @@ export class UserService implements IUserService {
         isBlocked: string,
         sort: string,
         order: number,
-        category: string
+        category: string,
+        batchId: string
     ): Promise<IUserDto[]> {
         try {
             let users;
@@ -615,6 +620,7 @@ export class UserService implements IUserService {
                     sort,
                     order,
                     category,
+                    batchId,
                     ["coordinator", "instructor"]
                 );
             } else if (role === "coordinator" || role === "instructor") {
@@ -624,11 +630,17 @@ export class UserService implements IUserService {
                     sort,
                     order,
                     category,
+                    batchId,
                     ["student"]
                 );
             }
+            
+            // Users info with batch details
+            const usersWithBatchDetails = await getUsersWithBatchDetails(
+                users as IUserSchema[]
+            );
 
-            return users as IUserSchema[];
+            return usersWithBatchDetails as IUserDto[];
         } catch (err: unknown) {
             throw err;
         }

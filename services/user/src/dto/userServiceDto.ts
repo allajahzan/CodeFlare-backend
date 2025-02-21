@@ -1,3 +1,5 @@
+import { Schema } from "mongoose";
+
 /** Dto for userLogin */
 export interface IUserLoginDto {
     role: string;
@@ -17,6 +19,10 @@ export interface IRefreshTokenDto {
 }
 
 /** Dto for User */
+interface IBatch {
+    _id: string;
+    name: string;
+}
 export interface IUserDto {
     _id: string| unknown;
     name: string;
@@ -24,8 +30,8 @@ export interface IUserDto {
     phoneNo?: string;
     role: string;
     profilePic?: string;
-    batches?: string[];
-    batch?: string;
+    batches?: IBatch[];
+    batch?: IBatch| null;
     week?: string;
     lastActive?: Date;
     createdAt: Date;
