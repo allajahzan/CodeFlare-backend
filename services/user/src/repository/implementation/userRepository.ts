@@ -1,6 +1,6 @@
 import { BaseRepository } from "@codeflare/common";
 import { IUserSchema } from "../../entities/IUserSchema";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { IUserRepository } from "../interface/IUserRepository";
 /** Implementation of User Repository */
 export class UserRepository
@@ -76,40 +76,37 @@ export class UserRepository
         sort: string,
         order: number,
         category: string,
+        batchId: string,
         roles: string[]
     ): Promise<IUserSchema[] | null> {
         try {
-            return this.model.aggregate([
+            return await this.model.aggregate([
                 {
                     $match: {
-                        role: { $in: roles },
+                        ...(batchId && {
+                            $or: [
+                                { batch: new Types.ObjectId(batchId) },
+                                { batches: new Types.ObjectId(batchId) },
+                            ],
+                        }),
+                        role: (batchId ? {} : { $in: roles }),
                         ...(isBlocked !== undefined && { isblock: isBlocked === "true" }),
-                    },
-                },
-                {
-                    $match: keyword
-                        ? {
+                        ...(keyword && {
                             $or: [
                                 { name: { $regex: keyword, $options: "i" } },
                                 { email: { $regex: keyword, $options: "i" } },
                             ],
-                        }
-                        : {},
-                },
-                {
-                    $sort: {
-                        [sort]: order === 1 ? 1 : -1,
+                        }),
+                        ...(category && { role: category }),
                     },
                 },
                 {
-                    $match: category
-                        ? {
-                            role: category,
-                        }
-                        : {},
+                    $sort: { [sort]: order === 1 ? 1 : -1 },
                 },
             ]);
         } catch (err: unknown) {
+            console.log(err);
+            
             return null;
         }
     }

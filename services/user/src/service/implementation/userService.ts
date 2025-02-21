@@ -592,7 +592,8 @@ export class UserService implements IUserService {
         isBlocked: string,
         sort: string,
         order: number,
-        category: string
+        category: string,
+        batchId: string
     ): Promise<IUserDto[]> {
         try {
             let users;
@@ -619,6 +620,7 @@ export class UserService implements IUserService {
                     sort,
                     order,
                     category,
+                    batchId,
                     ["coordinator", "instructor"]
                 );
             } else if (role === "coordinator" || role === "instructor") {
@@ -628,10 +630,11 @@ export class UserService implements IUserService {
                     sort,
                     order,
                     category,
+                    batchId,
                     ["student"]
                 );
             }
-
+            
             // Users info with batch details
             const usersWithBatchDetails = await getUsersWithBatchDetails(
                 users as IUserSchema[]
