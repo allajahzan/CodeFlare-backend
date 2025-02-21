@@ -36,11 +36,11 @@ const userSchema = new Schema<IUserSchema>(
             required: false,
         },
         batch: {
-            type: String,
+            type: Schema.Types.ObjectId,
             required: false,
         },
         batches: {
-            type: [String],
+            type: [Schema.Types.ObjectId],
             required: false,
         },
         lastActive: {
