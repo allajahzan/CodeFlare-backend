@@ -8,13 +8,14 @@ import { ObjectId } from "mongoose";
  * @returns A promise that resolves to a batch object if the batch is found in the cache, or undefined if it is not.
  * @throws An error if there is a problem retrieving the batch from the cache.
  */
-export const getCachedBatch = async (batchId: string) => {
+export const getCachedBatch = async (batchId: string | ObjectId) => {
     try {
         const data = await redisClient.get("batches");
         if (!data) return null;
 
         const batches: { _id: string; name: string }[] = JSON.parse(data);
-        return batches.find((b) => b._id === batchId) || null;
+        
+        return batches.find((b) => b._id === batchId?.toString()) || null;
     } catch (err) {
         console.error("Error fetching batch from cache:", err);
         throw err;

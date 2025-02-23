@@ -331,7 +331,7 @@ export class UserService implements IUserService {
                 throw new NotFoundError("Account not found. Please contact support!");
 
             // Get batch details
-            const batch = await getCachedBatch(user.batch as unknown as string);
+            const batch = await getCachedBatch(user.batch);
             const batches = await getCachedBatches(user.batches);
 
             // Mapping data to return type
@@ -437,8 +437,6 @@ export class UserService implements IUserService {
      */
     async createUser(user: IUserSchema, tokenPayload: string): Promise<IUserDto> {
         try {
-            console.log(user);
-
             if (!tokenPayload)
                 throw new UnauthorizedError(
                     "Athentication failed. Please login again!"
@@ -470,8 +468,8 @@ export class UserService implements IUserService {
             ); // Send invitation to user
 
             // Get batch details
-            const batch = await getCachedBatch(user.batch as unknown as string);
-            const batches = await getCachedBatches(user.batches);
+            const batch = await getCachedBatch(user.batch);
+            const batches = await getCachedBatches(user.batches || []);
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -518,8 +516,8 @@ export class UserService implements IUserService {
             if (!updatedUser) throw new Error("Failed to update the user!");
 
             // Get batch details
-            const batch = await getCachedBatch(user.batch as unknown as string);
-            const batches = await getCachedBatches(user.batches);
+            const batch = await getCachedBatch(user.batch);
+            const batches = await getCachedBatches(user.batches || []);
 
             // Mapping data to return type
             const userDto: IUserDto = {
