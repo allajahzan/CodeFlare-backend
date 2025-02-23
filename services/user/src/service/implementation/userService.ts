@@ -389,10 +389,16 @@ export class UserService implements IUserService {
                     }
 
                     users = await this.userRepository.find({
-                        role: { $in: ["student"] },
-                        batch: { $in: user.batches }, // Students of perticular batches
-                        ...(status !== undefined ? { isblock: status === "true" } : {}), // If status is there
+                        $or: [
+                            { role: "student", batch: { $in: user.batches } }, 
+                            { role: "admin" } 
+                        ],
+                        ...(status !== undefined ? { isblock: status === "true" } : {}), // Apply status filter if present
                     });
+                    
+
+                    console.log(users);
+                    
 
                     // Student
                 } else if (role === "student") {
