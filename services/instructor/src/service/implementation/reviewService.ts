@@ -17,16 +17,41 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Schedules a review for a user.
-     * @param data - The data used to create a review.
-     * @returns A promise that resolves to a review DTO.
-     * @throws An error if there is a problem scheduling the review.
+     * Retrieves scheduled reviews for a given list of batchIds.
+     * @param batchIds - The list of batchIds to retrieve scheduled reviews for.
+     * @returns A promise that resolves to an array of scheduled review DTOs.
+     * @throws An error if there is a problem retrieving the reviews.
      */
-    async scheduleReview(data: Partial<IReviewSchema>): Promise<Partial<IReviewDto>> {
+    async getScheduledReviews(batchIds: string[]): Promise<IReviewDto[]> {
         try {
-            const isReviewExists = await this.reviewRepository.findOne({userId: data.userId, week: data.week});
+            const reviews = await this.reviewRepository.find({
+                batchId: { $in: batchIds },
+            });
 
-            if(isReviewExists) throw new ConflictError("Already scheduled a review !")
+            return reviews as IReviewDto[];
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Schedules a review for a user.
+     * @param data - The partial review schema containing necessary data to schedule a review.
+     * @returns A promise that resolves to a partial review DTO containing the scheduled review details.
+     * @throws ConflictError if a review is already scheduled for the given user and week.
+     * @throws Error if there is a problem scheduling the review.
+     */
+    async scheduleReview(
+        data: Partial<IReviewSchema>
+    ): Promise<Partial<IReviewDto>> {
+        try {
+            const isReviewExists = await this.reviewRepository.findOne({
+                userId: data.userId,
+                week: data.week,
+            });
+
+            if (isReviewExists)
+                throw new ConflictError("Already scheduled a review !");
 
             const review = await this.reviewRepository.create(data);
 
@@ -35,10 +60,12 @@ export class ReviewService implements IReviewService {
             const reviewDto: Partial<IReviewDto> = {
                 _id: review._id,
                 userId: review.userId as unknown as string,
+                batchId: review.batchId as unknown as string,
                 title: review.title,
                 week: review.week,
                 date: review.date,
                 time: review.time,
+                status: review.status,
             };
 
             return reviewDto;
@@ -69,6 +96,7 @@ export class ReviewService implements IReviewService {
             const reviewDto: IReviewDto = {
                 _id: review._id,
                 userId: review.userId as unknown as string,
+                batchId: review.batchId as unknown as string,
                 title: review.title,
                 week: review.week,
                 date: review.date,
@@ -80,8 +108,8 @@ export class ReviewService implements IReviewService {
                     tech: review.score.tech,
                     theory: review.score.theory,
                 },
-                tech: review.score.tech,
-                theory: review.score.theory,
+                status: review.status,
+                result: review.result,
             };
             return reviewDto;
         } catch (err: unknown) {

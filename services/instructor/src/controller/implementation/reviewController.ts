@@ -20,6 +20,32 @@ export class ReviewController implements IReviewController {
     }
 
     /**
+     * Retrieves scheduled reviews for a given list of batchIds.
+     * @param req - The express request object containing the list of batchIds in the request body.
+     * @param res - The express response object used to send the list of scheduled reviews.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the scheduled review retrieval process is complete.
+     * @throws An error if there is a problem retrieving the reviews.
+     */
+    async getScheduledReviews(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { batchIds } = req.query;
+
+            const data = await this.reviewService.getScheduledReviews(
+                (batchIds as string).split(",")
+            );
+            
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Schedules a review for a user.
      * @param req - The request containing the review data.
      * @param res - The response to send the review data back to the user.

@@ -11,6 +11,11 @@ const reviewRepository = new ReviewRepository(Review)
 const reviewService = new ReviewService(reviewRepository)
 const reviewController = new ReviewController(reviewService)
 
+// Get Schedule review
+router.get('/', (req: Request, res: Response, next: NextFunction) => 
+    reviewController.getScheduledReviews(req, res, next)
+)
+
 // Schedule review
 router.post('/', (req: Request, res: Response, next: NextFunction) => 
     reviewController.scheduleReview(req, res, next)

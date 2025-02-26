@@ -1,7 +1,8 @@
 /** Dto for review */
 export interface IReviewDto {
-    _id: string| unknown;
+    _id: string | unknown;
     userId: string;
+    batchId: string;
     title: string;
     week: string;
     date: Date;
@@ -13,6 +14,6 @@ export interface IReviewDto {
         tech: number;
         theory: number;
     };
-    tech: number;
-    theory: number;
+    status: string;
+    result: string;
 }

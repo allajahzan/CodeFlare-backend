@@ -6,6 +6,12 @@ const reviewSchema = new Schema<IReviewSchema>({
     userId: {
         type: Schema.Types.ObjectId,
         required: true,
+        index: true,
+    },
+    batchId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        index: true,
     },
     title: {
         type: String,
@@ -14,6 +20,7 @@ const reviewSchema = new Schema<IReviewSchema>({
     week: {
         type: String,
         required: true,
+        index: true,
     },
     date: {
         type: Date,
@@ -44,6 +51,15 @@ const reviewSchema = new Schema<IReviewSchema>({
             type: Number,
             required: false,
         },
+    },
+    status: {
+        type: String,
+        enum: ["Pending", "Completed", "Ongoing"],
+        default: "Pending",
+    },
+    result: {
+        type: String,
+        enum: ["Pass", "Fail"],
     },
 });
 
