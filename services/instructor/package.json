@@ -1,0 +1,23 @@
+{
+  "name": "instructor",
+  "version": "1.0.0",
+  "description": "instructor service",
+  "main": "server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/server.ts",
+    "dev": "nodemon src/server.ts"
+  },
+  "author": "allaj",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.10.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/mongoose": "^5.11.96",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

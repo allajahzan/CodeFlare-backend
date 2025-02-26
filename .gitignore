@@ -24,3 +24,7 @@ services/coordinator/node_modules
 # Communication serrvice
 services/communication/.env
 services/communication/node_modules
+
+# Instrctor serrvice
+services/instructor/.env
+services/instructor/node_modules

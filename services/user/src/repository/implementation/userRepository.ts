@@ -89,7 +89,7 @@ export class UserRepository
                                 { batches: new Types.ObjectId(batchId) },
                             ],
                         }),
-                        role: (batchId ? {} : { $in: roles }),
+                        role: batchId ? {} : { $in: roles },
                         ...(isBlocked !== undefined && { isblock: isBlocked === "true" }),
                         ...(keyword && {
                             $or: [
@@ -101,12 +101,12 @@ export class UserRepository
                     },
                 },
                 {
-                    $sort: { [sort]: order === 1 ? 1 : -1 },
+                    $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : {createdAt: -1}
                 },
             ]);
         } catch (err: unknown) {
             console.log(err);
-            
+
             return null;
         }
     }
