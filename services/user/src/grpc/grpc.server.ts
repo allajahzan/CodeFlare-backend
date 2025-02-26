@@ -1,7 +1,7 @@
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import path from "path";
-import { getUser } from "./server/userServer";
+import { getUser, getUsers } from "./server/userServer";
 
 // Load user proto file
 const packageDefinition = protoLoader.loadSync(
@@ -17,7 +17,7 @@ export const startGrpcServer = () => {
         const server = new grpc.Server();
 
         // Regiser user service gRPC functions
-        server.addService((userProto as any).UserService.service, { getUser });
+        server.addService((userProto as any).UserService.service, { getUser, getUsers });
 
         // Bind server
         server.bindAsync(

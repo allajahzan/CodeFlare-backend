@@ -3,6 +3,7 @@ import { IReviewDto } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
+import { getUsers } from "../../grpc/client/userClient";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -28,7 +29,20 @@ export class ReviewService implements IReviewService {
                 batchId: { $in: batchIds },
             });
 
-            return reviews as IReviewDto[];
+            const userIds = []; // UserIds
+
+            for (let i = 0; i < reviews.length; i++) {
+                userIds.push(reviews[i].userId as unknown as string);
+            }
+
+            // Users info through gRPC
+            const usersMap = (await getUsers([...new Set(userIds)])) as any;
+
+            // Reviews detils with user info
+            return reviews.map((review) => ({
+                ...review.toObject(),
+                user: usersMap[review.userId as unknown as string],
+            }));
         } catch (err: unknown) {
             throw err;
         }
@@ -50,6 +64,7 @@ export class ReviewService implements IReviewService {
                 week: data.week,
             });
 
+            // Review alredy scheduled
             if (isReviewExists)
                 throw new ConflictError("Already scheduled a review !");
 
@@ -57,6 +72,7 @@ export class ReviewService implements IReviewService {
 
             if (!review) throw new Error("Failed to schedule review");
 
+            // Map data to reutrn type
             const reviewDto: Partial<IReviewDto> = {
                 _id: review._id,
                 userId: review.userId as unknown as string,
@@ -93,6 +109,7 @@ export class ReviewService implements IReviewService {
 
             if (!review) throw new Error("Failed to create review");
 
+            // Map data to return type
             const reviewDto: IReviewDto = {
                 _id: review._id,
                 userId: review.userId as unknown as string,
