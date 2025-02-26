@@ -1,9 +1,9 @@
 import { ConflictError } from "@codeflare/common";
-import { IReviewDto } from "../../dto/reviewService";
+import { IReviewDto, IUser } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
-import { getUsers } from "../../grpc/client/userClient";
+import { getUser, getUsers } from "../../grpc/client/userClient";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -28,6 +28,10 @@ export class ReviewService implements IReviewService {
             const reviews = await this.reviewRepository.find({
                 batchId: { $in: batchIds },
             });
+
+            if (!reviews || !reviews.length) {
+                return [];
+            }
 
             const userIds = []; // UserIds
 
@@ -72,16 +76,20 @@ export class ReviewService implements IReviewService {
 
             if (!review) throw new Error("Failed to schedule review");
 
+            // User info through gRPC
+            const user = await getUser(data.userId as unknown as string);
+    
             // Map data to reutrn type
             const reviewDto: Partial<IReviewDto> = {
                 _id: review._id,
-                userId: review.userId as unknown as string,
+                user: user as unknown as IUser,
                 batchId: review.batchId as unknown as string,
                 title: review.title,
                 week: review.week,
                 date: review.date,
                 time: review.time,
                 status: review.status,
+                createdAt: review.createdAt,
             };
 
             return reviewDto;
@@ -109,10 +117,13 @@ export class ReviewService implements IReviewService {
 
             if (!review) throw new Error("Failed to create review");
 
+            // User info through gRPC
+            const user = await getUser(data.userId as unknown as string);
+
             // Map data to return type
             const reviewDto: IReviewDto = {
                 _id: review._id,
-                userId: review.userId as unknown as string,
+                user: user as unknown as IUser,
                 batchId: review.batchId as unknown as string,
                 title: review.title,
                 week: review.week,
@@ -127,6 +138,7 @@ export class ReviewService implements IReviewService {
                 },
                 status: review.status,
                 result: review.result,
+                createdAt: review.createdAt,
             };
             return reviewDto;
         } catch (err: unknown) {

@@ -1,7 +1,16 @@
+// Interfac for IUser
+export interface IUser {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+    profilePic: string;
+}
+
 /** Dto for review */
 export interface IReviewDto {
     _id: string | unknown;
-    userId: string;
+    user: IUser,
     batchId: string;
     title: string;
     week: string;
@@ -16,4 +25,5 @@ export interface IReviewDto {
     };
     status: string;
     result: string;
+    createdAt: Date;
 }

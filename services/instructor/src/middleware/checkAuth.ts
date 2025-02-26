@@ -1,5 +1,6 @@
-import { NotFoundError, UnauthorizedError } from "@codeflare/common";
+import { JwtPayloadType, NotFoundError, UnauthorizedError } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
+import { getUser } from "../grpc/client/userClient";
 
 /**
  * Checks if the request is authenticated.
@@ -19,19 +20,14 @@ export const checkAuth = async (
         const userPayload = req.headers["x-user-payload"]; // payload from request header
         if (!userPayload) throw new UnauthorizedError("Authentication failed. Please login again!");
 
-        const payload = JSON.parse(userPayload as string);
+        const payload = JSON.parse(userPayload as string) as JwtPayloadType
         if (!payload) throw new UnauthorizedError("Invalid authentication data. Please login again!");
 
-        console.log(payload);
-        
+        const user = await getUser(payload._id) as any
+        if(!user) throw new NotFoundError("Account not found. Please contact support !")
 
-        // const admin = await new AdminRepositoty(Admin).findOne({ _id: payload._id }); // Find admin by _id
-        // if (!admin) throw new NotFoundError("Account not found. Please contact support!");
-
-        // if (admin.role !== payload.role)
-        //     throw new UnauthorizedError("You do not have permission to access this resource!");
-
-        // req.headers["x-user-id"] = JSON.stringify({ _id: admin._id }); // Set _id as request header
+        if (user.role !== payload.role)
+            throw new UnauthorizedError("You do not have permission to access this resource!");
 
         next();
     } catch (err) {

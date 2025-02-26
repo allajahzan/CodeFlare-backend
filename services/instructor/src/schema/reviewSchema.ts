@@ -61,7 +61,7 @@ const reviewSchema = new Schema<IReviewSchema>({
         type: String,
         enum: ["Pass", "Fail"],
     },
-});
+}, { timestamps : true});
 
 const Review = model<IReviewSchema>("Review", reviewSchema);
 export default Review;
