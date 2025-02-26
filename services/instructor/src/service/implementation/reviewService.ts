@@ -1,3 +1,4 @@
+import { ConflictError } from "@codeflare/common";
 import { IReviewDto } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
@@ -21,28 +22,23 @@ export class ReviewService implements IReviewService {
      * @returns A promise that resolves to a review DTO.
      * @throws An error if there is a problem scheduling the review.
      */
-    async scheduleReview(data: Partial<IReviewSchema>): Promise<IReviewDto> {
+    async scheduleReview(data: Partial<IReviewSchema>): Promise<Partial<IReviewDto>> {
         try {
+            const isReviewExists = await this.reviewRepository.findOne({userId: data.userId, week: data.week});
+
+            if(isReviewExists) throw new ConflictError("Already scheduled a review !")
+
             const review = await this.reviewRepository.create(data);
 
-            if (!review) throw new Error("Failed to create review");
+            if (!review) throw new Error("Failed to schedule review");
 
-            const reviewDto: IReviewDto = {
+            const reviewDto: Partial<IReviewDto> = {
                 _id: review._id,
                 userId: review.userId as unknown as string,
                 title: review.title,
                 week: review.week,
                 date: review.date,
                 time: review.time,
-                rating: review.rating,
-                feedback: review.feedback,
-                pendings: review.pendings,
-                score: {
-                    tech: review.score.tech,
-                    theory: review.score.theory,
-                },
-                tech: review.score.tech,
-                theory: review.score.theory,
             };
 
             return reviewDto;
