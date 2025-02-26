@@ -11,6 +11,8 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
+    "@codeflare/common": "^1.0.38",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongoose": "^8.10.2"
   },
