@@ -29,6 +29,7 @@ app.use(
 const services = {
     auth: "http://localhost:3000/",
     admin: "http://localhost:3001/",
+    instructor: "http://localhost:3002",
     communication: "http://localhost:5000/",
 };
 
@@ -48,6 +49,13 @@ app.use(
     "/api/admin",
     createProxyMiddleware({ target: services.admin, changeOrigin: true })
 );
+
+// Instructor service
+app.use(
+    "/api/instructor",
+    createProxyMiddleware({ target: services.instructor, changeOrigin: true })
+);
+
 
 // Communication service
 app.use(
