@@ -4,7 +4,7 @@ import { IReviewRepository } from "../../repository/interface/IReviewRepository"
 import { IReviewService } from "../interface/IReviewService";
 
 /** Implementation of Review Service */
-export class reviewService implements IReviewService {
+export class ReviewService implements IReviewService {
     private reviewRepository: IReviewRepository;
 
     /**
