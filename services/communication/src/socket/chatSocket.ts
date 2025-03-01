@@ -30,10 +30,41 @@ export const chatSocket = (server: any) => {
                 );
             });
 
-            // Get online users ===========================================================================
-            socket.on("userOnline", (receiverId) => {
+            // Get online user ===========================================================================
+            socket.on("userOnline", async (receiverId) => {
                 if (users.has(receiverId)) {
                     io.emit("userOnline", { receiverId, isOnline: true });
+                }
+            });
+
+            // Read messages ===========================================================================
+            socket.on("readMessages", async (chatId, senderId, receiverId) => {
+                console.log("readMessages", chatId, senderId, receiverId);
+
+                const receiverSocketId = users.get(receiverId);
+
+                // Chat
+                let chat;
+
+                if (chatId) {
+                    chat = await chatRepository.findOneAndUpdate(
+                        { _id: chatId },
+                        { $set: { count: 0 } },
+                        { new: true }
+                    );
+                }
+
+                // Sender-Receiver chat Info
+                const chatInfo = {
+                    chatId: chat?.id as string,
+                    senderId,
+                    receiverId: receiverId,
+                    count: chat?.count,
+                };
+
+                // Emit chat Info to sender
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("chatInfo", { chatInfo });
                 }
             });
 
@@ -65,9 +96,8 @@ export const chatSocket = (server: any) => {
                     });
 
                     // Get sender and receiver details from user service with gRPC and also chat
-                    let [sender, receiver, chat] = await Promise.all([
+                    let [sender, chat] = await Promise.all([
                         getUser(senderId),
-                        getUser(receiverId),
                         chatPromise,
                     ]);
 
@@ -86,16 +116,15 @@ export const chatSocket = (server: any) => {
                     if (!chat) {
                         chat = await chatRepository.create({
                             participants: [senderId, receiverId],
-                            sender,
-                            receiver,
                             content,
                             lastMessage: message,
                         });
                     } else {
                         // Update last message
-                        await chatRepository.update(
+                        chat = await chatRepository.findOneAndUpdate(
                             { _id: chat?._id },
-                            { $set: { lastMessage: message, sender, receiver, content } }
+                            { $set: { lastMessage: message, content }, $inc: { count: 1 } },
+                            { new: true }
                         );
                     }
 
@@ -104,6 +133,7 @@ export const chatSocket = (server: any) => {
                         chatId: chat?.id as string,
                         senderId,
                         receiverId,
+                        count: chat?.count,
                     };
 
                     // Emit chat Info to both users

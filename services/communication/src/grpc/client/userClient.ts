@@ -16,3 +16,21 @@ export const getUser = (_id: string): Promise<any> => {
         });
     });
 };
+
+/**
+ * Retrieves multiple users by their ids from the user service.
+ * @param userIds The ids of the users to retrieve.
+ * @returns A Promise that resolves to the users if found, otherwise rejects with an error.
+ */
+export const getUsers = (userIds: string[]): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        userClient.getUsers({ userIds }, (error: any, response: any) => {
+            if (error) {
+                reject(error);
+            } else {
+                const usersMap = response?.users || {};
+                resolve(usersMap);
+            }
+        });
+    });
+};

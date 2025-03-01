@@ -56,7 +56,7 @@ export const getUsers = async (call: any, callback: any) => {
         const usersMap: Record<string, any> = {};
         users.forEach((user) => {
             usersMap[user._id as string] = {
-                userId: user._id as string,
+                _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
