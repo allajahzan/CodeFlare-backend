@@ -395,10 +395,6 @@ export class UserService implements IUserService {
                         ],
                         ...(status !== undefined ? { isblock: status === "true" } : {}), // Apply status filter if present
                     });
-                    
-
-                    console.log(users);
-                    
 
                     // Student
                 } else if (role === "student") {

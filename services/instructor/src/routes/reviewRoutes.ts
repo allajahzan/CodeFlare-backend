@@ -7,23 +7,28 @@ import Review from "../schema/reviewSchema";
 const router = Router();
 
 // Dependency Injuction
-const reviewRepository = new ReviewRepository(Review)
-const reviewService = new ReviewService(reviewRepository)
-const reviewController = new ReviewController(reviewService)
+const reviewRepository = new ReviewRepository(Review);
+const reviewService = new ReviewService(reviewRepository);
+const reviewController = new ReviewController(reviewService);
 
 // Get Schedule review
-router.get('/', (req: Request, res: Response, next: NextFunction) => 
+router.get("/", (req: Request, res: Response, next: NextFunction) =>
     reviewController.getScheduledReviews(req, res, next)
-)
+);
 
 // Schedule review
-router.post('/', (req: Request, res: Response, next: NextFunction) => 
+router.post("/", (req: Request, res: Response, next: NextFunction) =>
     reviewController.scheduleReview(req, res, next)
-)
+);
 
 // Update review
-router.patch('/', (req: Request, res: Response, next: NextFunction) => 
+router.patch("/:id", (req: Request, res: Response, next: NextFunction) =>
     reviewController.updateReview(req, res, next)
-)
+);
+
+// Search reviews
+router.get("/search", (req: Request, res: Response, next: NextFunction) =>
+    reviewController.searchReviews(req, res, next)
+);
 
 export { router as reviewRoute };

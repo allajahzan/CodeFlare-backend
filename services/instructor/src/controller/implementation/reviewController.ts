@@ -38,7 +38,7 @@ export class ReviewController implements IReviewController {
             const data = await this.reviewService.getScheduledReviews(
                 (batchIds as string).split(",")
             );
-            
+
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
@@ -82,10 +82,41 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { reviewId } = req.params;
+            const { id:reviewId } = req.params;
             const reviewData = req.body;
 
             const data = await this.reviewService.updateReview(reviewData, reviewId);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Searches for reviews based on the given keyword from the request query.
+     * @param req - The express request object containing the keyword, sort, order, status and batchIds in the request query.
+     * @param res - The express response object used to send the list of reviews.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves when the review search process is complete.
+     * @throws An error if there is a problem searching for the reviews.
+     */
+    async searchReviews(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { keyword, sort, order, date, status, batchIds } = req.query;
+
+            const data = await this.reviewService.searchReviews(
+                keyword as string,
+                sort as string,
+                Number(order),
+                date as string,
+                status as string,
+                (batchIds as string).split(",")
+            );
+
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
