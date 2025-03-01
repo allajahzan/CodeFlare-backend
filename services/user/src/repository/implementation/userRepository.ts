@@ -105,8 +105,6 @@ export class UserRepository
                 },
             ]);
         } catch (err: unknown) {
-            console.log(err);
-
             return null;
         }
     }
