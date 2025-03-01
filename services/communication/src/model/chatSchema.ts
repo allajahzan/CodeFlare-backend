@@ -11,28 +11,6 @@ const chatSchema = new Schema<IChatSchema>(
                 index: true,
             },
         ],
-        sender: {
-            _id: {
-                type: Schema.Types.ObjectId,
-                required: true,
-                index: true,
-            },
-            name: { type: String, required: true },
-            email: { type: String, required: true },
-            role: { type: String, required: true },
-            profilePic: { type: String },
-        },
-        receiver: {
-            _id: {
-                type: Schema.Types.ObjectId,
-                required: true,
-                index: true,
-            },
-            name: { type: String, required: true },
-            email: { type: String, required: true },
-            role: { type: String, required: true },
-            profilePic: { type: String },
-        },
         content: {
             type: String,
             enum: ["text", "image", "file"],
@@ -41,6 +19,10 @@ const chatSchema = new Schema<IChatSchema>(
         lastMessage: {
             type: String,
             required: true,
+        },
+        count: {
+            type: Number,
+            default: 1,
         },
     },
     { timestamps: true }

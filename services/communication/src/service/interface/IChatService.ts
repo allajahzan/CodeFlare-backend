@@ -1,6 +1,6 @@
-import { IChatSchema } from "../../entities/IChatSchema";
+import { IChatDto } from "../../dto/chatServiceDto";
 
 /** Interface for Chat Service */
 export interface IChatService {
-    getChats(_id: string): Promise<IChatSchema[] | null>;
+    getChats(_id: string): Promise<IChatDto[] | null>;
 }
