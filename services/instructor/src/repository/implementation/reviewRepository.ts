@@ -28,9 +28,12 @@ export class ReviewRepository
         keyword: string,
         sort: string,
         order: number,
+        date: string,
         status: string,
         batchIds: string[]
     ): Promise<IReviewSchema[] | null> {
+        console.log(date);
+
         try {
             return await this.model.aggregate([
                 {
@@ -39,7 +42,18 @@ export class ReviewRepository
                             batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
                         }),
                         ...(keyword && {
-                            $or: [{ week: { $regex: keyword, $options: "i" } }],
+                            $or: [
+                                { week: keyword.toLowerCase() },
+                                { title: { $regex: keyword.toLowerCase(), $options: "i" } },
+                            ],
+                        }),
+                        ...(date && {
+                            $expr: {
+                                $eq: [
+                                    { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                                    new Date(date).toISOString().split("T")[0],
+                                ],
+                            },
                         }),
                         ...(status && { status }),
                     },

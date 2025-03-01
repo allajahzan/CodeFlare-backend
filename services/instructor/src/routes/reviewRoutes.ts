@@ -22,7 +22,7 @@ router.post("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Update review
-router.patch("/", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/:id", (req: Request, res: Response, next: NextFunction) =>
     reviewController.updateReview(req, res, next)
 );
 

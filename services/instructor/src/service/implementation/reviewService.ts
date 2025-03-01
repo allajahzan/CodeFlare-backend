@@ -89,6 +89,9 @@ export class ReviewService implements IReviewService {
                 date: review.date,
                 time: review.time,
                 status: review.status,
+                result: review.result,
+                feedback: review.feedback,
+                score: review.score,
                 createdAt: review.createdAt,
             };
 
@@ -109,6 +112,8 @@ export class ReviewService implements IReviewService {
         data: Partial<IReviewSchema>,
         reviewId: string
     ): Promise<IReviewDto> {
+        console.log(data, reviewId);
+        
         try {
             const review = await this.reviewRepository.update(
                 { _id: reviewId },
@@ -118,7 +123,7 @@ export class ReviewService implements IReviewService {
             if (!review) throw new Error("Failed to create review");
 
             // User info through gRPC
-            const user = await getUser(data.userId as unknown as string);
+            const user = await getUser(review.userId as unknown as string);
 
             // Map data to return type
             const reviewDto: IReviewDto = {
@@ -160,6 +165,7 @@ export class ReviewService implements IReviewService {
         keyword: string,
         sort: string,
         order: number,
+        date: string,
         status: string,
         batchIds: string[]
     ): Promise<IReviewDto[]> {
@@ -168,6 +174,7 @@ export class ReviewService implements IReviewService {
                 keyword,
                 sort,
                 order,
+                date,
                 status,
                 batchIds
             );

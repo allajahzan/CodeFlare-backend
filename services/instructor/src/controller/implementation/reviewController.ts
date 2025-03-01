@@ -82,7 +82,7 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { reviewId } = req.params;
+            const { id:reviewId } = req.params;
             const reviewData = req.body;
 
             const data = await this.reviewService.updateReview(reviewData, reviewId);
@@ -106,12 +106,13 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, sort, order, status, batchIds } = req.query;
+            const { keyword, sort, order, date, status, batchIds } = req.query;
 
             const data = await this.reviewService.searchReviews(
                 keyword as string,
                 sort as string,
                 Number(order),
+                date as string,
                 status as string,
                 (batchIds as string).split(",")
             );
