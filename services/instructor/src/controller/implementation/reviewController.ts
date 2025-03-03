@@ -106,7 +106,7 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, sort, order, date, status, batchIds } = req.query;
+            const { keyword, sort, order, date, status, batchIds, skip } = req.query;
 
             const data = await this.reviewService.searchReviews(
                 keyword as string,
@@ -114,7 +114,8 @@ export class ReviewController implements IReviewController {
                 Number(order),
                 date as string,
                 status as string,
-                (batchIds as string).split(",")
+                (batchIds as string).split(","),
+                Number(skip)
             );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);

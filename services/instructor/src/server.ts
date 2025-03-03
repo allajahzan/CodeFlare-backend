@@ -6,6 +6,8 @@ import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
 // import { startGrpcServer } from "./grpc/grpc.server";
+import http from 'http'
+import { instructorSocket } from "./socket/socket";
 
 // server
 const startServer = async () => {
@@ -23,8 +25,14 @@ const startServer = async () => {
         // start grpc server
         // startGrpcServer()
 
+        // Http server
+        const server = http.createServer(app)
+
+        // Instructor Socket
+        instructorSocket(server)
+
         //listen to port
-        app.listen(process.env.PORT, () =>
+        server.listen(process.env.PORT, () =>
             console.log("Instructor service running on port 3002")
         );
     } catch (err: any) {

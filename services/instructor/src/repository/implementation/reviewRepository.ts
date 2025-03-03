@@ -30,10 +30,9 @@ export class ReviewRepository
         order: number,
         date: string,
         status: string,
-        batchIds: string[]
+        batchIds: string[],
+        skip: number
     ): Promise<IReviewSchema[] | null> {
-        console.log(date);
-
         try {
             return await this.model.aggregate([
                 {
@@ -61,6 +60,12 @@ export class ReviewRepository
                 {
                     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { createdAt: -1 },
                 },
+                {
+                    $skip: skip
+                },
+                {
+                    $limit: 10
+                }
             ]);
         } catch (err: unknown) {
             return null;

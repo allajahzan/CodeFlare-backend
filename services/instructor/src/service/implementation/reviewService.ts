@@ -167,7 +167,8 @@ export class ReviewService implements IReviewService {
         order: number,
         date: string,
         status: string,
-        batchIds: string[]
+        batchIds: string[],
+        skip: number
     ): Promise<IReviewDto[]> {
         try {
             const reviews = await this.reviewRepository.searchReviews(
@@ -176,7 +177,8 @@ export class ReviewService implements IReviewService {
                 order,
                 date,
                 status,
-                batchIds
+                batchIds,
+                skip
             );
 
             if (!reviews || !reviews.length) {
