@@ -212,9 +212,12 @@ export class UserController implements IUserController {
         try {
             res.setHeader("Cache-Control", "no-store, no-cache"); // Clear cache
 
-            const requesterId = req.headers["x-user-id"]; // userId
+            const userId =
+                req.query._id || req.query.batchId
+                    ? JSON.stringify(req.query)
+                    : req.headers["x-user-id"]; // userId
 
-            const data = await this.userService.getUser(requesterId as string);
+            const data = await this.userService.getUser(userId as string);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

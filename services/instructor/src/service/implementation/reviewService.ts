@@ -70,11 +70,11 @@ export class ReviewService implements IReviewService {
 
             // Review alredy scheduled
             if (isReviewExists)
-                throw new ConflictError("Already scheduled a review !");
+                throw new ConflictError("Already scheduled a review for this week !");
 
             const review = await this.reviewRepository.create(data);
 
-            if (!review) throw new Error("Failed to schedule review");
+            if (!review) throw new Error("Failed to schedule review !");
 
             // User info through gRPC
             const user = await getUser(data.userId as unknown as string);
@@ -92,7 +92,7 @@ export class ReviewService implements IReviewService {
                 result: review.result,
                 feedback: review.feedback,
                 score: review.score,
-                createdAt: review.createdAt,
+                updatedAt: review.updatedAt,
             };
 
             return reviewDto;
@@ -120,7 +120,7 @@ export class ReviewService implements IReviewService {
                 { $set: data }
             );
 
-            if (!review) throw new Error("Failed to create review");
+            if (!review) throw new Error("Failed to update review !");
 
             // User info through gRPC
             const user = await getUser(review.userId as unknown as string);
@@ -143,7 +143,7 @@ export class ReviewService implements IReviewService {
                 },
                 status: review.status,
                 result: review.result,
-                createdAt: review.createdAt,
+                updatedAt: review.updatedAt,
             };
             return reviewDto;
         } catch (err: unknown) {

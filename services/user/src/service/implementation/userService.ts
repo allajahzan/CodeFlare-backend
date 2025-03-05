@@ -311,21 +311,24 @@ export class UserService implements IUserService {
 
     /**
      * Retrieves the user data based on the x-user-id header.
-     * @param requesterId - The x-user-id header containing the user id.
+     * @param userId - The x-user-id header containing the user id.
      * @returns A promise that resolves to an object containing the user data if found, otherwise the promise is rejected with an error.
-     * @throws {UnauthorizedError} If the requesterId is not provided or is invalid.
+     * @throws {UnauthorizedError} If the userId is not provided or is invalid.
      * @throws {NotFoundError} If the user is not found.
      */
-    async getUser(requesterId: string): Promise<IUserDto> {
+    async getUser(userId: string): Promise<IUserDto> {
         try {
-            if (!requesterId)
+            if (!userId)
                 throw new UnauthorizedError(
                     "Athentication failed. Please login again!"
                 );
 
-            const { _id } = JSON.parse(requesterId as string);
+            const { _id, batchId } = JSON.parse(userId as string);
 
-            const user = await this.userRepository.findOne({ _id });
+            const user = await this.userRepository.findOne({
+                _id,
+                ...(batchId && { batch: batchId }),
+            });
 
             if (!user)
                 throw new NotFoundError("Account not found. Please contact support!");
@@ -390,8 +393,8 @@ export class UserService implements IUserService {
 
                     users = await this.userRepository.find({
                         $or: [
-                            { role: "student", batch: { $in: user.batches } }, 
-                            { role: "admin" } 
+                            { role: "student", batch: { $in: user.batches } },
+                            { role: "admin" },
                         ],
                         ...(status !== undefined ? { isblock: status === "true" } : {}), // Apply status filter if present
                     });
@@ -634,7 +637,7 @@ export class UserService implements IUserService {
                     ["student"]
                 );
             }
-            
+
             // Users info with batch details
             const usersWithBatchDetails = await getUsersWithBatchDetails(
                 users as IUserSchema[]

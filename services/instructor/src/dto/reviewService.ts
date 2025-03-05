@@ -25,5 +25,5 @@ export interface IReviewDto {
     };
     status: string;
     result: string;
-    createdAt: Date;
+    updatedAt: Date;
 }

@@ -54,7 +54,7 @@ const reviewSchema = new Schema<IReviewSchema>({
     },
     status: {
         type: String,
-        enum: ["Pending", "Completed", "Ongoing"],
+        enum: ["Pending", "Ongoing", "Completed", "Cancelled"],
         default: "Pending",
     },
     result: {

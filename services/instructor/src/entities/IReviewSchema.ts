@@ -17,5 +17,5 @@ export interface IReviewSchema extends Document {
     };
     status: string;
     result: string;
-    createdAt: Date
+    updatedAt: Date
 }
