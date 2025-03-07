@@ -16,6 +16,40 @@ export class ReviewRepository
     }
 
     /**
+     * Retrieves the latest reviews of a user for a given week, up to the given limit.
+     * @param userId - The id of the user to retrieve reviews for.
+     * @param week - The week to retrieve reviews for.
+     * @param limit - The maximum number of reviews to retrieve.
+     * @returns A promise that resolves to a list of review schema, or null if there is a problem retrieving the reviews.
+     */
+    async findReviewsWithLimit(
+        userId: string,
+        week: string,
+        limit: number
+    ): Promise<IReviewSchema[] | null> {
+        try {
+            return await this.model.aggregate([
+                {
+                    $match: {
+                        userId: new Types.ObjectId(userId),
+                        week: week,
+                    },
+                },
+                {
+                    $sort: {
+                        updatedAt: -1,
+                    },
+                },
+                {
+                    $limit: limit,
+                },
+            ]);
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
      * Searches for reviews based on the given keyword from the request query.
      * @param keyword - The keyword to search for in the review's week.
      * @param sort - The field to sort the results by.
@@ -61,11 +95,11 @@ export class ReviewRepository
                     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { createdAt: -1 },
                 },
                 {
-                    $skip: skip
+                    $skip: skip,
                 },
                 {
-                    $limit: 10
-                }
+                    $limit: 10,
+                },
             ]);
         } catch (err: unknown) {
             return null;

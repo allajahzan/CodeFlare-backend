@@ -1,9 +1,10 @@
-import { ConflictError } from "@codeflare/common";
+import { ConflictError, NotFoundError } from "@codeflare/common";
 import { IReviewDto, IUser } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
-import { getUser, getUsers } from "../../grpc/client/userClient";
+import { getUser, getUsers, updateUser } from "../../grpc/client/userClient";
+import { ObjectId, Types } from "mongoose";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -63,16 +64,25 @@ export class ReviewService implements IReviewService {
         data: Partial<IReviewSchema>
     ): Promise<Partial<IReviewDto>> {
         try {
-            const isReviewExists = await this.reviewRepository.findOne({
-                userId: data.userId,
-                week: data.week,
-            });
+            // Find the latest review of a user for a perticular week
+            const isReviewExists = await this.reviewRepository.findReviewsWithLimit(
+                data.userId as unknown as string,
+                data.week as string,
+                1
+            );
 
-            // Review alredy scheduled
-            if (isReviewExists)
-                throw new ConflictError("Already scheduled a review for this week !");
+            // Check review status is pending or completed
+            if (
+                isReviewExists?.[0].status === "Pending" ||
+                isReviewExists?.[0].status === "Completed"
+            )
+                throw new ConflictError(
+                    isReviewExists?.[0].status === "Pending"
+                        ? "Review already scheduled for this week !"
+                        : "Review already completed for this week !"
+                );
 
-            const review = await this.reviewRepository.create(data);
+            const review = await this.reviewRepository.create(data); // Schedule review
 
             if (!review) throw new Error("Failed to schedule review !");
 
@@ -112,9 +122,8 @@ export class ReviewService implements IReviewService {
         data: Partial<IReviewSchema>,
         reviewId: string
     ): Promise<IReviewDto> {
-        console.log(data, reviewId);
-        
         try {
+            // Find review
             const review = await this.reviewRepository.update(
                 { _id: reviewId },
                 { $set: data }
@@ -146,6 +155,119 @@ export class ReviewService implements IReviewService {
                 updatedAt: review.updatedAt,
             };
             return reviewDto;
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Changes the status of a review with the given id.
+     * @param reviewId - The id of the review to update.
+     * @param userId - The id of the user who the review belongs to.
+     * @param week - The week of the review.
+     * @param status - The new status of the review.
+     * @returns A promise that resolves when the review status is updated successfully.
+     * @throws An error if there is a problem updating the review status.
+     */
+    async changeStatus(
+        reviewId: string,
+        userId: string,
+        week: string,
+        status: string
+    ): Promise<void> {
+        try {
+            // Find review
+            const review = await this.reviewRepository.findOne({ _id: reviewId });
+
+            if (!review) throw new Error("Review not found");
+
+            // Find the last 2 reviews of the user with same week
+            let reviews = await this.reviewRepository.findReviewsWithLimit(
+                userId,
+                week,
+                2
+            );
+
+            if (!reviews) throw new Error("Failed to update status !");
+
+            // Check weather, we are updating the latest review of a user of a perticular week
+            if (reviews[0]._id != reviewId)
+                throw new Error("Can't update previous review status !");
+
+            let flag = false;
+
+            if (
+                reviews.length >= 2 &&
+                reviews[1].status === "Absent" &&
+                status === "Absent"
+            ) {
+                flag = true;
+            } // Check weather, status of the latest 2 reviews of a user with same week, are absent
+
+            // Update user through gRPC
+            const { response } = await updateUser(userId, {
+                stage: flag ? "Intake" : "Normal",
+            });
+
+            if (response.status !== 200) throw new Error("Failed to update status !");
+
+            // Update review status
+            const updatedReview = await this.reviewRepository.update(
+                { _id: reviewId },
+                { $set: { status: status } }
+            );
+
+            if (!updatedReview) throw new Error("Failed to update status !");
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Updates the score of a review.
+     * @param reviewId - The id of the review to update.
+     * @param practical - The practical score to be updated.
+     * @param theory - The theory score to be updated.
+     * @param result - The result of the review, either "Pass" or "Fail".
+     * @returns A promise that resolves when the review score is updated successfully.
+     * @throws NotFoundError if the review is not found.
+     * @throws Error if there is a problem updating the score or if the gRPC update fails.
+     */
+    async updateScore(
+        reviewId: string,
+        practical: number,
+        theory: number,
+        result: string
+    ): Promise<void> {
+        try {
+            // Find review
+            const review = await this.reviewRepository.findOne({ _id: reviewId });
+
+            if (!review) throw new NotFoundError("Review not found");
+
+            // Check if result is pass
+            if (result === "Pass") {
+                const splitedWeek = review.week.split(" ");
+
+                const week = splitedWeek[0] + " " + (Number(splitedWeek[1]) + 1); // Next week
+
+                // Update user through gRPC
+                const { response } = await updateUser(
+                    review.userId as unknown as string,
+                    { week }
+                );
+
+                if (response.status !== 200)
+                    throw new Error("Failed to update score !");
+            }
+
+            // Update review
+            const updatedReview = await this.reviewRepository.update(
+                { _id: reviewId },
+                { $set: { score: { practical, theory }, result } }
+            );
+
+            if (!updatedReview) throw new Error("Failed to update score !");
         } catch (err: unknown) {
             throw err;
         }

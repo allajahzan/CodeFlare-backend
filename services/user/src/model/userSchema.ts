@@ -3,7 +3,7 @@ import { IUserSchema } from "../entities/IUserSchema";
 
 /** Implementaion of Base User Schema */
 const userSchema = new Schema<IUserSchema>(
-    { 
+    {
         name: {
             type: String,
             required: true,
@@ -14,9 +14,9 @@ const userSchema = new Schema<IUserSchema>(
             required: true,
             index: true,
         },
-        phoneNumber : {
+        phoneNumber: {
             type: String,
-            required : false
+            required: false,
         },
         password: {
             type: String,
@@ -35,6 +35,24 @@ const userSchema = new Schema<IUserSchema>(
             type: String,
             required: false,
         },
+        stage: {
+            type: String,
+            enum: ["Normal", "Hold", "Intake", "QA"],
+            default: "Normal",
+            required: false,
+        },
+        category: {
+            type: String,
+            enum: ["Ongoing", "Placement", "Critical"],
+            default: "Ongoing",
+            required: false,
+        },
+        // status: {
+        //     type: String,
+        //     enum: ["Top", "Middle", "Bottom"],
+        //     default: "Top",
+        //     required: false,
+        // },
         batch: {
             type: Schema.Types.ObjectId,
             required: false,

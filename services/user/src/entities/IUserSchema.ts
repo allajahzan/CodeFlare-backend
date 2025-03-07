@@ -9,6 +9,9 @@ export interface IUserSchema extends Document {
     profilePic: string;
     role: string;
     week: string;
+    stage: string;
+    category: string;
+    status: string;
     batch: Schema.Types.ObjectId;
     batches: Schema.Types.ObjectId[];
     lastActive: Date;

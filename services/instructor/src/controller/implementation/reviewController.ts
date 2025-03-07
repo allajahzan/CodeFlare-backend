@@ -82,11 +82,59 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { id:reviewId } = req.params;
+            const { id: reviewId } = req.params;
             const reviewData = req.body;
 
             const data = await this.reviewService.updateReview(reviewData, reviewId);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Changes the status of a review with the given id.
+     * @param req - The express request object containing the review id in params and the new status in the request body.
+     * @param res - The express response object used to send the response.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the review status is updated successfully.
+     * @throws An error if there is a problem updating the review status.
+     */
+    async changeStatus(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id: reviewId } = req.params;
+            const { userId, status, week } = req.body;
+
+            await this.reviewService.changeStatus(reviewId, userId, week, status);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Updates the score of a review.
+     * @param req - The express request object containing the review id in params and the score details in body.
+     * @param res - The express response object used to send the response.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves when the review score is updated successfully.
+     * @throws An error if there is a problem updating the review score.
+     */
+    async updateScore(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { id: reviewId } = req.params;
+            const { practical, theory, result } = req.body;
+
+            await this.reviewService.updateScore(reviewId, practical, theory, result);
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }

@@ -1,3 +1,4 @@
+import { IUser } from "../../dto/reviewService";
 import { userClient } from "../grpc.connection";
 
 /**
@@ -32,5 +33,28 @@ export const getUsers = (userIds: string[]): Promise<void> => {
                 resolve(usersMap);
             }
         });
+    });
+};
+
+/**
+ * Updates a user by their id using the user service.
+ * @param userId The id of the user to update.
+ * @returns A Promise that resolves to the updated user data if successful, otherwise rejects with an error.
+ */
+export const updateUser = (
+    userId: string,
+    data: any
+): Promise<{ response: { status: number; message: string; data: any } }> => {
+    return new Promise((resolve, reject) => {
+        userClient.updateUser(
+            { _id: userId, data: JSON.stringify({ data }) },
+            (error: any, response: any) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(response);
+                }
+            }
+        );
     });
 };

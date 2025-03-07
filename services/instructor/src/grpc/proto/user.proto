@@ -5,6 +5,25 @@ package user;
 service UserService {
    rpc getUser (getUserRequest) returns (getUserResponse);
    rpc getUsers (getUsersRequest) returns (getUsersResponse);
+   rpc updateUser (updateUserRequest) returns (updateUserResponse);
+}
+
+// User structure
+
+message UserInfo {
+  string _id = 1;
+  string name = 2;
+  string email = 3;
+  string role = 4;
+  string profilePic = 5;
+}
+
+// Response structure 
+
+message Response {
+    int32 status = 1;
+    string message = 2;
+    UserInfo data = 3;
 }
 
 // For a single UserInfo =========================================
@@ -27,14 +46,17 @@ message getUsersRequest {
     repeated string userIds = 1;
 }
 
-message UserInfo {
-  string _id = 1;
-  string name = 2;
-  string email = 3;
-  string role = 4;
-  string profilePic = 5;
-}
-
 message getUsersResponse {
   map<string, UserInfo> users = 1; 
+}
+
+// For update a single user =======================================
+ 
+message updateUserRequest {
+    string _id = 1;
+    string data = 2;
+}
+
+message updateUserResponse {
+    Response response = 1; 
 }

@@ -11,7 +11,7 @@ const reviewRepository = new ReviewRepository(Review);
 const reviewService = new ReviewService(reviewRepository);
 const reviewController = new ReviewController(reviewService);
 
-// Get Schedule review
+// Get Scheduled reviews
 router.get("/", (req: Request, res: Response, next: NextFunction) =>
     reviewController.getScheduledReviews(req, res, next)
 );
@@ -24,6 +24,16 @@ router.post("/", (req: Request, res: Response, next: NextFunction) =>
 // Update review
 router.patch("/:id", (req: Request, res: Response, next: NextFunction) =>
     reviewController.updateReview(req, res, next)
+);
+
+// Update review status
+router.patch("/status/:id", (req: Request, res: Response, next: NextFunction) =>
+    reviewController.changeStatus(req, res, next)
+);
+
+// Update review score
+router.patch("/score/:id", (req: Request, res: Response, next: NextFunction) =>
+    reviewController.updateScore(req, res, next)
 );
 
 // Search reviews
