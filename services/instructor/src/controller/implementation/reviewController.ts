@@ -107,9 +107,9 @@ export class ReviewController implements IReviewController {
     ): Promise<void> {
         try {
             const { id: reviewId } = req.params;
-            const { userId, status, week } = req.body;
+            const { status } = req.body;
 
-            await this.reviewService.changeStatus(reviewId, userId, week, status);
+            await this.reviewService.changeStatus(reviewId, status);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
@@ -131,9 +131,9 @@ export class ReviewController implements IReviewController {
     ): Promise<void> {
         try {
             const { id: reviewId } = req.params;
-            const { practical, theory, result } = req.body;
+            const { practical, theory } = req.body;
 
-            await this.reviewService.updateScore(reviewId, practical, theory, result);
+            await this.reviewService.updateScore(reviewId, practical, theory);
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
