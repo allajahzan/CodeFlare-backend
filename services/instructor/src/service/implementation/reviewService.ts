@@ -158,18 +158,21 @@ export class ReviewService implements IReviewService {
             if (instructorId != review.instructorId)
                 throw new Error("You are restricted to update this review !");
 
-            // Find the latest review of the user
-            let latestReview = await this.reviewRepository.findReviewsWithLimit(
-                review.userId as unknown as string,
-                "",
-                1
-            );
+            // If date and time updates
+            if (data.date || data.time) {
+                // Find the latest review of the user
+                let latestReview = await this.reviewRepository.findReviewsWithLimit(
+                    review.userId as unknown as string,
+                    "",
+                    1
+                );
 
-            if (!latestReview) throw new Error("Failed to update review !");
+                if (!latestReview) throw new Error("Failed to update review !");
 
-            // Check weather, we are updating the latest review of a user
-            if (latestReview[0]._id != reviewId)
-                throw new Error("You can't update previous review details !");
+                // Check weather, we are updating the latest review of a user
+                if (latestReview[0]._id != reviewId)
+                    throw new Error("You can't update previous review details !");
+            }
 
             // User info through gRPC
             const user = await getUser(review.userId as unknown as string);
