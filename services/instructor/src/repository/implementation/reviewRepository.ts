@@ -32,12 +32,12 @@ export class ReviewRepository
                 {
                     $match: {
                         userId: new Types.ObjectId(userId),
-                        week: week,
+                        ...(week && { week: week }),
                     },
                 },
                 {
                     $sort: {
-                        updatedAt: -1,
+                        createdAt: -1,
                     },
                 },
                 {

@@ -1,10 +1,15 @@
-import { ConflictError, NotFoundError } from "@codeflare/common";
+import {
+    ConflictError,
+    JwtPayloadType,
+    NotFoundError,
+    UnauthorizedError,
+} from "@codeflare/common";
 import { IReviewDto, IUser } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
 import { getUser, getUsers, updateUser } from "../../grpc/client/userClient";
-import { ObjectId, Types } from "mongoose";
+import mongoose, { Mongoose, ObjectId, Schema, Types } from "mongoose";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -61,9 +66,13 @@ export class ReviewService implements IReviewService {
      * @throws Error if there is a problem scheduling the review.
      */
     async scheduleReview(
+        tokenPayload: string,
         data: Partial<IReviewSchema>
     ): Promise<Partial<IReviewDto>> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Instutructor id
+            const instructorId = _id as unknown as ObjectId;
+
             // Find the latest review of a user for a perticular week
             const isReviewExists = await this.reviewRepository.findReviewsWithLimit(
                 data.userId as unknown as string,
@@ -77,24 +86,34 @@ export class ReviewService implements IReviewService {
                 isReviewExists.length > 0 &&
                 (isReviewExists[0].status === "Pending" ||
                     (isReviewExists[0].status === "Completed" &&
-                        isReviewExists[0].result === "Pass"))
+                        isReviewExists[0].result !== "Fail"))
             )
                 throw new ConflictError(
                     isReviewExists?.[0].status === "Pending"
-                        ? "Review already scheduled for this week !"
-                        : "Review already completed for this week !"
+                        ? isReviewExists[0].instructorId == instructorId
+                            ? "Review already scheduled for this student !"
+                            : "Review already scheduled by another instructor !"
+                        : isReviewExists[0].instructorId == instructorId
+                            ? "Review already completed. please update score !"
+                            : "Review already completed by another instructor !"
                 );
 
-            const review = await this.reviewRepository.create(data); // Schedule review
+            // Schedule review
+            const review = await this.reviewRepository.create({
+                ...data,
+                instructorId,
+            });
 
             if (!review) throw new Error("Failed to schedule review !");
 
-            // User info through gRPC
+            // User and instrucor details through gRPC
             const user = await getUser(data.userId as unknown as string);
+            const instructor = await getUser(instructorId as unknown as string);
 
             // Map data to reutrn type
             const reviewDto: Partial<IReviewDto> = {
                 _id: review._id,
+                instructor: instructor as unknown as IUser,
                 user: user as unknown as IUser,
                 batchId: review.batchId as unknown as string,
                 title: review.title,
@@ -122,40 +141,65 @@ export class ReviewService implements IReviewService {
      * @throws An error if there is a problem updating the review.
      */
     async updateReview(
+        tokenPayload: string,
         data: Partial<IReviewSchema>,
         reviewId: string
     ): Promise<IReviewDto> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Instutructor id
+            const instructorId = _id as unknown as ObjectId;
+
             // Find review
-            const review = await this.reviewRepository.update(
+            const review = await this.reviewRepository.findOne({ _id: reviewId });
+
+            if (!review) throw new Error("Review not found");
+
+            // Cheak weather instructor is authorized
+            if (instructorId != review.instructorId)
+                throw new Error("You are restricted to update this review !");
+
+            // Find the latest review of the user
+            let latestReview = await this.reviewRepository.findReviewsWithLimit(
+                review.userId as unknown as string,
+                "",
+                1
+            );
+
+            if (!latestReview) throw new Error("Failed to update review !");
+
+            // Check weather, we are updating the latest review of a user
+            if (latestReview[0]._id != reviewId)
+                throw new Error("You can't update previous review details !");
+
+            // User info through gRPC
+            const user = await getUser(review.userId as unknown as string);
+            const instructor = await getUser(instructorId as unknown as string);
+
+            // Update review
+            const updatedReview = await this.reviewRepository.update(
                 { _id: reviewId },
                 { $set: data }
             );
 
-            if (!review) throw new Error("Failed to update review !");
-
-            // User info through gRPC
-            const user = await getUser(review.userId as unknown as string);
+            if (!updatedReview) throw new Error("Failed to update review !");
 
             // Map data to return type
             const reviewDto: IReviewDto = {
-                _id: review._id,
+                _id: updatedReview._id,
+                instructor: instructor as unknown as IUser,
                 user: user as unknown as IUser,
-                batchId: review.batchId as unknown as string,
-                title: review.title,
-                week: review.week,
-                date: review.date,
-                time: review.time,
-                rating: review.rating,
-                feedback: review.feedback,
-                pendings: review.pendings,
-                score: {
-                    tech: review.score.tech,
-                    theory: review.score.theory,
-                },
-                status: review.status,
-                result: review.result,
-                updatedAt: review.updatedAt,
+                batchId: updatedReview.batchId as unknown as string,
+                title: updatedReview.title,
+                week: updatedReview.week,
+                date: updatedReview.date,
+                time: updatedReview.time,
+                rating: updatedReview.rating,
+                feedback: updatedReview.feedback,
+                pendings: updatedReview.pendings,
+                score: updatedReview.score,
+                status: updatedReview.status,
+                result: updatedReview.result,
+                updatedAt: updatedReview.updatedAt,
             };
             return reviewDto;
         } catch (err: unknown) {
@@ -172,14 +216,38 @@ export class ReviewService implements IReviewService {
      * @returns A promise that resolves when the review status is updated successfully.
      * @throws An error if there is a problem updating the review status.
      */
-    async changeStatus(reviewId: string, status: string): Promise<void> {
+    async changeStatus(
+        tokenPayload: string,
+        reviewId: string,
+        status: string
+    ): Promise<void> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Instutructor id
+            const instructorId = _id as unknown as ObjectId;
+
             // Find review
             const review = await this.reviewRepository.findOne({ _id: reviewId });
 
             if (!review) throw new Error("Review not found");
 
-            // Find the last 2 reviews of the user with same week
+            // Cheak weather instructor is authorized
+            if (instructorId != review.instructorId)
+                throw new Error("You are restricted to update this review !");
+
+            // Find the latest review of the user
+            let latestReview = await this.reviewRepository.findReviewsWithLimit(
+                review.userId as unknown as string,
+                "",
+                1
+            );
+
+            if (!latestReview) throw new Error("Failed to update status !");
+
+            // Check weather, we are updating the latest review of a user
+            if (latestReview[0]._id != reviewId)
+                throw new Error("You can't update previous review status !");
+
+            // Find the last two reviews of the user of same week
             let reviews = await this.reviewRepository.findReviewsWithLimit(
                 review.userId as unknown as string,
                 review.week,
@@ -188,25 +256,23 @@ export class ReviewService implements IReviewService {
 
             if (!reviews) throw new Error("Failed to update status !");
 
-            // Check weather, we are updating the latest review of a user of a perticular week
-            if (reviews[0]._id != reviewId)
-                throw new Error("Can't update previous review status !");
-
             let flag = false;
 
+            // Check weather, status of previous review of same week is Absent
             if (
                 reviews.length >= 2 &&
                 reviews[1].status === "Absent" &&
                 status === "Absent"
             ) {
                 flag = true;
-            } // Check weather, status of the latest 2 reviews of a user with same week, are absent
+            }
 
             // Update user through gRPC
             const { response } = await updateUser(
                 review.userId as unknown as string,
                 {
                     stage: flag ? "Intake" : "Normal",
+                    week: review.week, // Old week
                 }
             );
 
@@ -238,35 +304,45 @@ export class ReviewService implements IReviewService {
      * @throws An error if there is a problem updating the review score.
      */
     async updateScore(
+        tokenPayload: string,
         reviewId: string,
         practical: number,
         theory: number
     ): Promise<void> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Instutructor id
+            const instructorId = _id as unknown as ObjectId;
+
             // Find review
             const review = await this.reviewRepository.findOne({ _id: reviewId });
 
-            if (!review) throw new NotFoundError("Review not found");
+            if (!review) throw new Error("Review not found");
 
-            // Find the last 2 reviews of the user with same week
-            let reviews = await this.reviewRepository.findReviewsWithLimit(
+            // Cheak weather instructor is authorized
+            if (instructorId != review.instructorId)
+                throw new Error("You are restricted to update this review !");
+
+            // Find latest review of the user
+            let latestReview = await this.reviewRepository.findReviewsWithLimit(
                 review.userId as unknown as string,
-                review.week,
-                2
+                "",
+                1
             );
 
-            if (!reviews) throw new Error("Failed to update status !");
+            if (!latestReview) throw new Error("Failed to update status !");
 
-            // Check weather, we are updating the latest review of a user of a perticular week
-            if (reviews[0]._id != reviewId)
-                throw new Error("Can't update previous review score !");
+            // Check weather, we are updating the latest review of a user
+            if (latestReview[0]._id != reviewId)
+                throw new Error("You can't update previous review score !");
 
+            // Check weather, review is completed
             if (review.status !== "Completed")
-                throw new Error("Review is not completed !");
+                throw new Error("Review is not completed yet !");
 
-            let nextWeek; // Next week
+            // Check weather, pass or fail
+            let flag = practical >= 5 && theory >= 5;
 
-            let flag = practical >= 5 && theory >= 5; // Check weather, practical and theory pass or fail
+            let nextWeek;
 
             if (flag) {
                 const splitedWeek = review.week.split(" ");
@@ -337,7 +413,12 @@ export class ReviewService implements IReviewService {
             const userIds = []; // UserIds
 
             for (let i = 0; i < reviews.length; i++) {
-                userIds.push(reviews[i].userId as unknown as string);
+                userIds.push(
+                    ...[
+                        reviews[i].userId as unknown as string,
+                        reviews[i].instructorId as unknown as string,
+                    ]
+                );
             }
 
             // Users info through gRPC
@@ -347,6 +428,7 @@ export class ReviewService implements IReviewService {
             return reviews.map((review) => ({
                 ...(review.toObject ? review.toObject() : review),
                 user: usersMap[review.userId as unknown as string],
+                instructor: usersMap[review.instructorId as unknown as string],
             }));
         } catch (err: unknown) {
             throw err;

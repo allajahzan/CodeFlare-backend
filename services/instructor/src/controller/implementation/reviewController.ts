@@ -59,9 +59,14 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const reviewData = req.body;
 
-            const data = await this.reviewService.scheduleReview(reviewData);
+            const data = await this.reviewService.scheduleReview(
+                tokenPayload as string,
+                reviewData
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
@@ -82,10 +87,16 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const { id: reviewId } = req.params;
             const reviewData = req.body;
 
-            const data = await this.reviewService.updateReview(reviewData, reviewId);
+            const data = await this.reviewService.updateReview(
+                tokenPayload as string,
+                reviewData,
+                reviewId
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
@@ -106,10 +117,16 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const { id: reviewId } = req.params;
             const { status } = req.body;
 
-            await this.reviewService.changeStatus(reviewId, status);
+            await this.reviewService.changeStatus(
+                tokenPayload as string,
+                reviewId,
+                status
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
@@ -130,10 +147,17 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const { id: reviewId } = req.params;
             const { practical, theory } = req.body;
 
-            await this.reviewService.updateScore(reviewId, practical, theory);
+            await this.reviewService.updateScore(
+                tokenPayload as string,
+                reviewId,
+                practical,
+                theory
+            );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);

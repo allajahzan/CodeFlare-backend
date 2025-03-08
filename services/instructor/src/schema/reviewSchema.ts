@@ -4,6 +4,11 @@ import { IReviewSchema } from "../entities/IReviewSchema";
 /** Implementaion of Review Schema */
 const reviewSchema = new Schema<IReviewSchema>(
     {
+        instructorId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            index: true,
+        },
         userId: {
             type: Schema.Types.ObjectId,
             required: true,
@@ -44,14 +49,17 @@ const reviewSchema = new Schema<IReviewSchema>(
             required: false,
         },
         score: {
-            practical: {
-                type: Number,
-                required: false,
+            type: {
+                practical: {
+                    type: Number,
+                    required: false,
+                },
+                theory: {
+                    type: Number,
+                    required: false,
+                },
             },
-            theory: {
-                type: Number,
-                required: false,
-            },
+            default: null,  
         },
         status: {
             type: String,

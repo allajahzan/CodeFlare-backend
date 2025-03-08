@@ -11,6 +11,7 @@ export interface IUser {
 export interface IReviewDto {
     _id: string | unknown;
     user: IUser,
+    instructor: IUser;
     batchId: string;
     title: string;
     week: string;
@@ -19,10 +20,7 @@ export interface IReviewDto {
     rating: number;
     feedback: string;
     pendings: string[];
-    score: {
-        tech: number;
-        theory: number;
-    };
+    score: { practical: number; theory: number };
     status: string;
     result: string;
     updatedAt: Date;
