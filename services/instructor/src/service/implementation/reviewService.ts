@@ -29,20 +29,22 @@ export class ReviewService implements IReviewService {
      * @returns A promise that resolves to an array of scheduled review DTOs.
      * @throws An error if there is a problem retrieving the reviews.
      */
-    async getScheduledReviews(batchIds: string[]): Promise<IReviewDto[]> {
+    async getScheduledReviews(userId: string): Promise<IReviewDto[]> {
         try {
-            const reviews = await this.reviewRepository.find({
-                batchId: { $in: batchIds },
-            });
+            const reviews = await this.reviewRepository.findReviewsWithLimit(userId);
 
-            if (!reviews || !reviews.length) {
-                return [];
-            }
+            if (!reviews || !reviews.length)
+                throw new NotFoundError("Reviews not found");
 
             const userIds = []; // UserIds
 
             for (let i = 0; i < reviews.length; i++) {
-                userIds.push(reviews[i].userId as unknown as string);
+                userIds.push(
+                    ...[
+                        reviews[i].userId as unknown as string,
+                        reviews[i].instructorId as unknown as string,
+                    ]
+                );
             }
 
             // Users info through gRPC
@@ -50,8 +52,9 @@ export class ReviewService implements IReviewService {
 
             // Reviews detils with user info
             return reviews.map((review) => ({
-                ...review.toObject(),
+                ...(review as unknown as IReviewDto),
                 user: usersMap[review.userId as unknown as string],
+                instructor: usersMap[review.instructorId as unknown as string],
             }));
         } catch (err: unknown) {
             throw err;

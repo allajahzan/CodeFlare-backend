@@ -24,26 +24,30 @@ export class ReviewRepository
      */
     async findReviewsWithLimit(
         userId: string,
-        week: string,
-        limit: number
+        week?: string,
+        limit?: number
     ): Promise<IReviewSchema[] | null> {
         try {
-            return await this.model.aggregate([
+            const pipeline  : any[] = [
                 {
                     $match: {
                         userId: new Types.ObjectId(userId),
-                        ...(week && { week: week }),
+                        ...(week && {week})
                     },
                 },
-                {
+                { 
                     $sort: {
                         createdAt: -1,
                     },
                 },
-                {
-                    $limit: limit,
-                },
-            ]);
+            ];
+
+            if(limit){
+                pipeline.push({$limit: limit});
+            }
+
+            return await this.model.aggregate(pipeline);
+
         } catch (err: unknown) {
             return null;
         }

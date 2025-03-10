@@ -33,10 +33,10 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { batchIds } = req.query;
+            const { userId } = req.query;
 
             const data = await this.reviewService.getScheduledReviews(
-                (batchIds as string).split(",")
+                userId as string
             );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
