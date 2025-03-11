@@ -37,37 +37,6 @@ export const chatSocket = (server: any) => {
                 }
             });
 
-            // Read messages ===========================================================================
-            socket.on("readMessages", async (chatId, senderId, receiverId) => {
-                console.log("readMessages", chatId, senderId, receiverId);
-
-                const receiverSocketId = users.get(receiverId);
-
-                // Chat
-                let chat;
-
-                if (chatId) {
-                    chat = await chatRepository.findOneAndUpdate(
-                        { _id: chatId },
-                        { $set: { count: 0 } },
-                        { new: true }
-                    );
-                }
-
-                // Sender-Receiver chat Info
-                const chatInfo = {
-                    chatId: chat?.id as string,
-                    senderId,
-                    receiverId: receiverId,
-                    count: chat?.count,
-                };
-
-                // Emit chat Info to sender
-                if (receiverSocketId) {
-                    io.to(receiverSocketId).emit("chatInfo", { chatInfo });
-                }
-            });
-
             // when a user types ==========================================================================
             socket.on("userTyping", ({ senderId, receiverId, isTyping }) => {
                 if (users.has(receiverId)) {
@@ -123,7 +92,7 @@ export const chatSocket = (server: any) => {
                         // Update last message
                         chat = await chatRepository.findOneAndUpdate(
                             { _id: chat?._id },
-                            { $set: { lastMessage: message, content }, $inc: { count: 1 } },
+                            { $set: { lastMessage: message, content } },
                             { new: true }
                         );
                     }
@@ -133,7 +102,6 @@ export const chatSocket = (server: any) => {
                         chatId: chat?.id as string,
                         senderId,
                         receiverId,
-                        count: chat?.count,
                     };
 
                     // Emit chat Info to both users
