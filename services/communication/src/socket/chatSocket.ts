@@ -5,8 +5,14 @@ import { MessageRepository } from "../repository/implementation/messageRepositor
 import Message from "../model/messageSchema";
 import { ObjectId } from "mongoose";
 import { getUser } from "../grpc/client/userClient";
+import {
+    getRegisteredUsers,
+    getSocketId,
+    isUserRegistered,
+    registerUser,
+    unRegisterUser,
+} from "../utils/registerUser";
 
-let users = new Map();
 const chatRepository = new ChatRepository(Chat); // Instance of chat repository
 const messageRepository = new MessageRepository(Message); // Instance of message repository
 
@@ -19,28 +25,31 @@ export const chatSocket = (server: any) => {
             },
         });
 
-        io.on("connection", (socket) => {
-            console.log("socket connected", socket.id);
+        io.on("connection", async (socket) => {
+            // From redis
+            const registeredUsers = await getRegisteredUsers();
 
             // When a user registers ======================================================================
-            socket.on("registerUser", (userId) => {
-                users.set(userId, socket.id);
-                console.log(
-                    `User with ID ${userId} registered with socket ID: ${socket.id}`
-                );
+            socket.on("registerUser", async (userId) => {
+                console.log(`Registering user ${userId} with socket ID: ${socket.id}`);
+
+                // Cache in redis
+                await registerUser({ userId, socketId: socket.id });
             });
 
             // Get online user ===========================================================================
             socket.on("userOnline", async (receiverId) => {
-                if (users.has(receiverId)) {
+                let status = await isUserRegistered(receiverId);
+                if (status) {
                     io.emit("userOnline", { receiverId, isOnline: true });
                 }
             });
 
             // when a user types ==========================================================================
-            socket.on("userTyping", ({ senderId, receiverId, isTyping }) => {
-                if (users.has(receiverId)) {
-                    io.to(users.get(receiverId)).emit("userTyping", {
+            socket.on("userTyping", async ({ senderId, receiverId, isTyping }) => {
+                let status = await isUserRegistered(receiverId);
+                if (status) {
+                    io.to((await getSocketId(receiverId)) as string).emit("userTyping", {
                         senderId,
                         receiverId,
                         isTyping,
@@ -52,8 +61,10 @@ export const chatSocket = (server: any) => {
             socket.on(
                 "sendPrivateMessage",
                 async ({ senderId, receiverId, content, message }) => {
-                    const receiverSocketId = users.get(receiverId);
-                    const senderSocketId = users.get(senderId);
+                    const [receiverSocketId, senderSocketId] = await Promise.all([
+                        await getSocketId(receiverId),
+                        await getSocketId(senderId),
+                    ]);
 
                     console.log(receiverSocketId, senderSocketId);
 
@@ -106,8 +117,8 @@ export const chatSocket = (server: any) => {
 
                     // Emit chat Info to both users
                     if (senderSocketId || receiverSocketId) {
-                        io.to(senderSocketId)
-                            .to(receiverSocketId)
+                        io.to(senderSocketId as string)
+                            .to(receiverSocketId as string)
                             .emit("chatInfo", { chatInfo });
                     }
 
@@ -130,16 +141,13 @@ export const chatSocket = (server: any) => {
             });
 
             // when socket disconnects =====================================================================
-            socket.on("disconnect", () => {
-                for (let userId in users) {
-                    if (users.get(userId) === socket.id) {
-                        users.delete(userId);
-                        break;
-                    }
+            socket.on("disconnect", async () => {
+                try {
+                    await unRegisterUser(socket.id);
+                    console.log("Socket disconnected", socket.id);
+                } catch (error) {
+                    console.error("Error handling disconnect:", error);
                 }
-                console.log("socket disconnected", socket.id);
-
-                io.emit("userOnline", [...users.keys()]);
             });
         });
     } catch (err: unknown) {
