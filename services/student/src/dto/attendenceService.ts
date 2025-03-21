@@ -1,15 +1,8 @@
 /** Dto for CheckIn */
-export interface ICheckInDto {
+export interface ICheckInOutDto {
     userId: string;
     date: Date;
-    checkIn: Date;
-    status: string;
-}
-
-/** Dto for CheckOut */
-export interface ICheckOutDto {
-    userId: string;
-    date: Date;
-    checkOut: Date;
+    checkIn?: Date;
+    checkOut?: Date;
     status: string;
 }
