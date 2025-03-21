@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 import { IAttendenceSchema } from "../entities/IAttendence";
 
+/** Implementation of Attendence Schema */
 const attendenceSchema = new Schema<IAttendenceSchema>({
     userId: {
         type: Schema.Types.ObjectId,
