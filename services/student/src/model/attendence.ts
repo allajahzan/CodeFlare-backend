@@ -17,18 +17,15 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     checkIn: {
         type: Date,
         required: false,
-        default: new Date(),
         index: true,
     },
     checkOut: {
         type: Date,
         required: false,
-        default: new Date(),
     },
     status: {
         type: String,
         enum: ["Pending", "Late", "Present", "Absent", "Partial"],
-        required: true,
         default: "Pending",
     },
     isApproved: {

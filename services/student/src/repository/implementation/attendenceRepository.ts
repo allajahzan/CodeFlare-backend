@@ -1,6 +1,6 @@
 import { BaseRepository } from "@codeflare/common";
 import { IAttendenceRepository } from "../interface/IAttendenceRepository";
-import { FilterQuery, Model, QueryOptions, UpdateQuery } from "mongoose";
+import { Model } from "mongoose";
 import { IAttendenceSchema } from "../../entities/IAttendence";
 
 /** Implementation of Attendence Repository */
