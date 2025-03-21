@@ -515,7 +515,8 @@ export class UserService implements IUserService {
 
             const updatedUser = await this.userRepository.update(
                 { _id },
-                { $set: user }
+                { $set: user },
+                { new: true }
             );
 
             if (!updatedUser) throw new Error("Failed to update the user!");
