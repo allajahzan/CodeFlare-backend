@@ -1,0 +1,23 @@
+{
+  "name": "student",
+  "version": "1.0.0",
+  "description": "student service",
+  "main": "server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/server.ts",
+    "dev": "nodemon src/server.ts"
+  },
+  "author": "allaj",
+  "license": "ISC",
+  "dependencies": {
+    "@codeflare/common": "^1.0.38",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}

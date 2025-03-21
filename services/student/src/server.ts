@@ -5,7 +5,7 @@ dotenv.config();
 import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
-import { startGrpcServer } from "./grpc/grpcServer";
+// import { startGrpcServer } from "./grpc/grpc.server";
 
 // server
 const startServer = async () => {
@@ -21,11 +21,11 @@ const startServer = async () => {
         connectRedis();
 
         // start grpc server
-        startGrpcServer()
+        // startGrpcServer()
 
         //listen to port
         app.listen(process.env.PORT, () =>
-            console.log("User service running on port 3000")
+            console.log("User service running on port 3003")
         );
     } catch (err: any) {
         console.log(err.message);
