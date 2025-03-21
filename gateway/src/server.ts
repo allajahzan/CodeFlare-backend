@@ -30,6 +30,7 @@ const services = {
     auth: "http://localhost:3000/",
     admin: "http://localhost:3001/",
     instructor: "http://localhost:3002",
+    student: "http://localhost:3003",
     communication: "http://localhost:5000/",
 };
 
@@ -56,6 +57,11 @@ app.use(
     createProxyMiddleware({ target: services.instructor, changeOrigin: true })
 );
 
+// Student service
+app.use(
+    "/api/student",
+    createProxyMiddleware({ target: services.student, changeOrigin: true })
+);
 
 // Communication service
 app.use(
