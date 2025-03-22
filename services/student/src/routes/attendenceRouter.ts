@@ -12,7 +12,7 @@ const attendenceService = new AttendenceService(attendenceRepository);
 const attendenceController = new AttendenceController(attendenceService);
 
 // CheckInOut
-router.patch("/checkInOut", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.checkInOut(req, res, next)
 );
 

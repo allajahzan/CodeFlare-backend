@@ -25,7 +25,7 @@ const startServer = async () => {
 
         //listen to port
         app.listen(process.env.PORT, () =>
-            console.log("User service running on port 3003")
+            console.log("Student service running on port 3003")
         );
     } catch (err: any) {
         console.log(err.message);

@@ -29,8 +29,8 @@ app.use(
 const services = {
     auth: "http://localhost:3000/",
     admin: "http://localhost:3001/",
-    instructor: "http://localhost:3002",
-    student: "http://localhost:3003",
+    instructor: "http://localhost:3002/",
+    student: "http://localhost:3003/",
     communication: "http://localhost:5000/",
 };
 
