@@ -12,6 +12,7 @@ export interface ISelfie {
 /** Interface for Attendence Schema */
 export interface IAttendenceSchema extends Document {
     userId: Schema.Types.ObjectId;
+    batchId: Schema.Types.ObjectId,
     date: Date;
     checkIn: Date;
     checkOut: Date;

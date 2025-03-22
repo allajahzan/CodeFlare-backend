@@ -7,6 +7,14 @@ service UserService {
    rpc getUsers (getUsersRequest) returns (getUsersResponse);
 }
 
+message UserInfo { // User Structure 
+  string _id = 1;
+  string name = 2;
+  string email = 3;
+  string role = 4;
+  string profilePic = 5;
+}
+
 // For a single UserInfo =========================================
 
 message getUserRequest {
@@ -25,14 +33,6 @@ message getUserResponse {
 
 message getUsersRequest {
     repeated string userIds = 1;
-}
-
-message UserInfo {
-  string _id = 1;
-  string name = 2;
-  string email = 3;
-  string role = 4;
-  string profilePic = 5;
 }
 
 message getUsersResponse {

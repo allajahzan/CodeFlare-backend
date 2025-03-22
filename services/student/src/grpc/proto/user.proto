@@ -1,0 +1,34 @@
+syntax = 'proto3';
+
+package user;
+
+service UserService {
+   rpc getStudentsIds (getStudentsIdRequest) returns (getStudentIdResponse);
+}
+
+message StudentInfo { // Student structure
+    string _id = 1;
+    string name = 2;
+    string email = 3;
+    string role = 4;
+    string profilePic = 5;
+    string batch = 6;
+}
+
+message SResponse { // Students Response structure 
+    int32 status = 1;
+    string message = 2;
+    repeated StudentInfo students = 3; 
+}
+
+// =======================================================================
+
+// For to get students ids of perticaular batches ========================
+
+message getStudentsIdRequest {
+    repeated string batchIds = 1;
+}
+
+message getStudentIdResponse {
+    SResponse response = 1;
+}

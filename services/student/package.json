@@ -12,13 +12,16 @@
   "license": "ISC",
   "dependencies": {
     "@codeflare/common": "^1.0.38",
+    "@grpc/grpc-js": "^1.13.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.12.1"
+    "mongoose": "^8.12.1",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/mongoose": "^5.11.96",
+    "@types/node-cron": "^3.0.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   }

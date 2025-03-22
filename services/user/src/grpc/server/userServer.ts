@@ -82,7 +82,7 @@ export const getUsers = async (call: any, callback: any) => {
 export const updateUser = async (call: any, callback: any) => {
     try {
         const { _id, data } = call.request;
-        
+
         const user = await userRepository.findOne({ _id });
 
         if (!user) {
@@ -106,6 +106,52 @@ export const updateUser = async (call: any, callback: any) => {
         callback(null, {
             response: { status: 200, message: "User updated", data: updatedUser },
         });
+    } catch (err) {
+        console.log(err);
+        callback(null, {
+            status: 500,
+            message: "Internal Server Error",
+            data: null,
+        });
+    }
+};
+
+/**
+ * Retrieves all students' ids.
+ * @param {Object} call - gRPC call object with request data.
+ * @param {function} callback - Callback function with response data.
+ * @returns {Object} response - Response object with status and message.
+ */
+export const getStudentsIds = async (call: any, callback: any) => {
+    try {
+        const { batchIds } = call.request;
+
+        if (batchIds) {
+            console.log("und und und ", batchIds);
+        } else {
+            const data = await userRepository.find({ role: "student" });
+
+            // Map data to return type
+            const students: {
+                _id: string;
+                name: string;
+                email: string;
+                role: string;
+                profilePic: string;
+                batch: string;
+            }[] = data.map((student) => ({
+                _id: student._id as unknown as string,
+                name: student.name,
+                email: student.email,
+                role: student.role,
+                profilePic: student.profilePic || "",
+                batch: student.batch as unknown as string,
+            }));
+
+            callback(null, {
+                response: { status: 200, message: "User updated", students },
+            });
+        }
     } catch (err) {
         console.log(err);
         callback(null, {

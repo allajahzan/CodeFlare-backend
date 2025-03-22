@@ -8,20 +8,23 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
         required: true,
         index: true,
     },
+    batchId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        index: true,
+    },
     date: {
         type: Date,
-        required: true,
         default: new Date(),
         index: 1,
     },
     checkIn: {
         type: Date,
-        required: false,
-        index: true,
+        default: null
     },
     checkOut: {
         type: Date,
-        required: false,
+        default: null
     },
     status: {
         type: String,
@@ -31,6 +34,7 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     isApproved: {
         type: Boolean,
         required: false,
+        default: false
     },
     isPartial: {
         type: Boolean,
@@ -38,39 +42,45 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
         default: false,
     },
     reason: {
-        time: {
-            type: Date,
-            required: false,
-        },
-        description: {
-            type: String,
-            required: false,
-        },
-    },
-    selfies: [
-        {
-            name: {
-                type: String,
-                required: true,
-            },
+        type: {
             time: {
                 type: Date,
                 required: false,
             },
-            photo: {
+            description: {
                 type: String,
                 required: false,
-            },
-            location: {
-                type: String,
-                required: false,
-            },
-            isVerified: {
-                type: Boolean,
-                default: false,
             },
         },
-    ],
+        default: {}
+    },
+    selfies: {
+        type : [
+            {
+                name: {
+                    type: String,
+                    required: false,
+                },
+                time: {
+                    type: Date,
+                    required: false,
+                },
+                photo: {
+                    type: String,
+                    required: false,
+                },
+                location: {
+                    type: String,
+                    required: false,
+                },
+                isVerified: {
+                    type: Boolean,
+                    default: false,
+                },
+            },
+        ],
+        default: []
+    },
 });
 
 const Attendence = model("Attendence", attendenceSchema);
