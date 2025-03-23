@@ -3,12 +3,12 @@ import { getStudentsIds } from "../grpc/client/userClient";
 import { AttendenceRepository } from "../repository/implementation/attendenceRepository";
 import Attendence from "../model/attendence";
 import { IAttendenceSchema } from "../entities/IAttendence";
-import { ObjectId, Schema } from "mongoose";
+import { ObjectId } from "mongoose";
 
 const attendenceRepository = new AttendenceRepository(Attendence);
 
 // Prepate attendence for all students of all batches on 7AM everyday
-cron.schedule("7 12 * * *", async () => {
+cron.schedule("50 12 * * *", async () => {
     try {
         const resp = await getStudentsIds();
 

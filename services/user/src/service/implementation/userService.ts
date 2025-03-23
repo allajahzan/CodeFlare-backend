@@ -24,12 +24,14 @@ import { sendInvitation } from "../../utils/sendInvitation";
 import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
-import { ObjectId } from "mongoose";
+import qrcode from "qrcode";
 import {
     getCachedBatch,
     getCachedBatches,
     getUsersWithBatchDetails,
 } from "../../utils/cachedBatch";
+import { generateQRcode } from "../../utils/generateQRcode";
+import User from "../../model/userSchema";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -348,6 +350,7 @@ export class UserService implements IUserService {
                 ...(user.batches ? { batches: batches } : {}),
                 ...(user.week ? { week: user.week } : {}),
                 createdAt: user.createdAt,
+                qrCode: user.qrCode,
             };
 
             return userDto;
@@ -455,6 +458,18 @@ export class UserService implements IUserService {
             const newUser = await this.userRepository.create(user);
 
             if (!newUser) throw new Error("Failed to add the user!");
+
+            if (user.role === "student") { // Generate a qr code for students
+                const qrCodeImage = await generateQRcode(
+                    newUser._id as unknown as string
+                );
+
+                // Save qrcode to db
+                await this.userRepository.update(
+                    { _id: newUser._id },
+                    { $set: { qrCode: qrCodeImage } }
+                );
+            }
 
             const payload = { _id: newUser._id as string, role: newUser.role }; // Generate JWT token to send with email
 

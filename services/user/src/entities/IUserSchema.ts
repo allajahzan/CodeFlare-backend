@@ -18,4 +18,5 @@ export interface IUserSchema extends Document {
     isblock: boolean;
     isTokenValid: boolean;
     createdAt: Date;
+    qrCode: string;
 }
