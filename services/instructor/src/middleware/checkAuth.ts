@@ -1,4 +1,8 @@
-import { JwtPayloadType, NotFoundError, UnauthorizedError } from "@codeflare/common";
+import {
+    JwtPayloadType,
+    NotFoundError,
+    UnauthorizedError,
+} from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
 import { getUser } from "../grpc/client/userClient";
 
@@ -18,16 +22,29 @@ export const checkAuth = async (
 ) => {
     try {
         const userPayload = req.headers["x-user-payload"]; // payload from request header
-        if (!userPayload) throw new UnauthorizedError("Authentication failed. Please login again!");
+        if (!userPayload)
+            throw new UnauthorizedError("Authentication failed. Please login again!");
 
-        const payload = JSON.parse(userPayload as string) as JwtPayloadType
-        if (!payload) throw new UnauthorizedError("Invalid authentication data. Please login again!");
+        const payload = JSON.parse(userPayload as string) as JwtPayloadType;
+        if (!payload)
+            throw new UnauthorizedError(
+                "Invalid authentication data. Please login again!"
+            );
 
-        const user = await getUser(payload._id) as any
-        if(!user) throw new NotFoundError("Account not found. Please contact support !")
+        // Fetch user info through gRPC
+        let user;
+        const resp = await getUser(payload._id);
+
+        if (resp && resp.response.status === 200) {
+            user = resp.response.user;
+        } else {
+            throw new Error("No user found!");
+        }
 
         if (user.role !== payload.role)
-            throw new UnauthorizedError("You do not have permission to access this resource!");
+            throw new UnauthorizedError(
+                "You do not have permission to access this resource!"
+            );
 
         next();
     } catch (err) {
