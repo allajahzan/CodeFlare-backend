@@ -1,7 +1,8 @@
 import { BaseRepository } from "@codeflare/common";
 import { IAttendenceRepository } from "../interface/IAttendenceRepository";
-import { Model, Types } from "mongoose";
+import { Model, Types, UpdateWriteOpResult } from "mongoose";
 import { IAttendenceSchema } from "../../entities/IAttendence";
+import { FilterQuery, UpdateQuery, QueryOptions } from "mongoose";
 
 /** Implementation of Attendence Repository */
 export class AttendenceRepository
@@ -32,7 +33,24 @@ export class AttendenceRepository
                 doc.toObject()
             ) as IAttendenceSchema[];
         } catch (err: unknown) {
-            console.error("Error inserting attendances:", err);
+            return null;
+        }
+    }
+
+    /**
+     * Updates multiple attendances in the database
+     * @param {FilterQuery<IAttendenceSchema>} filter - Filter for the records to update
+     * @param {UpdateQuery<IAttendenceSchema>} update - Updates to apply to the records
+     * @returns {Promise<UpdateWriteOpResult | null>} - The result of the update operation if successful, null otherwise
+     */
+    async updateMany(
+        filter: FilterQuery<IAttendenceSchema>,
+        update: UpdateQuery<IAttendenceSchema>
+    ): Promise<UpdateWriteOpResult | null> {
+        try {
+            const attendence = await this.model.updateMany(filter, update);
+            return attendence;
+        } catch (err: unknown) {
             return null;
         }
     }

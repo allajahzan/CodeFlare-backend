@@ -7,8 +7,8 @@ import { ObjectId } from "mongoose";
 
 const attendenceRepository = new AttendenceRepository(Attendence);
 
-// Prepate attendence for all students of all batches on 7AM everyday
-cron.schedule("7 6 * * *", async () => {
+// Prepare attendence for all students of all batches on 7AM everyday
+cron.schedule("* 7 * * *", async () => {
     try {
         const resp = await getStudentsIds();
 
@@ -31,6 +31,31 @@ cron.schedule("7 6 * * *", async () => {
 
             await attendenceRepository.insertMany(data);
         }
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// Mark attendence for all students of all batches on 10 PM everyday
+cron.schedule("* 22 * * *", async () => {
+    try {
+        // Checkout students who checkedIn but didn't checkOut
+        await attendenceRepository.updateMany(
+            { checkIn: { $ne: null }, status: "Pending", checkOut: null },
+            { $set: { checkOut: "22:00" } }
+        );
+
+        // Mark present for students who check in and status is pending
+        await attendenceRepository.updateMany(
+            { checkIn: { $ne: null }, status: "Pending" },
+            { $set: { status: "Present" } }
+        );
+
+        // Mark absent for student who didn't check in
+        await attendenceRepository.updateMany(
+            { checkIn: null },
+            { $set: { status: "Absent" } }
+        );
     } catch (err) {
         console.log(err);
     }
