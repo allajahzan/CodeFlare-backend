@@ -1,6 +1,6 @@
 import { BaseRepository } from "@codeflare/common";
 import { IAttendenceRepository } from "../interface/IAttendenceRepository";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { IAttendenceSchema } from "../../entities/IAttendence";
 
 /** Implementation of Attendence Repository */
@@ -33,6 +33,47 @@ export class AttendenceRepository
             ) as IAttendenceSchema[];
         } catch (err: unknown) {
             console.error("Error inserting attendances:", err);
+            return null;
+        }
+    }
+
+    /**
+     * Searches for attendance records for a student based on user ID, batch IDs, and date.
+     * @param {string} userId - The ID of the user to search for attendence records
+     * @param {string[]} batchIds - The IDs of the batches to search for attendence records
+     * @param {string} date - The date to search for attendence records
+     * @returns {Promise<IAttendenceSchema[] | null>} - The attendance records if found, null otherwise
+     * @throws - Passes any errors to the caller
+     */
+    async searchAttendence(
+        userId: string,
+        batchIds: string[],
+        date: string
+    ): Promise<IAttendenceSchema[] | null> {
+        try {
+            const attendence = await this.model.aggregate([
+                {
+                    $match: {
+                        ...(batchIds.length && {
+                            batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
+                        }),
+                        ...(userId && { userId: new Types.ObjectId(userId) }),
+                        ...(date
+                            ? {
+                                $expr: {
+                                    $eq: [
+                                        { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                                        new Date(date).toISOString().split("T")[0],
+                                    ],
+                                },
+                            }
+                            : {}),
+                    },
+                },
+            ]);
+
+            return attendence.length ? attendence : null;
+        } catch (err: unknown) {
             return null;
         }
     }

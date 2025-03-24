@@ -1,5 +1,4 @@
 import { IChatDto, IUser } from "../../dto/chatServiceDto";
-import { IChatSchema } from "../../entities/IChatSchema";
 import { getUsers } from "../../grpc/client/userClient";
 import { IChatRepository } from "../../repository/interface/IChatRepository";
 import { IChatService } from "../interface/IChatService";

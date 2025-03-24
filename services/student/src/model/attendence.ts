@@ -19,11 +19,11 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
         index: 1,
     },
     checkIn: {
-        type: Date,
+        type: String,
         default: null
     },
     checkOut: {
-        type: Date,
+        type: String,
         default: null
     },
     status: {
@@ -44,7 +44,7 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     reason: {
         type: {
             time: {
-                type: Date,
+                type: String,
                 required: false,
             },
             description: {
@@ -62,7 +62,7 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
                     required: false,
                 },
                 time: {
-                    type: Date,
+                    type: String,
                     required: false,
                 },
                 photo: {

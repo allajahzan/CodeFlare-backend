@@ -44,4 +44,58 @@ export class AttendenceController implements IAttendenceController {
             next(err);
         }
     }
+
+    /**
+     * Retrieves attendance records for a student based on user ID and optional batch IDs.
+     * @param {Request} req - The express request object containing user ID and batch IDs in the query parameters.
+     * @param {Response} res - The express response object used to send the attendance data back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the attendance data is successfully retrieved and sent, or passes an error to the next middleware.
+     */
+    async getAttendence(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { userId, batchIds } = req.query;
+
+            const data = await this.attedenceService.getAttendence(
+                userId as string,
+                (batchIds as string).split(",")
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Searches for attendance records for a student based on user ID, batch IDs, and date.
+     * @param {Request} req - The express request object containing user ID, batch IDs, and date in the query parameters.
+     * @param {Response} res - The express response object used to send the attendance data back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the attendance data is successfully retrieved and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async searchAttendece(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { batchIds, userId, date } = req.query;
+
+            const data = await this.attedenceService.searchAttendece(
+                userId as string,
+                (batchIds as string).split(","),
+                date as string
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }

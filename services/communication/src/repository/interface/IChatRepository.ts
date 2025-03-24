@@ -1,6 +1,6 @@
 import { IBaseRepository } from "@codeflare/common";
-import { IChatSchema } from "../../entities/IChatSchema";
-import { FilterQuery, ObjectId, QueryOptions, UpdateQuery } from "mongoose";
+import { FilterQuery, QueryOptions, UpdateQuery } from "mongoose";
+import { IChatSchema } from "../../entities/IchatSchema";
 
 /** Interface for Chat Repository */
 export interface IChatRepository extends IBaseRepository<IChatSchema> {

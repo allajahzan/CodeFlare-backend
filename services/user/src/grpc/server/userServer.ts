@@ -17,7 +17,13 @@ export const getUser = async (call: any, callback: any) => {
         const user = await userRepository.findOne({ _id }); // Find user by _id
 
         if (!user) {
-            return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
+            return callback(null, {
+                response: {
+                    status: 404,
+                    message: "No user found!",
+                    user: null,
+                },
+            });
         }
 
         // Map user data to response type
@@ -27,12 +33,25 @@ export const getUser = async (call: any, callback: any) => {
             email: user.email,
             role: user.role,
             profilePic: user.profilePic || "",
+            batch: user.batch,
         };
 
-        callback(null, formattedUser); // Success respnose
+        callback(null, {
+            response: {
+                status: 200,
+                message: "Successfully fetched user info",
+                user: formattedUser,
+            },
+        });
     } catch (err) {
         console.log(err);
-        callback({ status: status.INTERNAL, msg: "Internal Server Error" }, null);
+        callback(null, {
+            response: {
+                status: 500,
+                message: "Internal server error",
+                user: null,
+            },
+        });
     }
 };
 
@@ -51,7 +70,13 @@ export const getUsers = async (call: any, callback: any) => {
         }); // Find users with ids
 
         if (!users.length) {
-            return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
+            return callback(null, {
+                response: {
+                    status: 404,
+                    message: "No users found!",
+                    users: null,
+                },
+            });
         }
 
         // Map user data to response type
@@ -63,13 +88,26 @@ export const getUsers = async (call: any, callback: any) => {
                 email: user.email,
                 role: user.role,
                 profilePic: user.profilePic,
+                batch: user.batch,
             };
         });
 
-        callback(null, { users: usersMap }); // Success respnose
+        callback(null, {
+            response: {
+                status: 200,
+                message: "Successfully fetched users info",
+                users: usersMap,
+            },
+        });
     } catch (err) {
         console.log(err);
-        callback({ status: status.INTERNAL, msg: "Internal Server Error" }, null);
+        callback(null, {
+            response: {
+                status: 500,
+                message: "Internal server error",
+                users: null,
+            },
+        });
     }
 };
 
@@ -109,9 +147,11 @@ export const updateUser = async (call: any, callback: any) => {
     } catch (err) {
         console.log(err);
         callback(null, {
-            status: 500,
-            message: "Internal Server Error",
-            data: null,
+            response: {
+                status: 500,
+                message: "Internal server error",
+                data: null,
+            },
         });
     }
 };

@@ -2,7 +2,7 @@
 export interface ICheckInOutDto {
     userId: string;
     date: Date;
-    checkIn?: Date;
-    checkOut?: Date;
+    checkIn?: string;
+    checkOut?: string;
     status: string;
 }

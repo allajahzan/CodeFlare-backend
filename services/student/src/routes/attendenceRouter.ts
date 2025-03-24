@@ -11,6 +11,16 @@ const attendenceRepository = new AttendenceRepository(Attendence);
 const attendenceService = new AttendenceService(attendenceRepository);
 const attendenceController = new AttendenceController(attendenceService);
 
+// Get Attendences
+router.get("/", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.getAttendence(req, res, next)
+);
+
+// Searrch Attendences
+router.get("/search", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.searchAttendece(req, res, next)
+);
+
 // CheckInOut
 router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.checkInOut(req, res, next)

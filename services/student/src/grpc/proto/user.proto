@@ -3,7 +3,18 @@ syntax = 'proto3';
 package user;
 
 service UserService {
+   rpc getUser (getUserRequest) returns (getUserResponse);
+   rpc getUsers (getUsersRequest) returns (getUsersResponse);
    rpc getStudentsIds (getStudentsIdRequest) returns (getStudentIdResponse);
+}
+
+message UserInfo { // User structure
+  string _id = 1;
+  string name = 2;
+  string email = 3;
+  string role = 4;
+  string profilePic = 5;
+  string batch = 6;
 }
 
 message StudentInfo { // Student structure
@@ -15,6 +26,18 @@ message StudentInfo { // Student structure
     string batch = 6;
 }
 
+message Response {  // Single User Response structure
+    int32 status = 1;
+    string message = 2;
+    UserInfo user = 3;
+}
+
+message BResponse { // Bunch of users Response structure 
+    int32 status = 1;
+    string message = 2;
+    map<string, UserInfo> users = 3;
+}
+
 message SResponse { // Students Response structure 
     int32 status = 1;
     string message = 2;
@@ -22,6 +45,26 @@ message SResponse { // Students Response structure
 }
 
 // =======================================================================
+
+// For a single UserInfo =================================================
+
+message getUserRequest {
+    string _id = 1;
+}
+
+message getUserResponse {
+    Response response = 1;
+}
+
+// For a bunch of UsersInfo ==============================================
+
+message getUsersRequest {
+    repeated string userIds = 1;
+}
+
+message getUsersResponse {
+    BResponse response = 1;
+}
 
 // For to get students ids of perticaular batches ========================
 
