@@ -7,13 +7,28 @@ service UserService {
    rpc getUsers (getUsersRequest) returns (getUsersResponse);
 }
 
-message UserInfo { // User Structure 
+message UserInfo { // User structure
   string _id = 1;
   string name = 2;
   string email = 3;
   string role = 4;
   string profilePic = 5;
+  string batch = 6;
 }
+
+message Response {  // Single User Response structure
+    int32 status = 1;
+    string message = 2;
+    UserInfo user = 3;
+}
+
+message BResponse { // Bunch of users Response structure 
+    int32 status = 1;
+    string message = 2;
+    map<string, UserInfo> users = 3;
+}
+
+// ===============================================================
 
 // For a single UserInfo =========================================
 
@@ -22,19 +37,15 @@ message getUserRequest {
 }
 
 message getUserResponse {
-    string _id = 1;
-    string name = 2;
-    string email = 3;
-    string role = 4;
-    string profilePic = 5;
+    Response response = 1;
 }
 
-// For a bunch of UsersInfo ======================================
+// For a bunch of UsersInfo =======================================
 
 message getUsersRequest {
     repeated string userIds = 1;
 }
 
 message getUsersResponse {
-  map<string, UserInfo> users = 1; 
+    BResponse response = 1;
 }

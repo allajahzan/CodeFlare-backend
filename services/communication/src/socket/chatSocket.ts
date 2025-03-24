@@ -31,7 +31,7 @@ export const chatSocket = (server: any) => {
 
             // When a user registers ======================================================================
             socket.on("registerUser", async (userId) => {
-                console.log(`Registering user ${userId} with socket ID: ${socket.id}`);
+                // console.log(`Registering user ${userId} with socket ID: ${socket.id}`);
 
                 // Cache in redis
                 await registerUser({ userId, socketId: socket.id });
@@ -66,9 +66,9 @@ export const chatSocket = (server: any) => {
                         await getSocketId(senderId),
                     ]);
 
-                    console.log(receiverSocketId, senderSocketId);
+                    // console.log(receiverSocketId, senderSocketId);
 
-                    console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
+                    // console.log(`Message from ${senderId} to ${receiverId}: ${message}`);
 
                     // Find chat
                     let chatPromise = chatRepository.findOne({
@@ -76,10 +76,17 @@ export const chatSocket = (server: any) => {
                     });
 
                     // Get sender and receiver details from user service with gRPC and also chat
-                    let [sender, chat] = await Promise.all([
+                    let sender;
+                    let [resp, chat] = await Promise.all([
                         getUser(senderId),
                         chatPromise,
                     ]);
+
+                    if (resp && resp.response.status === 200) {
+                        sender = resp.response.user;
+                    } else {
+                        throw new Error("Failed to send message due to some issue!");
+                    }
 
                     // Send message back to receiver
                     if (receiverSocketId) {
@@ -144,9 +151,9 @@ export const chatSocket = (server: any) => {
             socket.on("disconnect", async () => {
                 try {
                     await unRegisterUser(socket.id);
-                    console.log("Socket disconnected", socket.id);
+                    // console.log("Socket disconnected", socket.id);
                 } catch (error) {
-                    console.error("Error handling disconnect:", error);
+                    console.log(error);
                 }
             });
         });
