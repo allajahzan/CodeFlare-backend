@@ -26,7 +26,11 @@ export class AttendenceService implements IAttendenceService {
      * @returns {Promise<ICheckInOutDto>} - The updated attendence document
      * @throws {BadRequestError} - If update fails
      */
-    async checkInOut(userId: string, activity: string): Promise<ICheckInOutDto> {
+    async checkInOut(
+        userId: string,
+        activity: string,
+        time: string
+    ): Promise<ICheckInOutDto> {
         try {
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
@@ -39,8 +43,6 @@ export class AttendenceService implements IAttendenceService {
                 userId,
                 date: { $gte: startOfDay, $lte: endOfDay },
             });
-
-            console.log(isAttendenceExist);
 
             // No such attendence registered by cronjob
             if (!isAttendenceExist) {
@@ -67,11 +69,11 @@ export class AttendenceService implements IAttendenceService {
                     throw new BadRequestError("You didn't even check-in to check-out!");
                 }
 
-                const currentHour = new Date().getMinutes();
-                const checkedInHour = new Date(isAttendenceExist.checkIn).getMinutes();
-                if (currentHour - checkedInHour < 30) {
+                const currentHour = new Date().getHours();
+                const checkedInHour = Number(isAttendenceExist.checkIn.split(":")[0]);
+                if (currentHour - checkedInHour < 8) {
                     throw new BadRequestError(
-                        "You can't check out now, you have to sit maximum of 30 Minutes!"
+                        "You are not permitted to check-out right now!"
                     );
                 }
             }
@@ -80,10 +82,7 @@ export class AttendenceService implements IAttendenceService {
             const attendence = await this.attendenceRepository.update(
                 { userId },
                 {
-                    $set:
-                        activity === "checkIn"
-                            ? { checkIn: new Date() }
-                            : { checkOut: new Date() },
+                    $set: activity === "checkIn" ? { checkIn: time } : { checkOut: time },
                 },
                 { new: true }
             );

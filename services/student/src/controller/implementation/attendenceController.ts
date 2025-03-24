@@ -34,10 +34,12 @@ export class AttendenceController implements IAttendenceController {
     ): Promise<void> {
         try {
             const { userId, activity } = req.query;
+            const { time } = req.body
 
             const data = await this.attedenceService.checkInOut(
                 userId as string,
-                activity as string
+                activity as string,
+                time
             );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
