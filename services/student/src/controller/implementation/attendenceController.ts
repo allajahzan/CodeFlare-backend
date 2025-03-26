@@ -34,12 +34,13 @@ export class AttendenceController implements IAttendenceController {
     ): Promise<void> {
         try {
             const { userId, activity } = req.query;
-            const { time } = req.body
+            const { time, reason } = req.body;
 
             const data = await this.attedenceService.checkInOut(
                 userId as string,
                 activity as string,
-                time
+                time,
+                reason
             );
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
@@ -60,12 +61,9 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { userId, batchIds } = req.query;
+            const { userId } = req.query;
 
-            const data = await this.attedenceService.getAttendence(
-                userId as string,
-                (batchIds as string).split(",")
-            );
+            const data = await this.attedenceService.getAttendence(userId as string);
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
@@ -81,7 +79,7 @@ export class AttendenceController implements IAttendenceController {
      * @returns {Promise<void>} - A promise that resolves when the attendance data is successfully retrieved and sent, or passes an error to the next middleware.
      * @throws - Passes any errors to the next middleware.
      */
-    async searchAttendece(
+    async searchAttendence(
         req: Request,
         res: Response,
         next: NextFunction
@@ -89,7 +87,7 @@ export class AttendenceController implements IAttendenceController {
         try {
             const { batchIds, userId, date } = req.query;
 
-            const data = await this.attedenceService.searchAttendece(
+            const data = await this.attedenceService.searchAttendence(
                 userId as string,
                 (batchIds as string).split(","),
                 date as string

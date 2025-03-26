@@ -11,14 +11,14 @@ const attendenceRepository = new AttendenceRepository(Attendence);
 const attendenceService = new AttendenceService(attendenceRepository);
 const attendenceController = new AttendenceController(attendenceService);
 
-// Get Attendences
+// Get Attendence
 router.get("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.getAttendence(req, res, next)
 );
 
 // Searrch Attendences
 router.get("/search", (req: Request, res: Response, next: NextFunction) =>
-    attendenceController.searchAttendece(req, res, next)
+    attendenceController.searchAttendence(req, res, next)
 );
 
 // CheckInOut
