@@ -13,18 +13,18 @@ services/user/node_modules
 services/admin/.env
 services/admin/node_modules
 
-# Notification service
-services/notification/.env
-services/notification/node_modules
+# Instrctor serrvice
+services/instructor/.env
+services/instructor/node_modules
 
-# Coordinator service
-services/coordinator/.env
-services/coordinator/node_modules
+# Student serrvice
+services/student/.env
+services/student/node_modules
 
 # Communication serrvice
 services/communication/.env
 services/communication/node_modules
 
-# Instrctor serrvice
-services/instructor/.env
-services/instructor/node_modules
+# Notification service
+services/notification/.env
+services/notification/node_modules

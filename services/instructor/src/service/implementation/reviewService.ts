@@ -33,8 +33,7 @@ export class ReviewService implements IReviewService {
         try {
             const reviews = await this.reviewRepository.findReviewsWithLimit(userId);
 
-            if (!reviews || !reviews.length)
-                throw new NotFoundError("Reviews not found");
+            if (!reviews || !reviews.length) return [];
 
             const userIds = []; // UserIds
 
@@ -48,7 +47,23 @@ export class ReviewService implements IReviewService {
             }
 
             // Users info through gRPC
-            const usersMap = (await getUsers([...new Set(userIds)])) as any;
+            let usersMap: Record<
+                string,
+                {
+                    _id: string;
+                    name: string;
+                    email: string;
+                    role: string;
+                    profilePic: string;
+                    batch: string;
+                }
+            >;
+
+            const resp = await getUsers([...new Set(userIds)]);
+
+            if (resp && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            }
 
             // Reviews detils with user info
             return reviews.map((review) => ({
@@ -101,17 +116,32 @@ export class ReviewService implements IReviewService {
                             : "Review already completed by another instructor !"
                 );
 
+            // User and instrucor details through gRPC
+            let user;
+            let instructor;
+
+            const resp1 = await getUser(data.userId as unknown as string);
+            const resp2 = await getUser(instructorId as unknown as string);
+
+            if (
+                resp1 &&
+                resp2 &&
+                resp1.response.status === 200 &&
+                resp2.response.status === 200
+            ) {
+                user = resp1.response.user;
+                instructor = resp2.response.user;
+            } else {
+                throw new Error("Failed to schedule review!");
+            }
+
             // Schedule review
             const review = await this.reviewRepository.create({
                 ...data,
                 instructorId,
             });
 
-            if (!review) throw new Error("Failed to schedule review !");
-
-            // User and instrucor details through gRPC
-            const user = await getUser(data.userId as unknown as string);
-            const instructor = await getUser(instructorId as unknown as string);
+            if (!review) throw new Error("Failed to schedule review!");
 
             // Map data to reutrn type
             const reviewDto: Partial<IReviewDto> = {
@@ -178,8 +208,23 @@ export class ReviewService implements IReviewService {
             }
 
             // User info through gRPC
-            const user = await getUser(review.userId as unknown as string);
-            const instructor = await getUser(instructorId as unknown as string);
+            let user;
+            let instructor;
+
+            const resp1 = await getUser(review.userId as unknown as string);
+            const resp2 = await getUser(instructorId as unknown as string);
+
+            if (
+                resp1 &&
+                resp2 &&
+                resp1.response.status === 200 &&
+                resp2.response.status === 200
+            ) {
+                user = resp1.response.user;
+                instructor = resp2.response.user;
+            } else {
+                throw new Error("Failed to update review!");
+            }
 
             // Update review
             const updatedReview = await this.reviewRepository.update(
@@ -428,7 +473,23 @@ export class ReviewService implements IReviewService {
             }
 
             // Users info through gRPC
-            const usersMap = (await getUsers([...new Set(userIds)])) as any;
+            let usersMap: Record<
+                string,
+                {
+                    _id: string;
+                    name: string;
+                    email: string;
+                    role: string;
+                    profilePic: string;
+                    batch: string;
+                }
+            >;
+
+            const resp = await getUsers([...new Set(userIds)]);
+
+            if (resp && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            }
 
             // Reviews detils with user info
             return reviews.map((review) => ({

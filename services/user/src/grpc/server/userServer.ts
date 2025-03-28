@@ -17,7 +17,13 @@ export const getUser = async (call: any, callback: any) => {
         const user = await userRepository.findOne({ _id }); // Find user by _id
 
         if (!user) {
-            return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
+            return callback(null, {
+                response: {
+                    status: 404,
+                    message: "No user found!",
+                    user: null,
+                },
+            });
         }
 
         // Map user data to response type
@@ -27,12 +33,25 @@ export const getUser = async (call: any, callback: any) => {
             email: user.email,
             role: user.role,
             profilePic: user.profilePic || "",
+            batch: user.batch,
         };
 
-        callback(null, formattedUser); // Success respnose
+        callback(null, {
+            response: {
+                status: 200,
+                message: "Successfully fetched user info",
+                user: formattedUser,
+            },
+        });
     } catch (err) {
         console.log(err);
-        callback({ status: status.INTERNAL, msg: "Internal Server Error" }, null);
+        callback(null, {
+            response: {
+                status: 500,
+                message: "Internal server error",
+                user: null,
+            },
+        });
     }
 };
 
@@ -51,7 +70,13 @@ export const getUsers = async (call: any, callback: any) => {
         }); // Find users with ids
 
         if (!users.length) {
-            return callback({ code: status.NOT_FOUND, msg: "User not found" }, null); // Error response
+            return callback(null, {
+                response: {
+                    status: 404,
+                    message: "No users found!",
+                    users: null,
+                },
+            });
         }
 
         // Map user data to response type
@@ -63,13 +88,26 @@ export const getUsers = async (call: any, callback: any) => {
                 email: user.email,
                 role: user.role,
                 profilePic: user.profilePic,
+                batch: user.batch,
             };
         });
 
-        callback(null, { users: usersMap }); // Success respnose
+        callback(null, {
+            response: {
+                status: 200,
+                message: "Successfully fetched users info",
+                users: usersMap,
+            },
+        });
     } catch (err) {
         console.log(err);
-        callback({ status: status.INTERNAL, msg: "Internal Server Error" }, null);
+        callback(null, {
+            response: {
+                status: 500,
+                message: "Internal server error",
+                users: null,
+            },
+        });
     }
 };
 
@@ -82,7 +120,7 @@ export const getUsers = async (call: any, callback: any) => {
 export const updateUser = async (call: any, callback: any) => {
     try {
         const { _id, data } = call.request;
-        
+
         const user = await userRepository.findOne({ _id });
 
         if (!user) {
@@ -106,6 +144,54 @@ export const updateUser = async (call: any, callback: any) => {
         callback(null, {
             response: { status: 200, message: "User updated", data: updatedUser },
         });
+    } catch (err) {
+        console.log(err);
+        callback(null, {
+            response: {
+                status: 500,
+                message: "Internal server error",
+                data: null,
+            },
+        });
+    }
+};
+
+/**
+ * Retrieves all students' ids.
+ * @param {Object} call - gRPC call object with request data.
+ * @param {function} callback - Callback function with response data.
+ * @returns {Object} response - Response object with status and message.
+ */
+export const getStudentsIds = async (call: any, callback: any) => {
+    try {
+        const { batchIds } = call.request;
+
+        if (batchIds) {
+            console.log("und und und ", batchIds);
+        } else {
+            const data = await userRepository.find({ role: "student" });
+
+            // Map data to return type
+            const students: {
+                _id: string;
+                name: string;
+                email: string;
+                role: string;
+                profilePic: string;
+                batch: string;
+            }[] = data.map((student) => ({
+                _id: student._id as unknown as string,
+                name: student.name,
+                email: student.email,
+                role: student.role,
+                profilePic: student.profilePic || "",
+                batch: student.batch as unknown as string,
+            }));
+
+            callback(null, {
+                response: { status: 200, message: "User updated", students },
+            });
+        }
     } catch (err) {
         console.log(err);
         callback(null, {

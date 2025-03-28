@@ -51,7 +51,7 @@ export const registerUser = async (user: {
         // Save the updated users list back to Redis
         await redisClient.set("users", JSON.stringify(users));
 
-        console.log(JSON.parse((await redisClient.get("users")) as string));
+        // console.log(JSON.parse((await redisClient.get("users")) as string));
     } catch (err: unknown) {
         throw err;
     }
@@ -117,7 +117,7 @@ export const unRegisterUser = async (socketId: string) => {
 
         await redisClient.set("users", JSON.stringify(updatedUsersList));
 
-        console.log(JSON.parse((await redisClient.get("users")) as string));
+        // console.log(JSON.parse((await redisClient.get("users")) as string));
     } catch (err: unknown) {
         throw err;
     }

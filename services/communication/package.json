@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc",
-    "run": "ts-node src/server.ts",
+    "start": "ts-node src/server.ts",
     "dev": "nodemon src/server.ts"
   },
   "author": "allaj",

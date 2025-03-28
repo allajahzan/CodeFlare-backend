@@ -1,7 +1,4 @@
-import {
-    JwtPayloadType,
-    UnauthorizedError,
-} from "@codeflare/common";
+import { JwtPayloadType, UnauthorizedError } from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
 import { getUser } from "../grpc/client/userClient";
 
@@ -42,7 +39,17 @@ export const checkAuth = async (
             );
         }
 
-        const user = await getUser(payload._id as string);
+        // Fetch user info through gRPC
+        let user;
+        const resp = await getUser(payload._id as string);
+
+        if (resp && resp.response.status === 200) {
+            user = resp.response.user;
+        } else {
+            throw new Error("Failed to load chats due to some issue!");
+        }
+
+        // Set user to request body
         req.body.user = user;
 
         next();

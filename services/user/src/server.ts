@@ -5,7 +5,7 @@ dotenv.config();
 import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
-import { startGrpcServer } from "./grpc/grpc.server";
+import { startGrpcServer } from "./grpc/grpcServer";
 
 // server
 const startServer = async () => {

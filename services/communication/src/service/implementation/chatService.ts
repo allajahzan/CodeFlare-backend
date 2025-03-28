@@ -1,5 +1,4 @@
 import { IChatDto, IUser } from "../../dto/chatServiceDto";
-import { IChatSchema } from "../../entities/IChatSchema";
 import { getUsers } from "../../grpc/client/userClient";
 import { IChatRepository } from "../../repository/interface/IChatRepository";
 import { IChatService } from "../interface/IChatService";
@@ -24,6 +23,8 @@ export class ChatService implements IChatService {
      */
     async getChats(_id: string): Promise<IChatDto[] | null> {
         try {
+            console.log(_id);
+            
             // Get chats from repository
             const chats = await this.chatRepository.getChatsById(_id);
             if (!chats || !chats.length) return null;
@@ -35,21 +36,44 @@ export class ChatService implements IChatService {
             }
 
             // Get users from user service through gRPC
-            const usersMap = await getUsers([...new Set(userIds)]) as any
+            let usersMap: Record<
+                string,
+                {
+                    _id: string;
+                    name: string;
+                    email: string;
+                    role: string;
+                    profilePic: string;
+                    batch: string;
+                }
+            >;
+
+            // Fetch users info through gRPC
+            const resp = await getUsers([...new Set(userIds)]);
+
+            if (resp && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            } else {
+                throw new Error("Failed load chats due to some issues!");
+            }
 
             return chats.map((chat) => {
-                const sender = usersMap[chat.participants[0] as unknown as string] as IUser
-                const receiver = usersMap[chat.participants[1] as unknown as string] as IUser
+                const sender = usersMap[
+                    chat.participants[0] as unknown as string
+                ] as IUser;
+                const receiver = usersMap[
+                    chat.participants[1] as unknown as string
+                ] as IUser;
                 return {
                     ...chat.toObject(),
                     sender: {
-                        ...sender
+                        ...sender,
                     },
                     receiver: {
-                        ...receiver
-                    }
-                }
-            })
+                        ...receiver,
+                    },
+                };
+            });
         } catch (err: unknown) {
             throw err;
         }

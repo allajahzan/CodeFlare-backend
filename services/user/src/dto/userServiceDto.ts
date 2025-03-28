@@ -36,4 +36,5 @@ export interface IUserDto {
     lastActive?: Date;
     createdAt: Date;
     isBlock?: boolean;
+    qrCode?: string;
 }
