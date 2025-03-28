@@ -8,7 +8,7 @@ import { ObjectId } from "mongoose";
 const attendenceRepository = new AttendenceRepository(Attendence);
 
 // Prepare attendence for all students of all batches on 7AM everyday
-cron.schedule("51 13 * * *", async () => {
+cron.schedule("* 7 * * *", async () => {
     try {
         const resp = await getStudentsIds();
 
