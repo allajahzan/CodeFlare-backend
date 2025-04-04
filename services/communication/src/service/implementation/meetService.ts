@@ -4,6 +4,8 @@ import { IMeetRepository } from "../../repository/interface/IMeetRepository";
 import { IMeetService } from "../interface/IMeetService";
 import { ObjectId } from "mongoose";
 import { IMeetSchema } from "../../entities/IMeetSchema";
+import { getUser } from "../../grpc/client/userClient";
+import { IUser } from "../../dto/chatServiceDto";
 
 /** Implementation for Meet Service */
 export class MeetService implements IMeetService {
@@ -23,15 +25,28 @@ export class MeetService implements IMeetService {
      * @returns A promise that resolves to the meet document if found, otherwise null if the meet is not found.
      * @throws {NotFoundError} If the meet with the given id doesn't exist
      */
-    async getMeetById(_id: string): Promise<IMeetDto | null> {
+    async getMeetById(roomId: string): Promise<IMeetDto | null> {
         try {
-            const meet = await this.meetRepository.findOne({ _id });
+            const meet = await this.meetRepository.findOne({ roomId });
             if (!meet)
-                throw new NotFoundError("Meet with this link doesn't exists !");
+                throw new NotFoundError("This meeting link doesn't even exists !");
+
+            // Get host details
+            const resp = await getUser(meet.hostId as unknown as string);
+
+            let host: IUser;
+
+            // Success response
+            if (resp.response && resp.response.status === 200) {
+                host = resp.response.user;
+            } else {
+                throw new NotFoundError("Host not found !");
+            }
 
             // Map data to return type
             const meetDto: IMeetDto = {
                 _id: meet._id as unknown as ObjectId,
+                host,
                 hostId: meet.hostId,
                 roomId: meet.roomId,
                 invitedUsers: meet.invitedUsers,

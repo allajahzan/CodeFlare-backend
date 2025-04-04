@@ -30,9 +30,9 @@ export class MeetController implements IMeetController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { id: _id } = req.query;
+            const { roomId } = req.query;
 
-            const meet = await this.meetService.getMeetById(_id as string);
+            const meet = await this.meetService.getMeetById(roomId as string);
             SendResponse(res, HttpStatusCode.Ok, ResponseMessage.SUCCESS, meet);
         } catch (err: unknown) {
             next(err);

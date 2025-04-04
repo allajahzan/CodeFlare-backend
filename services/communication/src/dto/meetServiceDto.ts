@@ -1,4 +1,5 @@
 import { Schema } from "mongoose";
+import { IUser } from "./chatServiceDto";
 
 // Interface for Message
 interface IMessage {
@@ -11,6 +12,7 @@ interface IMessage {
 export interface IMeetDto {
     _id: Schema.Types.ObjectId;
     hostId: Schema.Types.ObjectId;
+    host: IUser;
     roomId: string;
     invitedUsers: Schema.Types.ObjectId[];
     messages: IMessage[];
