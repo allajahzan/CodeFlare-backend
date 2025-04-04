@@ -12,7 +12,7 @@ const meetSchema = new Schema<IMeetSchema>(
         roomId: {
             type: String,
             default: function () {
-                return "Room" + 1 + Math.floor(Math.random() * 900000) + "cd-meet";
+                return "room" + 1 + Math.floor(Math.random() * 900000) + "cd-meet";
             },
             unique: true,
         },
