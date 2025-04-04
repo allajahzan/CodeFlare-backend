@@ -8,6 +8,11 @@ import { IMeetSchema } from "../../entities/IMeetSchema";
 /** Implementation for Meet Service */
 export class MeetService implements IMeetService {
     private meetRepository: IMeetRepository;
+
+    /**
+     * Constructor for MeetService
+     * @param meetRepository - The IMeetRepository instance to use for data access
+     */
     constructor(meetRepository: IMeetRepository) {
         this.meetRepository = meetRepository;
     }
