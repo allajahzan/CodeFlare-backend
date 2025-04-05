@@ -95,12 +95,8 @@ export const videoCallSocket = (
 
             // Join room ================================================================
             socket.on("joinRoom", async ({ roomId }, callback) => {
-                // check room exist in db , if not exist dont let user to join
-                //
-                //
-                // Add db fetcing here
-
-                const isRoomExist = rooms.get(roomId); // Temp for vc
+                // Check if room is exist
+                const isRoomExist = rooms.get(roomId);
                 if (!isRoomExist) {
                     await createRoom(roomId);
                 }
@@ -118,7 +114,32 @@ export const videoCallSocket = (
                 // Join the specified room
                 socket.join(roomId);
 
-                callback(room.router.rtpCapabilities);
+                // Get existing peers
+                const existingPeers = Array.from(room.peers.keys());
+
+                // console.log(existingPeers);
+
+                callback(room.router.rtpCapabilities, existingPeers);
+            });
+
+            // leave call ===============================================================
+            socket.on("leaveCall", ({ roomId }) => {
+                const room = getRoom(roomId);
+                if (!room) return;
+
+                // Remove peer from the room
+                room.peers.delete(socket.id);
+
+                // Notify others
+                socket.to(roomId).emit("peerLeft", { socketId: socket.id });
+
+                // Delete room if no peers
+                if (room.peers.size === 0) {
+                    rooms.delete(roomId);
+                    socket.leave(roomId); // Remove from socket.io room
+                }
+
+                console.log(rooms);
             });
 
             // create WebRtc Transport ==================================================
