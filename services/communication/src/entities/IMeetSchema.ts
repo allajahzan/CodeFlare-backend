@@ -13,4 +13,5 @@ export interface IMeetSchema extends Document {
     roomId: string,
     invitedUsers: Schema.Types.ObjectId[];
     messages: IMessage[];
+    createdAt: Date
 }

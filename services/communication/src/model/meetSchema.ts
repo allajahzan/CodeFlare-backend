@@ -15,6 +15,7 @@ const meetSchema = new Schema<IMeetSchema>(
                 return "room" + Math.floor(Math.random() * 900000) + "cd-meet";
             },
             unique: true,
+            ttl: 60 * 60 * 24,
         },
         invitedUsers: [
             {
@@ -44,8 +45,12 @@ const meetSchema = new Schema<IMeetSchema>(
             required: false,
             default: [],
         },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+            expires: 60 * 60 * 24,
+        },
     },
-    { timestamps: true }
 );
 
 const Meet = model<IMeetSchema>("Meet", meetSchema);
