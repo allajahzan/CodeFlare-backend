@@ -7,8 +7,8 @@ let worker: mediasoup.types.Worker;
 const createWorker = async () => {
     try {
         worker = await mediasoup.createWorker({
-            rtcMinPort: 2000,
-            rtcMaxPort: 2020,
+            rtcMinPort: 20000,
+            rtcMaxPort: 30000,
         });
 
         // console.log("worker created of PID", worker.pid);
@@ -105,6 +105,7 @@ export const videoCallSocket = (
                 const room = getRoom(roomId);
                 if (!room) return;
 
+                // Update room
                 room.peers.set(socket.id, {
                     transports: [],
                     producers: [],
@@ -115,11 +116,22 @@ export const videoCallSocket = (
                 socket.join(roomId);
 
                 // Get existing peers
-                const existingPeers = Array.from(room.peers.keys());
+                const existingProducers = [];
 
-                // console.log(existingPeers);
+                for (const [peerId, peer] of room.peers.entries()) {
+                    if (peerId === socket.id) continue; // Ignore current user who joined
 
-                callback(room.router.rtpCapabilities, existingPeers);
+                    for (const producer of peer.producers) {
+                        existingProducers.push({
+                            producerId: producer.id,
+                            kind: producer.kind,
+                            appData: producer.appData,
+                            socketId: peerId,
+                        });
+                    }
+                }
+
+                callback(room.router.rtpCapabilities, existingProducers);
             });
 
             // leave call ===============================================================
@@ -138,8 +150,6 @@ export const videoCallSocket = (
                     rooms.delete(roomId);
                     socket.leave(roomId); // Remove from socket.io room
                 }
-
-                console.log(rooms);
             });
 
             // create WebRtc Transport ==================================================
@@ -202,7 +212,7 @@ export const videoCallSocket = (
                     // Connect to webrtc transport
                     await transport.connect({ dtlsParameters });
 
-                    // console.log("Transport connected");
+                    console.log("Transport connected");
                 }
             );
 
@@ -261,15 +271,16 @@ export const videoCallSocket = (
 
                     callback({ id: producer.id }); // To notify
 
-                    // console.log("Producer created");
+                    console.log("Producer created");
 
                     // Notify new producer to other peeers in the room
                     socket.broadcast.to(roomId).emit("newProducer", {
                         producerId: producer.id,
-                        kind,
                         appData: producer.appData,
                         socketId: socket.id,
                     });
+
+                    console.log("new producer emited");
                 }
             );
 
@@ -296,6 +307,10 @@ export const videoCallSocket = (
 
                         const router = room.router; // Get router of room
 
+                        if (!router.canConsume({ producerId, rtpCapabilities })) {
+                            console.log("cannot consume");
+                        }
+
                         if (router.canConsume({ producerId, rtpCapabilities })) {
                             // Create consumer
                             const consumer = await transport.consume({
@@ -306,6 +321,8 @@ export const videoCallSocket = (
                             });
 
                             if (!consumer) return;
+
+                            // console.log(consumer);
 
                             // When consumer is closed
                             consumer.on("transportclose", () => {
@@ -319,7 +336,7 @@ export const videoCallSocket = (
 
                             peer.consumers.push(consumer); // Push consumer to peer
 
-                            // console.log("Consumer created");
+                            console.log("Consumer created");
 
                             callback({
                                 params: {
@@ -360,6 +377,8 @@ export const videoCallSocket = (
                     // Resume consumer
                     await consumer.resume();
 
+                    console.log("resumed");
+
                     callback({ params: { success: true } });
 
                     // console.log("consumer resumed");
@@ -370,6 +389,26 @@ export const videoCallSocket = (
 
             // Mute-Unmute toggle event =========================================================
             socket.on("muteToggle", ({ roomId, type, isMuted, socketId }) => {
+                const room = rooms.get(roomId);
+                if (!room) return;
+
+                const peer = room.peers.get(socketId);
+                if (!peer) return;
+
+                // Find the correct producer by type (kind)
+                const targetProducer = peer.producers.find((p: any) => p.kind === type);
+
+                // console.log(targetProducer.appData);
+
+                if (targetProducer) {
+                    if (type === "audio") {
+                        targetProducer.appData.isAudioMute = isMuted;
+                    } else if (type === "video") {
+                        targetProducer.appData.isVideoMute = isMuted;
+                    }
+                }
+
+                // Broadcast to other peers
                 socket.broadcast
                     .to(roomId)
                     .emit("peerMuteChange", { type, isMuted, socketId });
@@ -377,7 +416,33 @@ export const videoCallSocket = (
 
             // Socket disconnect ================================================================
             socket.on("disconnect", () => {
-                console.log("Socket io disconnected with id", socket.id);
+                const room = getRoom(socket.id);
+                if (!room) return;
+
+                const peer = room.peers.get(socket.id);
+                if (!peer) return;
+
+                // Close all transports
+                peer.transports.forEach((transport) => {
+                    try {
+                        transport.close();
+                    } catch (_) { }
+                });
+
+                // Clean producers & consumers
+                peer.producers.forEach((producer) => {
+                    try {
+                        producer.close();
+                    } catch (_) { }
+                });
+
+                peer.consumers.forEach((consumer) => {
+                    try {
+                        consumer.close();
+                    } catch (_) { }
+                });
+
+                room.peers.delete(socket.id);
             });
         });
     } catch (err: unknown) {
