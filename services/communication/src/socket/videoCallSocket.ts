@@ -220,14 +220,7 @@ export const videoCallSocket = (
             socket.on(
                 "produceTransport",
                 async (
-                    {
-                        roomId,
-                        transportId,
-                        kind,
-                        rtpParameters,
-                        isAudioMute,
-                        isVideoMute,
-                    },
+                    { roomId, transportId, kind, appData, rtpParameters },
                     callback
                 ) => {
                     const room = getRoom(roomId); // Get room
@@ -243,19 +236,13 @@ export const videoCallSocket = (
 
                     if (!transport) return;
 
-                    // Determine which mute state to set
-                    const muteState =
-                        kind === "audio"
-                            ? { isAudioMute: isAudioMute ?? false }
-                            : { isVideoMute: isVideoMute ?? false };
-
                     // Create producer
                     const producer = await transport.produce({
                         kind,
                         rtpParameters,
                         appData: {
                             socketId: socket.id,
-                            ...muteState, // Set mute state
+                            ...appData,
                         },
                     });
 
