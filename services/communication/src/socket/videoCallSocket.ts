@@ -1,5 +1,8 @@
 import { DefaultEventsMap, Server } from "socket.io";
 import * as mediasoup from "mediasoup";
+import { IUser } from "../dto/chatServiceDto";
+import { getUser } from "../grpc/client/userClient";
+import { NotFoundError } from "@codeflare/common";
 
 const rooms = new Map();
 let worker: mediasoup.types.Worker;
@@ -72,6 +75,7 @@ function getRoom(roomId: string): {
     peers: Map<
         string,
         {
+            user: IUser;
             transports: mediasoup.types.WebRtcTransport[];
             producers: mediasoup.types.Producer[];
             consumers: mediasoup.types.Consumer[];
@@ -94,44 +98,64 @@ export const videoCallSocket = (
             console.log("Socket io connected with id", socket.id);
 
             // Join room ================================================================
-            socket.on("joinRoom", async ({ roomId }, callback) => {
-                // Check if room is exist
-                const isRoomExist = rooms.get(roomId);
-                if (!isRoomExist) {
-                    await createRoom(roomId);
-                }
-
-                // Get room by id
-                const room = getRoom(roomId);
-                if (!room) return;
-
-                // Update room
-                room.peers.set(socket.id, {
-                    transports: [],
-                    producers: [],
-                    consumers: [],
-                });
-
-                // Join the specified room
-                socket.join(roomId);
-
-                // Get existing peers
-                const existingProducers = [];
-
-                for (const [peerId, peer] of room.peers.entries()) {
-                    if (peerId === socket.id) continue; // Ignore current user who joined
-
-                    for (const producer of peer.producers) {
-                        existingProducers.push({
-                            producerId: producer.id,
-                            kind: producer.kind,
-                            appData: producer.appData,
-                            socketId: peerId,
-                        });
+            socket.on("joinRoom", async ({ roomId, userId }, callback) => {
+                try {
+                    // Check if room is exist
+                    const isRoomExist = rooms.get(roomId);
+                    if (!isRoomExist) {
+                        await createRoom(roomId);
                     }
-                }
 
-                callback(room.router.rtpCapabilities, existingProducers);
+                    // Get room by id
+                    const room = getRoom(roomId);
+                    if (!room) return;
+
+                    // Get user info through gRPC
+                    const resp = await getUser(userId);
+
+                    if (resp.response && resp.response.status !== 200) {
+                        throw new Error("User not found");
+                    }
+
+                    let user = resp.response.user;
+
+                    // Update room
+                    room.peers.set(socket.id, {
+                        user,
+                        transports: [],
+                        producers: [],
+                        consumers: [],
+                    });
+
+                    // Join the specified room
+                    socket.join(roomId);
+
+                    // Get existing peers
+                    const existingProducers = [];
+
+                    for (const [peerId, peer] of room.peers.entries()) {
+                        if (peerId === socket.id) continue; // Ignore current user who joined
+
+                        for (const producer of peer.producers) {
+                            existingProducers.push({
+                                producerId: producer.id,
+                                kind: producer.kind,
+                                appData: producer.appData,
+                                socketId: peerId,
+                                user: peer.user,
+                            });
+                        }
+                    }
+
+                    callback(null, room.router.rtpCapabilities, existingProducers);
+                } catch (err: unknown) {
+                    console.log(err);
+                    callback(
+                        { error: { message: "User nor found !", status: 400 } },
+                        null,
+                        null
+                    );
+                }
             });
 
             // leave call ===============================================================
@@ -265,6 +289,7 @@ export const videoCallSocket = (
                         producerId: producer.id,
                         appData: producer.appData,
                         socketId: socket.id,
+                        user: peer.user,
                     });
 
                     console.log("new producer emited");
@@ -399,6 +424,25 @@ export const videoCallSocket = (
                 socket.broadcast
                     .to(roomId)
                     .emit("peerMuteChange", { type, isMuted, socketId });
+            });
+
+            // Hand raise toggle event ==========================================================
+            socket.on("handRaise", ({ roomId, isHandRaised, socketId }) => {
+                const room = rooms.get(roomId);
+                if (!room) return;
+
+                const peer = room.peers.get(socketId);
+                if (!peer) return;
+
+                // Update peers producers appData
+                peer.producers.forEach((producer: any) => {
+                    producer.appData.isHandRaised = isHandRaised;
+                });
+
+                // Broadcast to other peers
+                socket.broadcast
+                    .to(roomId)
+                    .emit("handRaiseChange", { isHandRaised, socketId });
             });
 
             // Socket disconnect ================================================================
