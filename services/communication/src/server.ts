@@ -5,7 +5,7 @@ dotenv.config();
 import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import http from 'http'
-import { chatSocket } from "./socket/chatSocket";
+import { connectSocketIO } from "./socket/connection";
 
 // server
 const startServer = async () => {
@@ -19,7 +19,7 @@ const startServer = async () => {
 
         // Chat socket connection initialization
         const server = http.createServer(app);
-        chatSocket(server);
+        connectSocketIO(server)
 
         //listen to port
         server.listen(process.env.PORT, () =>
