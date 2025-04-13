@@ -11,10 +11,11 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.40",
+    "@codeflare/common": "^1.0.42",
     "amqplib": "^0.10.7",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.7",

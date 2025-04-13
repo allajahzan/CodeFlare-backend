@@ -6,6 +6,8 @@ import app from "./app";
 import { MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
 import { rabbitmq } from "./config/rabbitmq";
+import { connectSocketIO } from "./socket/connection";
+import http from "http";
 
 // Start server
 const startServer = async () => {
@@ -20,8 +22,13 @@ const startServer = async () => {
         // connect to rabbitmq
         await rabbitmq.connect();
 
+        const server = http.createServer(app);
+
+        // socket connection
+        connectSocketIO(server);
+
         //listen to port
-        app.listen(process.env.PORT, () => {
+        server.listen(process.env.PORT, () => {
             console.log(`Notification service running on port ${process.env.PORT}`);
         });
     } catch (err: any) {

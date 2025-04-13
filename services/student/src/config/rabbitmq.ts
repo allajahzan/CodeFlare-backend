@@ -1,11 +1,10 @@
 import { RabbitMQConnection } from "@codeflare/common";
 import amqp from "amqplib";
-import snapshotConsumer from "../events/consumer/snapshotConsumer";
 
 class RabbitMQ {
     private _channel: amqp.Channel | null = null;
 
-    constructor() { }
+    constructor() {}
 
     // get channel
     get channel(): amqp.Channel {
@@ -17,9 +16,7 @@ class RabbitMQ {
     // connect to rabbitmq
     async connect(): Promise<void> {
         try {
-            this._channel = await RabbitMQConnection(
-                process.env.RABBIT_MQ_URL as string
-            );
+            this._channel = await RabbitMQConnection(process.env.RABBIT_MQ_URL as string);
 
             this._channel.on("close", () => {
                 console.log("Rabbitmq connection closed, reconnecting...");
@@ -28,8 +25,7 @@ class RabbitMQ {
             });
 
             // consumers
-            snapshotConsumer.consume();
-            
+
         } catch (err: any) {
             throw new Error(err);
         }

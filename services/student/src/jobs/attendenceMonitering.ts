@@ -4,6 +4,7 @@ import { AttendenceRepository } from "../repository/implementation/attendenceRep
 import Attendence from "../model/attendence";
 import { IAttendenceSchema } from "../entities/IAttendence";
 import { ObjectId } from "mongoose";
+import { SnapshotProducer } from "../events/producer/snapshotProducer";
 
 const attendenceRepository = new AttendenceRepository(Attendence);
 
@@ -31,7 +32,7 @@ cron.schedule("* 7 * * *", async () => {
 
             await attendenceRepository.insertMany(data);
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.log(err);
     }
 });
@@ -56,7 +57,18 @@ cron.schedule("* 22 * * *", async () => {
             { checkIn: null },
             { $set: { status: "Absent" } }
         );
-    } catch (err) {
+    } catch (err: unknown) {
+        console.log(err);
+    }
+});
+
+// Send snapshot notification for all students of all batches on 11 AM everyday
+cron.schedule("10 20 * * *", async () => {
+    try {
+        // Send snapshot event
+        const snapshotProducer = new SnapshotProducer(new Date().toLocaleTimeString());
+        snapshotProducer.publish();
+    } catch (err: unknown) {
         console.log(err);
     }
 });
