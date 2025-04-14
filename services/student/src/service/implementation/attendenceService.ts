@@ -222,4 +222,97 @@ export class AttendenceService implements IAttendenceService {
             throw err;
         }
     }
+
+    /**
+     * Uploads a snapshot of a student.
+     * @param {string} userId - The ID of the user to upload snapshot.
+     * @param {string} imageUrl - The URL of the image to upload.
+     * @returns {Promise<void>} - A promise that resolves when the snapshot is successfully uploaded and sent, or passes an error to the next middleware.
+     * @throws {BadRequestError} - If update fails.
+     * @throws {NotFoundError} - If attendence not found.
+     */
+    async uploadSnapshot(
+        userId: string,
+        imageUrl: string,
+        location: string
+    ): Promise<void> {
+        try {
+            // get current hour and minute
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            const allowedHours = [11, 13, 16];
+
+            const isAllowedTime =
+                allowedHours.includes(currentHour) && currentMinute <= 5;
+
+            if (!isAllowedTime) {
+                throw new Error("You can't submit snapshot at this time !");
+            }
+
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
+
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
+
+            // Find attendence of today's with time range
+            const attendance = await this.attendenceRepository.findOne({
+                userId,
+                date: { $gte: startOfDay, $lte: endOfDay },
+            });
+
+            if (!attendance) throw new NotFoundError("Attendence not found !");
+
+            // Name of the snapshot
+            let name: string | null = null;
+
+            if (currentHour === 11) {
+                name = "Tea";
+            } else if (currentHour === 13) {
+                name = "Lunch";
+            } else if (currentHour === 16) {
+                name = "Evening";
+            }
+
+            if (!name) {
+                throw new Error("Failed to submit snapshot !");
+            }
+
+            // Now check if snapshot is already uploaded
+            const alreadyExists = attendance?.selfies?.some(
+                (selfie: any) => selfie.name === name
+            );
+
+            if (alreadyExists) {
+                throw new Error(`${name} break snapshot already submitted !`);
+            }
+
+            // New snapshot
+            const newSelfie = {
+                name: name,
+                time: new Date().toLocaleTimeString(),
+                photo: imageUrl,
+                location,
+                isVerified: false,
+            };
+
+            // Update attendence
+            const updatedAttendance = await this.attendenceRepository.update(
+                { userId, date: { $gte: startOfDay, $lte: endOfDay } },
+                {
+                    $push: {
+                        selfies: newSelfie,
+                    },
+                },
+                { new: true }
+            );
+
+            if (!updatedAttendance)
+                throw new NotFoundError("Failed to upload snapshot !");
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
 }

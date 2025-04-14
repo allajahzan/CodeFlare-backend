@@ -26,4 +26,9 @@ router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) 
     attendenceController.checkInOut(req, res, next)
 );
 
+// Upload Snapshot
+router.post("/upload-snapshot/:userId", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.uploadSnapshot(req, res, next)
+);
+
 export { router as attendenceRouter };

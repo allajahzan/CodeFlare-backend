@@ -98,4 +98,29 @@ export class AttendenceController implements IAttendenceController {
             next(err);
         }
     }
+
+    /**
+     * Uploads a snapshot of a student.
+     * @param {Request} req - The express request object containing the user ID in the query parameters and the image URL in the request body.
+     * @param {Response} res - The express response object used to send the response back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the snapshot is successfully uploaded and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async uploadSnapshot(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { userId } = req.params;
+            const { imageUrl, location } = req.body;
+
+            await this.attedenceService.uploadSnapshot(userId as string, imageUrl, location);
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }
