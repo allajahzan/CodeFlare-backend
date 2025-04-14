@@ -4,9 +4,11 @@ import { Exchanges } from "@codeflare/common";
 // Snapshot producer
 export class SnapshotProducer {
     private time: string;
+    private message: string;
 
-    constructor(time: string) {
+    constructor(time: string, message: string) {
         this.time = time;
+        this.message = message;
     }
 
     publish() {
@@ -23,12 +25,13 @@ export class SnapshotProducer {
                 Buffer.from(
                     JSON.stringify({
                         time: this.time,
+                        message: this.message,
                     })
                 ),
                 { persistent: true }
             );
 
-            console.log("Snapshot event published", this.time);
+            console.log("Snapshot event published");
         } catch (err: any) {
             console.log(err);
             throw new Error(err);

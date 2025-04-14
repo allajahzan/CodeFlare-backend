@@ -1,6 +1,7 @@
 import amqp from "amqplib";
 import { rabbitmq } from "../../config/rabbitmq";
 import { Exchanges, QUEUES } from "@codeflare/common";
+import { getIO } from "../../socket/connection";
 
 // Snapshot consumer
 class SnapshotConsumer {
@@ -30,8 +31,15 @@ class SnapshotConsumer {
                     try {
                         if (!data) throw new Error("recieved null message");
 
-                        const message = JSON.parse(data.content as any);
-                        
+                        const message = JSON.parse(data.content as any); // Message
+
+                        if (!message || !message.time)
+                            throw new Error("recieved null message");
+
+                        // Emit message to all connected clients
+                        const io = getIO();
+                        io.emit("reciveSnapshotMessage", message);
+
                         rabbitmq.channel.ack(data);
                         console.log("data consumed from queue", message);
                     } catch (err) {
