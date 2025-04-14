@@ -4,11 +4,12 @@ import { AttendenceRepository } from "../repository/implementation/attendenceRep
 import Attendence from "../model/attendence";
 import { IAttendenceSchema } from "../entities/IAttendence";
 import { ObjectId } from "mongoose";
+import { SnapshotProducer } from "../events/producer/snapshotProducer";
 
 const attendenceRepository = new AttendenceRepository(Attendence);
 
 // Prepare attendence for all students of all batches on 7AM everyday
-cron.schedule("* 7 * * *", async () => {
+cron.schedule("12 11 * * *", async () => {
     try {
         const resp = await getStudentsIds();
 
@@ -31,7 +32,7 @@ cron.schedule("* 7 * * *", async () => {
 
             await attendenceRepository.insertMany(data);
         }
-    } catch (err) {
+    } catch (err: unknown) {
         console.log(err);
     }
 });
@@ -56,7 +57,49 @@ cron.schedule("* 22 * * *", async () => {
             { checkIn: null },
             { $set: { status: "Absent" } }
         );
-    } catch (err) {
+    } catch (err: unknown) {
+        console.log(err);
+    }
+});
+
+// Send snapshot notification for all students of all batches on 11 AM everyday
+cron.schedule("24 16 * * *", async () => {
+    try {
+        // Send snapshot event
+        const snapshotProducer = new SnapshotProducer(
+            new Date().toLocaleTimeString(),
+            "Send your snapshot for tea break within 5 minutes"
+        );
+        snapshotProducer.publish();
+    } catch (err: unknown) {
+        console.log(err);
+    }
+});
+
+// Send snapshot notification for all students of all batches on 11 AM everyday
+cron.schedule("19 11 * * *", async () => {
+    try {
+        // Send snapshot event
+        const snapshotProducer = new SnapshotProducer(
+            new Date().toLocaleTimeString(),
+            "Send your snapshot for lunch break within 5 minutes"
+        );
+        snapshotProducer.publish();
+    } catch (err: unknown) {
+        console.log(err);
+    }
+});
+
+// Send snapshot notification for all students of all batches on 4 AM everyday
+cron.schedule("20 11 * * *", async () => {
+    try {
+        // Send snapshot event
+        const snapshotProducer = new SnapshotProducer(
+            new Date().toLocaleTimeString(),
+            "Send your snapshot for evening break within 5 minutes"
+        );
+        snapshotProducer.publish();
+    } catch (err: unknown) {
         console.log(err);
     }
 });

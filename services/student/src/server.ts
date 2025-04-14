@@ -5,7 +5,8 @@ dotenv.config();
 import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
-import "./utils/cronjob";
+import "./jobs/attendenceMonitering";
+import { rabbitmq } from "./config/rabbitmq";
 
 // server
 const startServer = async () => {
@@ -16,6 +17,9 @@ const startServer = async () => {
         // connect to mongodb
         const db = new MongodbConnection(process.env.MONGO_DB_URL as string);
         await db.retryConnection();
+
+        // connect to rabbitmq
+        await rabbitmq.connect();
 
         // connect to redis
         connectRedis();
