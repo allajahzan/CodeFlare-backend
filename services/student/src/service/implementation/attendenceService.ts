@@ -3,7 +3,7 @@ import { ICheckInOutDto } from "../../dto/attendenceService";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
 import { ObjectId } from "mongoose";
-import { IAttendenceSchema } from "../../entities/IAttendence";
+import { IAttendenceSchema, ISelfie } from "../../entities/IAttendence";
 import { getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
 
@@ -266,7 +266,8 @@ export class AttendenceService implements IAttendenceService {
             if (!attendance) throw new NotFoundError("Attendence not found !");
 
             // Name of the snapshot
-            let name: string | null = null;
+            type nameType = "Tea" | "Lunch" | "Evening";
+            let name: nameType | null = null;
 
             if (currentHour === 11) {
                 name = "Tea";
@@ -298,12 +299,26 @@ export class AttendenceService implements IAttendenceService {
                 isVerified: false,
             };
 
+            // Selfie index map
+            const selfieIndexMap = {
+                Tea: 0,
+                Lunch: 1,
+                Evening: 2,
+            };
+
+            const selfies: (ISelfie | null)[] = [
+                attendance.selfies?.[0],
+                attendance.selfies?.[1],
+                attendance.selfies?.[2],
+            ];
+            selfies[selfieIndexMap[name]] = newSelfie;
+
             // Update attendence
             const updatedAttendance = await this.attendenceRepository.update(
                 { userId, date: { $gte: startOfDay, $lte: endOfDay } },
                 {
-                    $push: {
-                        selfies: newSelfie,
+                    $set: {
+                        selfies,
                     },
                 },
                 { new: true }
