@@ -330,4 +330,41 @@ export class AttendenceService implements IAttendenceService {
             throw err;
         }
     }
+
+    /**
+     * Updates the status of an attendance record
+     * @param {string} attendenceId - The ID of the attendance record to update
+     * @param {string} status - The status to update the attendance record to
+     * @throws {NotFoundError} - If the attendance record is not found
+     * @throws - Passes any other errors to the caller
+     */
+    async updateStatus(
+        attendenceId: string,
+        status: "Pending" | "Present" | "Absent"
+    ): Promise<void> {
+        try {
+            // Find attendence of today's with time range
+            const attendance = await this.attendenceRepository.findOne({
+                _id: attendenceId,
+            });
+
+            if (!attendance) throw new NotFoundError("Attendence not found !");
+
+            const updatedAttendance = await this.attendenceRepository.update(
+                { _id: attendenceId },
+                {
+                    $set: {
+                        status,
+                    },
+                },
+                {
+                    new: true,
+                }
+            );
+
+            console.log(updatedAttendance);
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
 }

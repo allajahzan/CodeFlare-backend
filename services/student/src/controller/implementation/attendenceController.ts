@@ -116,9 +116,41 @@ export class AttendenceController implements IAttendenceController {
             const { userId } = req.params;
             const { imageUrl, location } = req.body;
 
-            await this.attedenceService.uploadSnapshot(userId as string, imageUrl, location);
+            await this.attedenceService.uploadSnapshot(
+                userId as string,
+                imageUrl,
+                location
+            );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Updates the status of an attendance record based on the attendance ID and status.
+     * @param {Request} req - The express request object containing the attendance ID in the query parameters and the status in the request body.
+     * @param {Response} res - The express response object used to send the response back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the attendance record is successfully updated and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async updateStatus(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { attendenceId } = req.params;
+            const { status } = req.body;
+
+            const data = await this.attedenceService.updateStatus(
+                attendenceId as string,
+                status
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

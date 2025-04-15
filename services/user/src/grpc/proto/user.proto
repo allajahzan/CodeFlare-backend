@@ -6,7 +6,7 @@ service UserService {
    rpc getUser (getUserRequest) returns (getUserResponse);
    rpc getUsers (getUsersRequest) returns (getUsersResponse);
    rpc updateUser (updateUserRequest) returns (updateUserResponse);
-   rpc getStudentsIds (getStudentsIdRequest) returns (getStudentIdResponse);
+   rpc getStudentsIds (getStudentsIdsRequest) returns (getStudentsIdsResponse);
 }
 
 message UserInfo { // User structure
@@ -80,10 +80,8 @@ message updateUserResponse {
 
 // For to get students ids of perticaular batches =================
 
-message getStudentsIdRequest {
-    repeated string batchIds = 1;
-}
+message getStudentsIdsRequest {}
 
-message getStudentIdResponse {
+message getStudentsIdsResponse {
     SResponse response = 1;
 }

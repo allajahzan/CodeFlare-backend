@@ -31,4 +31,9 @@ router.post("/upload-snapshot/:userId", (req: Request, res: Response, next: Next
     attendenceController.uploadSnapshot(req, res, next)
 );
 
+// Update status
+router.patch("/update-status/:attendenceId", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.updateStatus(req, res, next)
+);
+
 export { router as attendenceRouter };

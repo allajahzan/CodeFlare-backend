@@ -18,21 +18,52 @@ cron.schedule(
             if (resp && resp.response?.status === 200) {
                 const students = resp.response?.students || [];
 
-                // Map into parameter type
-                const data = students.map((student: any) => ({
-                    userId: student._id as ObjectId,
-                    batchId: student.batch as ObjectId,
-                    checkIn: null,
-                    checkOut: null,
-                    reason: {},
-                    status: "Pending",
-                    selfies: [],
-                    date: new Date(),
-                    isApproved: false,
-                    isPartial: false,
-                })) as Partial<Record<keyof IAttendenceSchema, any>>[];
+                // console.log(students);
 
-                await attendenceRepository.insertMany(data);
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
+
+                const endOfDay = new Date();
+                endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
+
+                // Fetch all attendance records of today's
+                const todayAttendances = await attendenceRepository.find({
+                    date: { $gte: startOfDay, $lte: endOfDay },
+                });
+
+                // console.log(todayAttendances);
+
+                //  Set of userIds who already have attendance
+                const existingUserIds = new Set(
+                    todayAttendances.map((attendence) => attendence.userId.toString())
+                );
+
+                // console.log(existingUserIds);
+
+                // Filter students who already have attendance for today
+                const newAttendances = students
+                    .filter(
+                        (student: any) => !existingUserIds.has(student._id.toString())
+                    )
+                    .map((student: any) => ({
+                        userId: student._id as ObjectId,
+                        batchId: student.batch as ObjectId,
+                        checkIn: null,
+                        checkOut: null,
+                        reason: {},
+                        status: "Pending",
+                        selfies: [],
+                        date: new Date(),
+                        isApproved: false,
+                        isPartial: false,
+                    }));
+
+                // console.log(newAttendances);
+
+                // If new attendences are there
+                if (newAttendances.length > 0) {
+                    await attendenceRepository.insertMany(newAttendances);
+                }
             }
         } catch (err: unknown) {
             console.log(err);
