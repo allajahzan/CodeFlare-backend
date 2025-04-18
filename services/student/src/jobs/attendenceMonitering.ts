@@ -113,7 +113,7 @@ cron.schedule(
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
-                "Send snapshot for tea break within 5 minutes."
+                "Send snapshot for tea break within 10 minutes."
             );
             snapshotProducer.publish();
         } catch (err: unknown) {
@@ -133,7 +133,7 @@ cron.schedule(
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
-                "Send snapshot for lunch break within 5 minutes."
+                "Send snapshot for lunch break within 10 minutes."
             );
             snapshotProducer.publish();
         } catch (err: unknown) {
@@ -153,7 +153,7 @@ cron.schedule(
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
-                "Send snapshot for evening break within 5 minutes."
+                "Send snapshot for evening break within 10 minutes."
             );
             snapshotProducer.publish();
         } catch (err: unknown) {

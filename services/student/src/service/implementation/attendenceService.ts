@@ -245,10 +245,10 @@ export class AttendenceService implements IAttendenceService {
             const allowedHours = [11, 13, 16];
 
             const isAllowedTime =
-                allowedHours.includes(currentHour) && currentMinute <= 5;
+                allowedHours.includes(currentHour) && currentMinute <= 10;
 
             if (!isAllowedTime) {
-                throw new Error("You can't submit snapshot at this time !");
+                throw new Error("You are late to submit the snapshot !");
             }
 
             const startOfDay = new Date();
@@ -362,7 +362,7 @@ export class AttendenceService implements IAttendenceService {
                 }
             );
 
-            console.log(updatedAttendance);
+            // console.log(updatedAttendance);
         } catch (err: unknown) {
             throw err;
         }
