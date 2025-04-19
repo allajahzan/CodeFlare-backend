@@ -28,7 +28,7 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     },
     status: {
         type: String,
-        enum: ["Pending", "Present", "Absent"],
+        enum: ["Pending", "Present", "Absent", "Late"],
         default: "Pending",
     },
     isApproved: {

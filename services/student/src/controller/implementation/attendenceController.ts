@@ -143,11 +143,12 @@ export class AttendenceController implements IAttendenceController {
     ): Promise<void> {
         try {
             const { attendenceId } = req.params;
-            const { status } = req.body;
+            const { status, reason } = req.body;
 
             const data = await this.attedenceService.updateStatus(
                 attendenceId as string,
-                status
+                status,
+                reason
             );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);

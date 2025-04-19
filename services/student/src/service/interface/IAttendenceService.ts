@@ -7,5 +7,5 @@ export interface IAttendenceService {
     getAttendence(userId: string): Promise<IAttendenceSchema>
     searchAttendence(userId: string, batchIds: string[], date: string): Promise<IAttendenceSchema[] | []>
     uploadSnapshot(userId: string, imageUrl: string, location: string): Promise<void>;
-    updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent"): Promise<void>;
+    updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent" | "Late", reason: string): Promise<void>;
 }

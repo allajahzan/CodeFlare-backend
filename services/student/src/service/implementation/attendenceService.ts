@@ -2,7 +2,7 @@ import { BadRequestError, NotFoundError } from "@codeflare/common";
 import { ICheckInOutDto } from "../../dto/attendenceService";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
-import { ObjectId } from "mongoose";
+import { ObjectId, UpdateQuery } from "mongoose";
 import { IAttendenceSchema, ISelfie } from "../../entities/IAttendence";
 import { getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
@@ -33,6 +33,14 @@ export class AttendenceService implements IAttendenceService {
         reason: string
     ): Promise<ICheckInOutDto> {
         try {
+            // Check weather today is sunday or not
+            const today = new Date();
+            if (today.getDay() === 0) {
+                throw new BadRequestError(
+                    "You don't have to check-in or check-out on Sundays !"
+                );
+            }
+
             const startOfDay = new Date();
             startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
 
@@ -332,37 +340,82 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Updates the status of an attendance record
-     * @param {string} attendenceId - The ID of the attendance record to update
-     * @param {string} status - The status to update the attendance record to
-     * @throws {NotFoundError} - If the attendance record is not found
-     * @throws - Passes any other errors to the caller
+     * Updates the status of an attendance record based on the attendance ID and status.
+     * @param {string} attendenceId - The ID of the attendance record to update.
+     * @param {"Pending" | "Present" | "Absent" | "Late"} status - The new status of the attendance record.
+     * @param {string} [reason] - The reason for status update, only required when status is "Absent".
+     * @returns {Promise<void>} - A promise that resolves when the attendance record is successfully updated and sent, or passes an error to the next middleware.
+     * @throws {BadRequestError} - If update fails.
+     * @throws {NotFoundError} - If attendence not found.
      */
     async updateStatus(
         attendenceId: string,
-        status: "Pending" | "Present" | "Absent"
+        status: "Pending" | "Present" | "Absent" | "Late",
+        reason?: string
     ): Promise<void> {
         try {
-            // Find attendence of today's with time range
-            const attendance = await this.attendenceRepository.findOne({
-                _id: attendenceId,
-            });
+            // Update query
+            let updateQuery: UpdateQuery<IAttendenceSchema>;
 
-            if (!attendance) throw new NotFoundError("Attendence not found !");
+            // Update status by coordinator
+            if (status) {
+                // Check status type
+                if (!["Pending", "Present", "Absent", "Late"].includes(status)) {
+                    throw new Error("Failed to update status !");
+                }
+
+                // Find attendence with attendence ID
+                const attendance = await this.attendenceRepository.findOne({
+                    _id: attendenceId,
+                });
+
+                if (!attendance) throw new NotFoundError("Attendence not found !");
+
+                // Check if student is checked-in or not
+                if (!attendance.checkIn) {
+                    throw new BadRequestError("Student didn't check-in yet !");
+                }
+
+                // Prepare update data
+                const updateData: any = {
+                    status,
+                };
+
+                if (reason) {
+                    updateQuery = {
+                        $set: {
+                            ...updateData,
+                            "reason.description": reason,
+                            "reason.time":
+                                new Date().getHours() + ":" + new Date().getMinutes(),
+                        },
+                    };
+                } else {
+                    updateQuery = {
+                        $set: updateData,
+                        $unset: {
+                            "reason.description": "",
+                            "reason.time": "",
+                        },
+                    };
+                }
+            } else {
+                // When only reason is there, and no status (update reason by coordinator)
+                updateQuery = {
+                    $set: {
+                        "reason.description": reason,
+                    },
+                };
+            }
 
             const updatedAttendance = await this.attendenceRepository.update(
                 { _id: attendenceId },
-                {
-                    $set: {
-                        status,
-                    },
-                },
-                {
-                    new: true,
-                }
+                updateQuery,
+                { new: true }
             );
 
-            // console.log(updatedAttendance);
+            if (!updatedAttendance)
+                throw new BadRequestError("Failed to update status !");
         } catch (err: unknown) {
             throw err;
         }

@@ -2,17 +2,23 @@ import cron from "node-cron";
 import { getStudentsIds } from "../grpc/client/userClient";
 import { AttendenceRepository } from "../repository/implementation/attendenceRepository";
 import Attendence from "../model/attendence";
-import { IAttendenceSchema } from "../entities/IAttendence";
 import { ObjectId } from "mongoose";
 import { SnapshotProducer } from "../events/producer/snapshotProducer";
 
 const attendenceRepository = new AttendenceRepository(Attendence);
+
+// Check weather today is sunday or not
+const isSunday = () => new Date().getDay() === 0;
 
 // Prepare attendence for all students of all batches on 7AM everyday
 cron.schedule(
     "* 7 * * *",
     async () => {
         try {
+            // Check weather today is sunday or not
+            if (isSunday()) return;
+
+            // Get all students ids
             const resp = await getStudentsIds();
 
             if (resp && resp.response?.status === 200) {
@@ -33,7 +39,7 @@ cron.schedule(
 
                 // console.log(todayAttendances);
 
-                //  Set of userIds who already have attendance
+                // Set of userIds who already have attendance
                 const existingUserIds = new Set(
                     todayAttendances.map((attendence) => attendence.userId.toString())
                 );
@@ -79,6 +85,9 @@ cron.schedule(
     "* 22 * * *",
     async () => {
         try {
+            // Check weather today is sunday or not
+            if (isSunday()) return;
+
             // Checkout students who checkedIn but didn't checkOut
             await attendenceRepository.updateMany(
                 { checkIn: { $ne: null }, status: "Pending", checkOut: null },
@@ -110,6 +119,9 @@ cron.schedule(
     "* 11 * * *",
     async () => {
         try {
+            // Check weather today is sunday or not
+            if (isSunday()) return;
+
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
@@ -130,6 +142,9 @@ cron.schedule(
     "* 13 * * *",
     async () => {
         try {
+            // Check weather today is sunday or not
+            if (isSunday()) return;
+
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
@@ -150,6 +165,9 @@ cron.schedule(
     "* 16 * * *",
     async () => {
         try {
+            // Check weather today is sunday or not
+            if (isSunday()) return;
+
             // Send snapshot event
             const snapshotProducer = new SnapshotProducer(
                 new Date().toLocaleTimeString(),
