@@ -33,15 +33,16 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { userId, activity } = req.query;
-            const { time, reason } = req.body;
+            const { userId, attendanceId, activity } = req.query;
+            const { reason } = req.body;
 
             const data = await this.attedenceService.checkInOut(
                 userId as string,
                 activity as string,
-                time,
-                reason
+                reason,
+                attendanceId as string
             );
+
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

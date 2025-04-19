@@ -29,106 +29,132 @@ export class AttendenceService implements IAttendenceService {
     async checkInOut(
         userId: string,
         activity: string,
-        time: string,
-        reason: string
+        reason: string,
+        attendanceId?: string
     ): Promise<ICheckInOutDto> {
         try {
-            // Check weather today is sunday or not
-            const today = new Date();
-            if (today.getDay() === 0) {
-                throw new BadRequestError(
-                    "You don't have to check-in or check-out on Sundays !"
-                );
-            }
-
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
-
-            const endOfDay = new Date();
-            endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
-
-            // Find attendence of today's with time range
-            const isAttendenceExist = await this.attendenceRepository.findOne({
-                userId,
-                date: { $gte: startOfDay, $lte: endOfDay },
-            });
-
-            // No such attendence registered by cronjob
-            if (!isAttendenceExist) {
-                throw new BadRequestError(
-                    `${activity === "checkIn" ? "Check-in" : "Check-out"
-                    } failed due to some issue !`
-                );
-            }
-
-            // If already checked In or checked Out
-            if (
-                (activity === "checkIn" && isAttendenceExist.checkIn) ||
-                (activity === "checkOut" && isAttendenceExist.checkOut)
-            ) {
-                throw new BadRequestError(
-                    `You have already ${activity === "checkIn" ? "checked-in " : "checked-out "
-                    }!`
-                );
-            }
+            // Updated attendence
+            let updatedAttendance;
 
             // Current time
             const currentTime = new Date();
             const hour = currentTime.getHours();
             const minute = currentTime.getMinutes();
 
-            // Check if Check-in is late or very late
-            if (activity === "checkIn" && !reason) {
-                if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
-                    throw new Error("You are late to check-in. Please fill the reason !");
-                } else if (hour > 10 || (hour === 10 && minute > 0)) {
+            // When students check-in or check-out, there won't be any attendence ID
+            if (!attendanceId) {
+                // Check weather today is sunday or not (for students)
+                const today = new Date();
+                if (today.getDay() === 0) {
                     throw new BadRequestError(
-                        "You are very late. Please contact your coordinator !"
+                        "You don't have to check-in or check-out on Sundays !"
                     );
                 }
-            }
 
-            // Check weather student crossed more than 8 hours
-            if (activity === "checkOut") {
-                if (!isAttendenceExist.checkIn) {
-                    throw new BadRequestError("You didn't even check-in to check-out !");
-                }
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
 
-                const currentHour = new Date().getHours();
-                const checkedInHour = Number(isAttendenceExist.checkIn.split(":")[0]);
-                if (currentHour - checkedInHour < 8) {
+                const endOfDay = new Date();
+                endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
+
+                // Find attendence of today's with time range
+                const isAttendenceExist = await this.attendenceRepository.findOne({
+                    userId,
+                    date: { $gte: startOfDay, $lte: endOfDay },
+                });
+
+                // No such attendence registered by cronjob
+                if (!isAttendenceExist) {
                     throw new BadRequestError(
-                        "You are not permitted to check-out right now !"
+                        `${activity === "checkIn" ? "Check-in" : "Check-out"
+                        } failed due to some issue !`
                     );
                 }
+
+                // If already checked-in or checked-out
+                if (
+                    (activity === "checkIn" && isAttendenceExist.checkIn) ||
+                    (activity === "checkOut" && isAttendenceExist.checkOut)
+                ) {
+                    throw new BadRequestError(
+                        `You have already ${activity === "checkIn" ? "checked-in " : "checked-out "
+                        }!`
+                    );
+                }
+
+                // Check if Check-in is late or very late
+                if (activity === "checkIn" && !reason) {
+                    if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
+                        throw new Error(
+                            "You are late to check-in. Please submit the reason !"
+                        );
+                    } else if (hour > 10 || (hour === 10 && minute > 0)) {
+                        throw new BadRequestError(
+                            "You are very late. Please contact your coordinator !"
+                        );
+                    }
+                }
+
+                // Check weather student crossed more than 8 hours
+                if (activity === "checkOut") {
+                    if (!isAttendenceExist.checkIn) {
+                        throw new BadRequestError(
+                            "You didn't even check-in to check-out !"
+                        );
+                    }
+
+                    const currentHour = new Date().getHours();
+                    const checkedInHour = Number(isAttendenceExist.checkIn.split(":")[0]);
+                    if (currentHour - checkedInHour < 8) {
+                        throw new BadRequestError(
+                            "You are not permitted to check-out right now !"
+                        );
+                    }
+                }
+
+                // Update attendence
+                updatedAttendance = await this.attendenceRepository.update(
+                    { userId, date: { $gte: startOfDay, $lte: endOfDay } },
+                    {
+                        $set:
+                            activity === "checkIn"
+                                ? {
+                                    checkIn: `${hour}:${minute}`,
+                                    reason: { reason, time: `${hour}:${minute}` },
+                                }
+                                : { checkOut: `${hour}:${minute}` },
+                    },
+                    { new: true }
+                );
+            }
+            // When coordinator check-in or check-out for students, attendence ID will be there
+            else {
+                updatedAttendance = await this.attendenceRepository.update(
+                    { _id: attendanceId },
+                    {
+                        $set:
+                            activity === "checkIn"
+                                ? { checkIn: `${hour}:${minute}` }
+                                : { checkOut: `${hour}:${minute}` },
+                    },
+                    { new: true }
+                );
             }
 
-            // Update attendence
-            const attendence = await this.attendenceRepository.update(
-                { userId, date: { $gte: startOfDay, $lte: endOfDay } },
-                {
-                    $set:
-                        activity === "checkIn"
-                            ? { checkIn: time, reason: { reason, time: `${hour}:${minute}` } }
-                            : { checkOut: time },
-                },
-                { new: true }
-            );
-
-            if (!attendence)
+            if (!updatedAttendance)
                 throw new BadRequestError(
-                    `${activity === "checkIn" ? "CheckIn" : "CheckOut"
+                    `${activity === "checkIn" ? "Check-in" : "Check-out"
                     } failed due to some issue !`
                 );
 
             // Map data to return type
             const checkInOut: ICheckInOutDto = {
                 userId,
-                date: attendence.date,
+                date: updatedAttendance.date,
                 ...(activity === "checkIn"
-                    ? { checkIn: attendence.checkIn }
-                    : { checkOut: attendence.checkOut }),
-                status: attendence.status,
+                    ? { checkIn: updatedAttendance.checkIn }
+                    : { checkOut: updatedAttendance.checkOut }),
+                status: updatedAttendance.status,
             };
 
             return checkInOut;
@@ -291,11 +317,11 @@ export class AttendenceService implements IAttendenceService {
 
             // Now check if snapshot is already uploaded
             const alreadyExists = attendance?.selfies?.some(
-                (selfie: any) => selfie.name === name
+                (selfie: any) => selfie && selfie.name === name
             );
 
             if (alreadyExists) {
-                throw new Error(`${name} break snapshot already submitted !`);
+                throw new Error(`${name}-break snapshot already submitted !`);
             }
 
             // New snapshot

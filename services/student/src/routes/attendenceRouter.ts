@@ -16,7 +16,7 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.getAttendence(req, res, next)
 );
 
-// Searrch Attendences
+// Search Attendences
 router.get("/search", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.searchAttendence(req, res, next)
 );
@@ -27,12 +27,12 @@ router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) 
 );
 
 // Upload Snapshot
-router.post("/upload-snapshot/:userId", (req: Request, res: Response, next: NextFunction) =>
+router.post("/snapshot/:userId", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.uploadSnapshot(req, res, next)
 );
 
 // Update status
-router.patch("/update-status/:attendenceId", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/status/:attendenceId", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.updateStatus(req, res, next)
 );
 
