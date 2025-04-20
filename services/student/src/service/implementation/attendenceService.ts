@@ -164,29 +164,54 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Retrieves the attendance record for a student based on the user ID and optional batch IDs.
-     * @param {string} userId - The ID of the user to search for attendence records
-     * @param {string[]} batchIds - The IDs of the batches to search for attendence records
-     * @returns {Promise<IAttendenceSchema>} - The attendance record if found, null otherwise
-     * @throws - Passes any errors to the caller
+     * Retrieves attendance records for a student based on user ID and optional month and year.
+     * @param {string} userId - The ID of the user to retrieve attendance records for
+     * @param {string} [month] - The month to retrieve attendance records for (Format: MM)
+     * @param {string} [year] - The year to retrieve attendance records for (Format: YYYY)
+     * @returns {Promise<IAttendenceSchema | IAttendenceSchema[]>} - The attendance records if found, error otherwise
+     * @throws {NotFoundError} - If no attendance records are found
      */
-    async getAttendence(userId: string): Promise<IAttendenceSchema> {
+    async getAttendence(
+        userId: string,
+        month?: string,
+        year?: string
+    ): Promise<IAttendenceSchema | IAttendenceSchema[]> {
         try {
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
+            // If month and year are not there
+            // To get single attendence of a student
+            if (!month && !year) {
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
 
-            const endOfDay = new Date();
-            endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
+                const endOfDay = new Date();
+                endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
 
-            // Find attendence of today's with time range
-            const attendance = await this.attendenceRepository.findOne({
-                userId,
-                date: { $gte: startOfDay, $lte: endOfDay },
-            });
+                // Find attendence of today's with time range
+                const attendance = await this.attendenceRepository.findOne({
+                    userId,
+                    date: { $gte: startOfDay, $lte: endOfDay },
+                });
 
-            if (!attendance) throw new NotFoundError("No attendence found !");
+                if (!attendance) throw new NotFoundError("No attendence found !");
 
-            return attendance;
+                return attendance;
+            }
+            // If month and year are there
+            // To get attendence of that month of that year of a student
+            else {
+                const attendence = await this.attendenceRepository.find({
+                    userId,
+                    date: {
+                        $gte: new Date(`${year}-${month}-01`),
+                        $lte: new Date(`${year}-${month}-31`),
+                    },
+                });
+
+                if (!attendence || attendence.length === 0)
+                    throw new NotFoundError("No attendence recorded this month !");
+
+                return attendence;
+            }
         } catch (err: unknown) {
             throw err;
         }
