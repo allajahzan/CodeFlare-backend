@@ -5,7 +5,7 @@ import { IAttendenceSchema } from "../../entities/IAttendence";
 export interface IAttendenceService {
     checkInOut(userId: string, activity: string, reason: string, attendanceId: string): Promise<ICheckInOutDto>;
     getAttendence(userId: string, month: string, year: string): Promise<IAttendenceSchema | IAttendenceSchema[]>
-    searchAttendence(userId: string, batchIds: string[], date: string): Promise<IAttendenceSchema[] | []>
+    searchAttendence(userId: string, batchIds: string[], date: string, sort: string, order: number, filter: string): Promise<IAttendenceSchema[] | []>
     uploadSnapshot(userId: string, imageUrl: string, location: string): Promise<void>;
     updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent" | "Late", reason: string): Promise<void>;
 }

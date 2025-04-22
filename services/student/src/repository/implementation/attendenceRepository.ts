@@ -56,17 +56,23 @@ export class AttendenceRepository
     }
 
     /**
-     * Searches for attendance records for a student based on user ID, batch IDs, and date.
-     * @param {string} userId - The ID of the user to search for attendence records
-     * @param {string[]} batchIds - The IDs of the batches to search for attendence records
-     * @param {string} date - The date to search for attendence records
-     * @returns {Promise<IAttendenceSchema[] | null>} - The attendance records if found, null otherwise
-     * @throws - Passes any errors to the caller
+     * Searches for attendance records based on user ID, batch IDs, date, and additional filters.
+     * @param {string} userId - The ID of the user to search for attendance records.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} date - The date to search for attendance records in "YYYY-MM-DD" format.
+     * @param {string} sort - The field by which to sort the results.
+     * @param {number} order - The order of sorting: 1 for ascending, -1 for descending.
+     * @param {string} filter - Additional filter for the status of attendance records.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @throws - Returns null in the event of an error.
      */
     async searchAttendence(
         userId: string,
         batchIds: string[],
-        date: string
+        date: string,
+        sort: string,
+        order: number,
+        filter: string
     ): Promise<IAttendenceSchema[] | null> {
         try {
             const attendence = await this.model.aggregate([
@@ -86,8 +92,12 @@ export class AttendenceRepository
                                 },
                             }
                             : {}),
+                        ...(filter && { status: filter }),
                     },
                 },
+                // {
+                //     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { checkIn: -1 },
+                // },
             ]);
 
             return attendence.length ? attendence : null;

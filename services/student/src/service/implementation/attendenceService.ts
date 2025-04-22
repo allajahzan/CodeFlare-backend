@@ -112,18 +112,27 @@ export class AttendenceService implements IAttendenceService {
                     }
                 }
 
-                // Update attendence
+                // Prepare update fields
+                let updateFields: any = {};
+
+                if (activity === "checkIn") {
+                    updateFields.checkIn = `${hour}:${minute}`;
+
+                    if (reason) {
+                        updateFields.reason = {
+                            description: reason,
+                            time: `${hour}:${minute}`,
+                        };
+                        updateFields.status = "Late";
+                    }
+                } else if (activity === "checkOut") {
+                    updateFields.checkOut = `${hour}:${minute}`;
+                }
+
+                // Update attendance
                 updatedAttendance = await this.attendenceRepository.update(
                     { userId, date: { $gte: startOfDay, $lte: endOfDay } },
-                    {
-                        $set:
-                            activity === "checkIn"
-                                ? {
-                                    checkIn: `${hour}:${minute}`,
-                                    reason: { reason, time: `${hour}:${minute}` },
-                                }
-                                : { checkOut: `${hour}:${minute}` },
-                    },
+                    { $set: updateFields },
                     { new: true }
                 );
             }
@@ -218,23 +227,32 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Searches for attendance records for a student based on user ID, batch IDs, and date.
-     * @param {string} userId - The ID of the user to search for attendence records
-     * @param {string[]} batchIds - The IDs of the batches to search for attendence records
-     * @param {string} date - The date to search for attendence records
-     * @returns {Promise<IAttendenceSchema[] | []>} - The attendance records if found, empty array otherwise
-     * @throws - Passes any errors to the caller
+     * Searches for attendance records based on user ID, batch IDs, date, and additional filters.
+     * @param {string} userId - The ID of the user to search for attendance records.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} date - The date to search for attendance records in "YYYY-MM-DD" format.
+     * @param {string} sort - The field by which to sort the results.
+     * @param {number} order - The order of sorting: 1 for ascending, -1 for descending.
+     * @param {string} filter - Additional filter for the status of attendance records.
+     * @returns {Promise<IAttendenceSchema[] | []>} - A promise that resolves to an array of attendance records if found, an empty array otherwise.
+     * @throws - Returns errors if any occurs during the process.
      */
     async searchAttendence(
         userId: string,
         batchIds: string[],
-        date: string
+        date: string,
+        sort: string,
+        order: number,
+        filter: string
     ): Promise<IAttendenceSchema[] | []> {
         try {
             const attendences = await this.attendenceRepository.searchAttendence(
                 userId,
                 batchIds,
-                date
+                date,
+                sort,
+                order,
+                filter
             );
 
             if (!attendences || !attendences.length) return [];

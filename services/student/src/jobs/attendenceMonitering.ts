@@ -88,21 +88,22 @@ cron.schedule(
             // Check weather today is sunday or not
             if (isSunday()) return;
 
+            // (optional)...
             // Checkout students who checkedIn but didn't checkOut
-            await attendenceRepository.updateMany(
-                { checkIn: { $ne: null }, status: "Pending", checkOut: null },
-                { $set: { checkOut: "22:00" } }
-            );
+            // await attendenceRepository.updateMany(
+            //     { checkIn: { $ne: null }, status: "Pending", checkOut: null },
+            //     { $set: { checkOut: "22:00" } }
+            // );
 
-            // Mark present for students who check in and status is pending
+            // Mark present for students who checked in & out, and status is pending
             await attendenceRepository.updateMany(
-                { checkIn: { $ne: null }, status: "Pending" },
+                { checkIn: { $ne: null }, checkOut: { $ne: null }, status: "Pending" },
                 { $set: { status: "Present" } }
             );
 
             // Mark absent for student who didn't check in
             await attendenceRepository.updateMany(
-                { checkIn: null },
+                { $or: [{ checkIn: null }, { checkOut: null }] },
                 { $set: { status: "Absent" } }
             );
         } catch (err: unknown) {

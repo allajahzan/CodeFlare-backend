@@ -90,12 +90,15 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { batchIds, userId, date } = req.query;
+            const { batchIds, userId, date, sort, order, filter } = req.query;
 
             const data = await this.attedenceService.searchAttendence(
                 userId as string,
                 (batchIds as string).split(","),
-                date as string
+                date as string,
+                sort as string,
+                Number(order),
+                filter as string
             );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
