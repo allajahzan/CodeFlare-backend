@@ -12,7 +12,7 @@ const isSunday = () => new Date().getDay() === 0;
 
 // Prepare attendence for all students of all batches on 7AM everyday
 cron.schedule(
-    "* 7 * * *",
+    "0 7 * * *",
     async () => {
         try {
             // Check weather today is sunday or not
@@ -32,7 +32,7 @@ cron.schedule(
                 const endOfDay = new Date();
                 endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
 
-                // Fetch all attendance records of today's
+                // Fetch all attendance lists of today's
                 const todayAttendances = await attendenceRepository.find({
                     date: { $gte: startOfDay, $lte: endOfDay },
                 });
@@ -75,14 +75,11 @@ cron.schedule(
             console.log(err);
         }
     },
-    {
-        timezone: "Asia/Kolkata",
-    }
 );
 
 // Mark attendence for all students of all batches on 10 PM everyday
 cron.schedule(
-    "* 22 * * *",
+    "0 22 * * *",
     async () => {
         try {
             // Check weather today is sunday or not
@@ -110,14 +107,11 @@ cron.schedule(
             console.log(err);
         }
     },
-    {
-        timezone: "Asia/Kolkata",
-    }
 );
 
 // Send snapshot notification for all students of all batches on 11 AM everyday
 cron.schedule(
-    "* 11 * * *",
+    "0 11 * * *",
     async () => {
         try {
             // Check weather today is sunday or not
@@ -133,14 +127,11 @@ cron.schedule(
             console.log(err);
         }
     },
-    {
-        timezone: "Asia/Kolkata",
-    }
 );
 
 // Send snapshot notification for all students of all batches on 1 PM everyday
 cron.schedule(
-    "* 13 * * *",
+    "0 13 * * *",
     async () => {
         try {
             // Check weather today is sunday or not
@@ -156,14 +147,11 @@ cron.schedule(
             console.log(err);
         }
     },
-    {
-        timezone: "Asia/Kolkata",
-    }
 );
 
 // Send snapshot notification for all students of all batches on 4 AM everyday
 cron.schedule(
-    "* 16 * * *",
+    "0 16 * * *",
     async () => {
         try {
             // Check weather today is sunday or not
@@ -179,7 +167,4 @@ cron.schedule(
             console.log(err);
         }
     },
-    {
-        timezone: "Asia/Kolkata",
-    }
 );

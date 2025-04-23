@@ -173,12 +173,12 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Retrieves attendance records for a student based on user ID and optional month and year.
-     * @param {string} userId - The ID of the user to retrieve attendance records for
-     * @param {string} [month] - The month to retrieve attendance records for (Format: MM)
-     * @param {string} [year] - The year to retrieve attendance records for (Format: YYYY)
-     * @returns {Promise<IAttendenceSchema | IAttendenceSchema[]>} - The attendance records if found, error otherwise
-     * @throws {NotFoundError} - If no attendance records are found
+     * Retrieves attendance lists for a student based on user ID and optional month and year.
+     * @param {string} userId - The ID of the user to retrieve attendance lists for
+     * @param {string} [month] - The month to retrieve attendance lists for (Format: MM)
+     * @param {string} [year] - The year to retrieve attendance lists for (Format: YYYY)
+     * @returns {Promise<IAttendenceSchema | IAttendenceSchema[]>} - The attendance lists if found, error otherwise
+     * @throws {NotFoundError} - If no attendance lists are found
      */
     async getAttendence(
         userId: string,
@@ -227,14 +227,14 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Searches for attendance records based on user ID, batch IDs, date, and additional filters.
-     * @param {string} userId - The ID of the user to search for attendance records.
-     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
-     * @param {string} date - The date to search for attendance records in "YYYY-MM-DD" format.
+     * Searches for attendance lists based on user ID, batch IDs, date, and additional filters.
+     * @param {string} userId - The ID of the user to search for attendance lists.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance lists.
+     * @param {string} date - The date to search for attendance lists in "YYYY-MM-DD" format.
      * @param {string} sort - The field by which to sort the results.
      * @param {number} order - The order of sorting: 1 for ascending, -1 for descending.
-     * @param {string} filter - Additional filter for the status of attendance records.
-     * @returns {Promise<IAttendenceSchema[] | []>} - A promise that resolves to an array of attendance records if found, an empty array otherwise.
+     * @param {string} filter - Additional filter for the status of attendance lists.
+     * @returns {Promise<IAttendenceSchema[] | []>} - A promise that resolves to an array of attendance lists if found, an empty array otherwise.
      * @throws - Returns errors if any occurs during the process.
      */
     async searchAttendence(

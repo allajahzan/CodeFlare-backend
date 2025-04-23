@@ -39,8 +39,8 @@ export class AttendenceRepository
 
     /**
      * Updates multiple attendances in the database
-     * @param {FilterQuery<IAttendenceSchema>} filter - Filter for the records to update
-     * @param {UpdateQuery<IAttendenceSchema>} update - Updates to apply to the records
+     * @param {FilterQuery<IAttendenceSchema>} filter - Filter for the lists to update
+     * @param {UpdateQuery<IAttendenceSchema>} update - Updates to apply to the lists
      * @returns {Promise<UpdateWriteOpResult | null>} - The result of the update operation if successful, null otherwise
      */
     async updateMany(
@@ -56,14 +56,14 @@ export class AttendenceRepository
     }
 
     /**
-     * Searches for attendance records based on user ID, batch IDs, date, and additional filters.
-     * @param {string} userId - The ID of the user to search for attendance records.
-     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
-     * @param {string} date - The date to search for attendance records in "YYYY-MM-DD" format.
+     * Searches for attendance lists based on user ID, batch IDs, date, and additional filters.
+     * @param {string} userId - The ID of the user to search for attendance lists.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance lists.
+     * @param {string} date - The date to search for attendance lists in "YYYY-MM-DD" format.
      * @param {string} sort - The field by which to sort the results.
      * @param {number} order - The order of sorting: 1 for ascending, -1 for descending.
-     * @param {string} filter - Additional filter for the status of attendance records.
-     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @param {string} filter - Additional filter for the status of attendance lists.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance lists if found, null otherwise.
      * @throws - Returns null in the event of an error.
      */
     async searchAttendence(

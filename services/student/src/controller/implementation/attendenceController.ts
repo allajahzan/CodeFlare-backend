@@ -50,7 +50,7 @@ export class AttendenceController implements IAttendenceController {
     }
 
     /**
-     * Retrieves attendance records for a student based on user ID and optional batch IDs.
+     * Retrieves attendance lists for a student based on user ID and optional batch IDs.
      * @param {Request} req - The express request object containing user ID and batch IDs in the query parameters.
      * @param {Response} res - The express response object used to send the attendance data back to the client.
      * @param {NextFunction} next - The express next middleware function for error handling.
@@ -77,7 +77,7 @@ export class AttendenceController implements IAttendenceController {
     }
 
     /**
-     * Searches for attendance records for a student based on user ID, batch IDs, and date.
+     * Searches for attendance lists for a student based on user ID, batch IDs, and date.
      * @param {Request} req - The express request object containing user ID, batch IDs, and date in the query parameters.
      * @param {Response} res - The express response object used to send the attendance data back to the client.
      * @param {NextFunction} next - The express next middleware function for error handling.
