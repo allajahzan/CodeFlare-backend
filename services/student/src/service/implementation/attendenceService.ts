@@ -20,11 +20,14 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Check In/Out a student
-     * @param {string} userId - Id of the student
-     * @param {string} activity - "checkIn" or "checkOut"
-     * @returns {Promise<ICheckInOutDto>} - The updated attendence document
-     * @throws {BadRequestError} - If update fails
+     * Handles the check-in or check-out process for a student.
+     * @param {string} userId - Unique identifier of the user.
+     * @param {string} activity - Type of activity ('checkIn' or 'checkOut').
+     * @param {string} [reason] - Reason for late check-in. Not required for normal check-in.
+     * @param {string} [attendanceId] - Unique identifier of the attendance to update. Optional.
+     * @returns {Promise<ICheckInOutDto>} - A promise that resolves when the operation is complete.
+     * @throws {BadRequestError} - If the check-in or check-out request is invalid.
+     * @throws {NotFoundError} - If the attendance record is not found.
      */
     async checkInOut(
         userId: string,
@@ -302,11 +305,13 @@ export class AttendenceService implements IAttendenceService {
 
     /**
      * Uploads a snapshot of a student.
-     * @param {string} userId - The ID of the user to upload snapshot.
-     * @param {string} imageUrl - The URL of the image to upload.
+     * @param {string} userId - The ID of the user to upload snapshot for
+     * @param {string} imageUrl - The URL of the image of the snapshot
+     * @param {string} location - The location of the snapshot
      * @returns {Promise<void>} - A promise that resolves when the snapshot is successfully uploaded and sent, or passes an error to the next middleware.
-     * @throws {BadRequestError} - If update fails.
-     * @throws {NotFoundError} - If attendence not found.
+     * @throws {NotFoundError} - If no attendance is found
+     * @throws {BadRequestError} - If not allowed time
+     * @throws - Passes any errors to the next middleware.
      */
     async uploadSnapshot(
         userId: string,
@@ -485,6 +490,95 @@ export class AttendenceService implements IAttendenceService {
 
             if (!updatedAttendance)
                 throw new BadRequestError("Failed to update status !");
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Retrieves a monthly overview of attendance records for a given user and batch IDs.
+     * @param {string} userId - The ID of the user to retrieve attendance for.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} month - The month to retrieve attendance records for.
+     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} filter - Additional filter criteria for attendance status.
+     * @returns {Promise<IAttendenceSchema[]>} - A promise that resolves to an array of attendance records with user and batch details.
+     * @throws {BadRequestError} - If there's an issue with fetching user info through gRPC.
+     * @throws {Error} - If any error occurs during the retrieval of attendance records.
+     */
+    async getMonthlyOverview(
+        userId: string,
+        batchIds: string[],
+        month: string,
+        year: number,
+        filter: string
+    ): Promise<IAttendenceSchema[]> {
+        try {
+            // Month map
+            const monthMap: Record<string, number> = {
+                January: 1,
+                February: 2,
+                March: 3,
+                April: 4,
+                May: 5,
+                June: 6,
+                July: 7,
+                August: 8,
+                September: 9,
+                October: 10,
+                November: 11,
+                December: 12,
+            };
+
+            // Get attendences
+            const attendences = await this.attendenceRepository.getMonthlyOverview(
+                userId,
+                batchIds,
+                monthMap[month],
+                year,
+                filter
+            );
+
+            if (!attendences || !attendences.length) return [];
+
+            const userIds = []; // UserIds
+
+            for (let i = 0; i < attendences.length; i++) {
+                userIds.push(...[attendences[i].userId as unknown as string]);
+            }
+
+            // Users info through gRPC
+            let usersMap: Record<
+                string,
+                {
+                    _id: string;
+                    name: string;
+                    email: string;
+                    role: string;
+                    profilePic: string;
+                    batch: any;
+                }
+            >;
+
+            const resp = await getUsers([...new Set(userIds)]);
+
+            // Success response from gRPC
+            if (resp && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            } else {
+                throw new BadRequestError(resp.response.message);
+            }
+
+            // Fetch batch details and user detils
+            const attendencesWithUserAndBatch = await Promise.all(
+                attendences.map(async (attendance) => ({
+                    ...(attendance.toObject ? attendance.toObject() : attendance),
+                    user: usersMap[attendance.userId.toString()],
+                    batch: await getCachedBatch(attendance.batchId), // Fetch batch details from Redis
+                }))
+            );
+
+            return attendencesWithUserAndBatch;
         } catch (err: unknown) {
             throw err;
         }

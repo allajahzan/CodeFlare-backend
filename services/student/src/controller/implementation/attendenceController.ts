@@ -164,4 +164,34 @@ export class AttendenceController implements IAttendenceController {
             next(err);
         }
     }
+
+    /**
+     * Retrieves a monthly overview of attendance records for a given user and batch IDs.
+     * @param {Request} req - The express request object containing the user ID and batch IDs in the query parameters.
+     * @param {Response} res - The express response object used to send the response back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the attendance records are successfully retrieved and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async getMonthlyOverview(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { batchIds, userId, month, years, filter } = req.query;
+
+            const data = await this.attedenceService.getMonthlyOverview(
+                userId as string,
+                (batchIds as string).split(","),
+                month as string,
+                Number(years),
+                filter as string
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
 }

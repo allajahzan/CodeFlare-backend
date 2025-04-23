@@ -8,4 +8,5 @@ export interface IAttendenceService {
     searchAttendence(userId: string, batchIds: string[], date: string, sort: string, order: number, filter: string): Promise<IAttendenceSchema[] | []>
     uploadSnapshot(userId: string, imageUrl: string, location: string): Promise<void>;
     updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent" | "Late", reason: string): Promise<void>;
+    getMonthlyOverview(userId: string, batchIds: string[], month: string, year: number, filter: string): Promise<IAttendenceSchema[]>
 }

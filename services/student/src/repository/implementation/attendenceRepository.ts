@@ -95,9 +95,52 @@ export class AttendenceRepository
                         ...(filter && { status: filter }),
                     },
                 },
-                // {
-                //     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { checkIn: -1 },
-                // },
+            ]);
+
+            return attendence.length ? attendence : null;
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves a monthly overview of attendance records based on user ID, batch IDs, month, year, and additional filters.
+     * @param {string} userId - The ID of the user to retrieve attendance records for.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} month - The month to retrieve attendance records for.
+     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} filter - Additional filter criteria for attendance status.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @throws - Returns null in the event of an error.
+     */
+    async getMonthlyOverview(
+        userId: string,
+        batchIds: string[],
+        month: number,
+        year: number,
+        filter: string
+    ): Promise<IAttendenceSchema[] | null> {
+        try {
+            const attendence = await this.model.aggregate([
+                {
+                    $match: {
+                        ...(batchIds.length && {
+                            batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
+                        }),
+                        ...(userId && { userId: new Types.ObjectId(userId) }),
+                        ...(month && year
+                            ? {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [{ $year: "$date" }, year] },
+                                        { $eq: [{ $month: "$date" }, month] },
+                                    ],
+                                },
+                            }
+                            : {}),
+                        ...(filter && { status: filter }),
+                    },
+                },
             ]);
 
             return attendence.length ? attendence : null;

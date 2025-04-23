@@ -36,4 +36,9 @@ router.patch("/status/:attendenceId", (req: Request, res: Response, next: NextFu
     attendenceController.updateStatus(req, res, next)
 );
 
+// Get Monthly Overview
+router.get("/monthly-overview", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.getMonthlyOverview(req, res, next)
+);
+
 export { router as attendenceRouter };
