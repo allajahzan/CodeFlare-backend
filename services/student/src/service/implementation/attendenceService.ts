@@ -445,8 +445,11 @@ export class AttendenceService implements IAttendenceService {
 
                 if (!attendance) throw new NotFoundError("Attendence not found !");
 
-                // Check if student is checked-in or not
-                if (!attendance.checkIn) {
+                // Check if student is checked-in or not if status is Late
+                if (
+                    (status === "Present" || status === "Late") &&
+                    !attendance.checkIn
+                ) {
                     throw new BadRequestError("Student didn't check-in yet !");
                 }
 

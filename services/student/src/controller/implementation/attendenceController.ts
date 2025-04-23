@@ -179,13 +179,13 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { batchIds, userId, month, years, filter } = req.query;
+            const { batchIds, userId, month, year, filter } = req.query;
 
             const data = await this.attedenceService.getMonthlyOverview(
                 userId as string,
                 (batchIds as string).split(","),
                 month as string,
-                Number(years),
+                Number(year),
                 filter as string
             );
 

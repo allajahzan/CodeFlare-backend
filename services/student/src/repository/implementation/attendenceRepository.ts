@@ -141,6 +141,11 @@ export class AttendenceRepository
                         ...(filter && { status: filter }),
                     },
                 },
+                {
+                    $sort: {
+                        date: -1,
+                    },
+                },
             ]);
 
             return attendence.length ? attendence : null;
