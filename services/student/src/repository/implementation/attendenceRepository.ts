@@ -197,7 +197,7 @@ export class AttendenceRepository
                 },
                 {
                     $group: {
-                        _id: { userId: "$userId", status: "$status" },
+                        _id: { userId: "$userId", batchId: "$batchId", status: "$status" },
                         count: { $sum: 1 },
                         records: { $push: "$$ROOT" },
                     },
@@ -211,6 +211,7 @@ export class AttendenceRepository
                     $project: {
                         _id: 0,
                         userId: "$_id.userId",
+                        batchId: "$_id.batchId",
                         status: "$_id.status",
                         count: 1,
                         records: 1,

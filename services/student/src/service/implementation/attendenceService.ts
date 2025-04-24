@@ -1,5 +1,5 @@
 import { BadRequestError, NotFoundError } from "@codeflare/common";
-import { ICheckInOutDto } from "../../dto/attendenceService";
+import { ICheckInOutDto } from "../../dto/attendenceDto";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
 import { ObjectId, UpdateQuery } from "mongoose";

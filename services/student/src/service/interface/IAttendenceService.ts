@@ -1,4 +1,4 @@
-import { ICheckInOutDto } from "../../dto/attendenceService";
+import { ICheckInOutDto } from "../../dto/attendenceDto";
 import { IAttendenceSchema } from "../../entities/IAttendence";
 
 /** Interface for Attendence Service */
