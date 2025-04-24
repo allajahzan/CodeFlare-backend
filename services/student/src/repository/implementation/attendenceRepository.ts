@@ -39,8 +39,8 @@ export class AttendenceRepository
 
     /**
      * Updates multiple attendances in the database
-     * @param {FilterQuery<IAttendenceSchema>} filter - Filter for the records to update
-     * @param {UpdateQuery<IAttendenceSchema>} update - Updates to apply to the records
+     * @param {FilterQuery<IAttendenceSchema>} filter - Filter for the lists to update
+     * @param {UpdateQuery<IAttendenceSchema>} update - Updates to apply to the lists
      * @returns {Promise<UpdateWriteOpResult | null>} - The result of the update operation if successful, null otherwise
      */
     async updateMany(
@@ -56,17 +56,23 @@ export class AttendenceRepository
     }
 
     /**
-     * Searches for attendance records for a student based on user ID, batch IDs, and date.
-     * @param {string} userId - The ID of the user to search for attendence records
-     * @param {string[]} batchIds - The IDs of the batches to search for attendence records
-     * @param {string} date - The date to search for attendence records
-     * @returns {Promise<IAttendenceSchema[] | null>} - The attendance records if found, null otherwise
-     * @throws - Passes any errors to the caller
+     * Searches for attendance lists based on user ID, batch IDs, date, and additional filters.
+     * @param {string} userId - The ID of the user to search for attendance lists.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance lists.
+     * @param {string} date - The date to search for attendance lists in "YYYY-MM-DD" format.
+     * @param {string} sort - The field by which to sort the results.
+     * @param {number} order - The order of sorting: 1 for ascending, -1 for descending.
+     * @param {string} filter - Additional filter for the status of attendance lists.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance lists if found, null otherwise.
+     * @throws - Returns null in the event of an error.
      */
     async searchAttendence(
         userId: string,
         batchIds: string[],
-        date: string
+        date: string,
+        sort: string,
+        order: number,
+        filter: string
     ): Promise<IAttendenceSchema[] | null> {
         try {
             const attendence = await this.model.aggregate([
@@ -86,11 +92,139 @@ export class AttendenceRepository
                                 },
                             }
                             : {}),
+                        ...(filter && { status: filter }),
                     },
                 },
             ]);
 
             return attendence.length ? attendence : null;
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves a monthly overview of attendance records based on user ID, batch IDs, month, year, and additional filters.
+     * @param {string} userId - The ID of the user to retrieve attendance records for.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} month - The month to retrieve attendance records for.
+     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} filter - Additional filter criteria for attendance status.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @throws - Returns null in the event of an error.
+     */
+    async getMonthlyOverview(
+        userId: string,
+        batchIds: string[],
+        month: number,
+        year: number,
+        filter: string
+    ): Promise<IAttendenceSchema[] | null> {
+        try {
+            const attendence = await this.model.aggregate([
+                {
+                    $match: {
+                        ...(batchIds.length && {
+                            batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
+                        }),
+                        ...(userId && { userId: new Types.ObjectId(userId) }),
+                        ...(month && year
+                            ? {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [{ $year: "$date" }, year] },
+                                        { $eq: [{ $month: "$date" }, month] },
+                                    ],
+                                },
+                            }
+                            : {}),
+                        ...(filter && { status: filter }),
+                    },
+                },
+                {
+                    $sort: {
+                        date: -1,
+                    },
+                },
+            ]);
+
+            return attendence.length ? attendence : null;
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves a list of students who have been flagged for attendance issues (absent or late) more than once in the given month and year.
+     * @param {string} userId - The ID of the user to retrieve attendance records for.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} month - The month to retrieve attendance records for.
+     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} filter - Additional filter criteria for attendance status.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @throws - Returns null in the event of an error.
+     */
+    async getFlaggedStudents(
+        userId: string,
+        batchIds: string[],
+        month: number,
+        year: number,
+        filter: string
+    ): Promise<IAttendenceSchema[] | null> {
+        try {
+            const attendences = await this.model.aggregate([
+                {
+                    $match: { status: { $in: ["Absent", "Late"] } },
+                },
+                {
+                    $match: {
+                        ...(batchIds.length && {
+                            batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
+                        }),
+                        ...(userId && { userId: new Types.ObjectId(userId) }),
+                        ...(month && year
+                            ? {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [{ $year: "$date" }, year] },
+                                        { $eq: [{ $month: "$date" }, month] },
+                                    ],
+                                },
+                            }
+                            : {}),
+                        ...(filter && { status: filter }),
+                    },
+                },
+                {
+                    $group: {
+                        _id: { userId: "$userId", batchId: "$batchId", status: "$status" },
+                        count: { $sum: 1 },
+                        records: { $push: "$$ROOT" },
+                    },
+                },
+                {
+                    $match: {
+                        count: { $gte: 2 },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: "$_id.userId",
+                        batchId: "$_id.batchId",
+                        status: "$_id.status",
+                        count: 1,
+                        records: 1,
+                    },
+                },
+                {
+                    $sort: {
+                        count: -1
+                    }
+                }
+            ]);
+
+            return attendences.length ? attendences : null;
         } catch (err: unknown) {
             return null;
         }

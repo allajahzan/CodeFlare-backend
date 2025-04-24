@@ -6,7 +6,7 @@ import { AttendenceController } from "../controller/implementation/attendenceCon
 
 const router = Router();
 
-// Dependency injuction
+// Dependency Injuction
 const attendenceRepository = new AttendenceRepository(Attendence);
 const attendenceService = new AttendenceService(attendenceRepository);
 const attendenceController = new AttendenceController(attendenceService);
@@ -16,7 +16,7 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.getAttendence(req, res, next)
 );
 
-// Searrch Attendences
+// Search Attendences
 router.get("/search", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.searchAttendence(req, res, next)
 );
@@ -24,6 +24,21 @@ router.get("/search", (req: Request, res: Response, next: NextFunction) =>
 // CheckInOut
 router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.checkInOut(req, res, next)
+);
+
+// Upload Snapshot
+router.post("/snapshot/:userId", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.uploadSnapshot(req, res, next)
+);
+
+// Update Status
+router.patch("/status/:attendenceId", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.updateStatus(req, res, next)
+);
+
+// Get Monthly Attendence
+router.get("/monthly-attendence", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.getMonthlyAttendence(req, res, next)
 );
 
 export { router as attendenceRouter };

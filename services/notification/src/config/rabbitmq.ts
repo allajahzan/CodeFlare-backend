@@ -1,6 +1,7 @@
 import { RabbitMQConnection } from "@codeflare/common";
 import amqp from "amqplib";
 import snapshotConsumer from "../events/consumer/snapshotConsumer";
+import warningConsumer from "../events/consumer/warningConsumer";
 
 class RabbitMQ {
     private _channel: amqp.Channel | null = null;
@@ -29,6 +30,7 @@ class RabbitMQ {
 
             // consumers
             snapshotConsumer.consume();
+            warningConsumer.consume();
             
         } catch (err: any) {
             throw new Error(err);

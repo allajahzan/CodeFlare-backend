@@ -68,9 +68,8 @@ export const getUsers = (
 };
 
 /**
- * Retrieves the students' ids given the batchIds from the user service.
- * @param {string[]} batchIds - The batch ids to retrieve the students' ids for.
- * @returns {Promise<{ response: { status: number; message: string; data: any } }>} - Promise that resolves to the response from the user service.
+ * Retrieves all students' ids.
+ * @returns A Promise that resolves to an object containing the list of students, otherwise rejects with an error.
  */
 export const getStudentsIds = (): Promise<{
     response: {

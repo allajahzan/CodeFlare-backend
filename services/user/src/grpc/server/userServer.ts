@@ -142,7 +142,11 @@ export const updateUser = async (call: any, callback: any) => {
         );
 
         callback(null, {
-            response: { status: 200, message: "User updated", data: updatedUser },
+            response: {
+                status: 200,
+                message: "Successfully updated user info",
+                data: updatedUser,
+            },
         });
     } catch (err) {
         console.log(err);
@@ -164,34 +168,32 @@ export const updateUser = async (call: any, callback: any) => {
  */
 export const getStudentsIds = async (call: any, callback: any) => {
     try {
-        const { batchIds } = call.request;
+        const data = await userRepository.find({ role: "student" });
 
-        if (batchIds) {
-            console.log("und und und ", batchIds);
-        } else {
-            const data = await userRepository.find({ role: "student" });
+        // Map data to return type
+        const students: {
+            _id: string;
+            name: string;
+            email: string;
+            role: string;
+            profilePic: string;
+            batch: string;
+        }[] = data.map((student) => ({
+            _id: student._id as unknown as string,
+            name: student.name,
+            email: student.email,
+            role: student.role,
+            profilePic: student.profilePic || "",
+            batch: student.batch as unknown as string,
+        }));
 
-            // Map data to return type
-            const students: {
-                _id: string;
-                name: string;
-                email: string;
-                role: string;
-                profilePic: string;
-                batch: string;
-            }[] = data.map((student) => ({
-                _id: student._id as unknown as string,
-                name: student.name,
-                email: student.email,
-                role: student.role,
-                profilePic: student.profilePic || "",
-                batch: student.batch as unknown as string,
-            }));
-
-            callback(null, {
-                response: { status: 200, message: "User updated", students },
-            });
-        }
+        callback(null, {
+            response: {
+                status: 200,
+                message: "Successfully fetched users info",
+                students,
+            },
+        });
     } catch (err) {
         console.log(err);
         callback(null, {
