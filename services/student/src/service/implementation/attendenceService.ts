@@ -499,17 +499,19 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Retrieves a monthly overview of attendance records for a given user and batch IDs.
-     * @param {string} userId - The ID of the user to retrieve attendance for.
+     * Retrieves attendance records based on type, user ID, batch IDs, month, year, and additional filters.
+     * @param {string} type - The type of attendance records to retrieve, either "monthly-overview" or "tagged-students".
+     * @param {string} userId - The ID of the user to retrieve attendance records for.
      * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
-     * @param {string} month - The month to retrieve attendance records for.
-     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} month - The month to retrieve attendance records for (Format: January, February, etc.).
+     * @param {number} year - The year to retrieve attendance records for (Format: YYYY).
      * @param {string} filter - Additional filter criteria for attendance status.
-     * @returns {Promise<IAttendenceSchema[]>} - A promise that resolves to an array of attendance records with user and batch details.
-     * @throws {BadRequestError} - If there's an issue with fetching user info through gRPC.
-     * @throws {Error} - If any error occurs during the retrieval of attendance records.
+     * @returns {Promise<IAttendenceSchema[]>} - A promise that resolves to an array of attendance records if found, an empty array otherwise.
+     * @throws {BadRequestError} - If user ID or batch IDs are not found.
+     * @throws {NotFoundError} - If attendance records are not found.
      */
-    async getMonthlyOverview(
+    async getMonthlyAttendence(
+        type: string,
         userId: string,
         batchIds: string[],
         month: string,
@@ -534,13 +536,29 @@ export class AttendenceService implements IAttendenceService {
             };
 
             // Get attendences
-            const attendences = await this.attendenceRepository.getMonthlyOverview(
-                userId,
-                batchIds,
-                monthMap[month],
-                year,
-                filter
-            );
+            let attendences;
+
+            // Monthly overview of all students
+            if (type === "monthly-overview") {
+                attendences = await this.attendenceRepository.getMonthlyOverview(
+                    userId,
+                    batchIds,
+                    monthMap[month],
+                    year,
+                    filter
+                );
+            }
+            // Flagged students who is late or absent more thatn 2 days
+            else if (type === "flagged-students") {
+                console.log("hey")
+                attendences = await this.attendenceRepository.getFlaggedStudents(
+                    userId,
+                    batchIds,
+                    monthMap[month],
+                    year,
+                    filter
+                );
+            }
 
             if (!attendences || !attendences.length) return [];
 

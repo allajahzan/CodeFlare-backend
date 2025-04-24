@@ -173,15 +173,16 @@ export class AttendenceController implements IAttendenceController {
      * @returns {Promise<void>} - A promise that resolves when the attendance records are successfully retrieved and sent, or passes an error to the next middleware.
      * @throws - Passes any errors to the next middleware.
      */
-    async getMonthlyOverview(
+    async getMonthlyAttendence(
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<void> {
         try {
-            const { batchIds, userId, month, year, filter } = req.query;
+            const { type, batchIds, userId, month, year, filter } = req.query;
 
-            const data = await this.attedenceService.getMonthlyOverview(
+            const data = await this.attedenceService.getMonthlyAttendence(
+                type as string,
                 userId as string,
                 (batchIds as string).split(","),
                 month as string,

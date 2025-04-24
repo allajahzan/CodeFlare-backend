@@ -8,4 +8,5 @@ export interface IAttendenceRepository extends IBaseRepository<IAttendenceSchema
     updateMany(filter: FilterQuery<IAttendenceSchema>, update: UpdateQuery<IAttendenceSchema>, options?: QueryOptions): Promise<UpdateWriteOpResult | null>;
     searchAttendence(userId: string, batchIds: string[], date: string, sort: string, order: number, filter: string): Promise<IAttendenceSchema[] | null>
     getMonthlyOverview(userId: string, batchIds: string[], month: number, year: number, filter: string): Promise<IAttendenceSchema[] | null>
+    getFlaggedStudents(userId: string, batchIds: string[], month: number, year: number, filter: string): Promise<IAttendenceSchema[] | null>
 }

@@ -153,4 +153,79 @@ export class AttendenceRepository
             return null;
         }
     }
+
+    /**
+     * Retrieves a list of students who have been flagged for attendance issues (absent or late) more than once in the given month and year.
+     * @param {string} userId - The ID of the user to retrieve attendance records for.
+     * @param {string[]} batchIds - A list of batch IDs to filter attendance records.
+     * @param {string} month - The month to retrieve attendance records for.
+     * @param {number} year - The year to retrieve attendance records for.
+     * @param {string} filter - Additional filter criteria for attendance status.
+     * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
+     * @throws - Returns null in the event of an error.
+     */
+    async getFlaggedStudents(
+        userId: string,
+        batchIds: string[],
+        month: number,
+        year: number,
+        filter: string
+    ): Promise<IAttendenceSchema[] | null> {
+        try {
+            const attendences = await this.model.aggregate([
+                {
+                    $match: { status: { $in: ["Absent", "Late"] } },
+                },
+                {
+                    $match: {
+                        ...(batchIds.length && {
+                            batchId: { $in: batchIds.map((id) => new Types.ObjectId(id)) },
+                        }),
+                        ...(userId && { userId: new Types.ObjectId(userId) }),
+                        ...(month && year
+                            ? {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [{ $year: "$date" }, year] },
+                                        { $eq: [{ $month: "$date" }, month] },
+                                    ],
+                                },
+                            }
+                            : {}),
+                        ...(filter && { status: filter }),
+                    },
+                },
+                {
+                    $group: {
+                        _id: { userId: "$userId", status: "$status" },
+                        count: { $sum: 1 },
+                        records: { $push: "$$ROOT" },
+                    },
+                },
+                {
+                    $match: {
+                        count: { $gte: 2 },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: "$_id.userId",
+                        status: "$_id.status",
+                        count: 1,
+                        records: 1,
+                    },
+                },
+                {
+                    $sort: {
+                        count: -1
+                    }
+                }
+            ]);
+
+            return attendences.length ? attendences : null;
+        } catch (err: unknown) {
+            return null;
+        }
+    }
 }
