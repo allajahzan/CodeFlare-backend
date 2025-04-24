@@ -17,13 +17,13 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Create warning
-router.post("/create", (req: Request, res: Response, next: NextFunction) =>
+router.post("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.createWarning(req, res, next)
 );
 
 // Reply to warning
-router.post("/reply", (req: Request, res: Response, next: NextFunction) =>
+router.patch("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.replyToWarning(req, res, next)
 );
 
-export { router as warningRouter}
+export { router as warningRouter };
