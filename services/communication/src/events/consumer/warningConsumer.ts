@@ -1,24 +1,38 @@
 import amqp from "amqplib";
 import { rabbitmq } from "../../config/rabbitmq";
-import { Exchanges, QUEUES } from "@codeflare/common";
+import { Exchanges, QUEUES, IWarning } from "@codeflare/common";
 import { getIO } from "../../socket/connection";
+import { NotificationRepository } from "../../repository/implementation/notificationRespository";
+import { NotificationService } from "../../service/implementation/notificationService";
+import Notification from "../../model/notificationSchema";
+import { INotificationSchema } from "../../entities/INotification";
+import { getSocketId } from "../../utils/registerUser";
+import { ObjectId } from "mongoose";
+
+// Dependency Injuction
+const notificationRepository = new NotificationRepository(Notification);
+const notificationService = new NotificationService(notificationRepository);
 
 // Warning consumer
 class WarningConsumer {
-    consume() {
+    async consume() {
         try {
             // Assert exchange - fanout
-            rabbitmq.channel.assertExchange(Exchanges.WARNING_EXCHANGE, "fanout", {
-                durable: true,
-            });
+            await rabbitmq.channel.assertExchange(
+                Exchanges.WARNING_EXCHANGE,
+                "fanout",
+                {
+                    durable: true,
+                }
+            );
 
             // Assert queue
-            rabbitmq.channel.assertQueue(QUEUES.WARNING_QUEUE, {
+            await rabbitmq.channel.assertQueue(QUEUES.WARNING_QUEUE, {
                 durable: true,
             });
 
             // Bind queue to exchange
-            rabbitmq.channel.bindQueue(
+            await rabbitmq.channel.bindQueue(
                 QUEUES.WARNING_QUEUE,
                 Exchanges.WARNING_EXCHANGE,
                 ""
@@ -29,22 +43,39 @@ class WarningConsumer {
                 QUEUES.WARNING_QUEUE,
                 async (data: amqp.ConsumeMessage | null) => {
                     try {
-                        if (!data) throw new Error("recieved null message");
+                        if (!data) throw new Error("Received null message");
 
-                        const message = JSON.parse(data.content as any); // Message
+                        const message: IWarning = JSON.parse(data.content.toString());
 
-                        if (!message || !message.time)
-                            throw new Error("recieved null message");
+                        if (!message) throw new Error("Received malformed message");
 
-                        // Emit message to all connected clients
+                        // Notification
+                        const notification: Partial<INotificationSchema> = {
+                            senderId: message.senderId as unknown as ObjectId,
+                            receiverId: message.receiverId as unknown as ObjectId,
+                            message: message.message,
+                            type: "warning",
+                        };
+
+                        // Create new notification
+                        await notificationService.createNotification(notification);
+
+                        // Socket instance
                         const io = getIO();
-                        io.emit("receiveWarning", message);
 
+                        // Send notification event to the exact receiver 
+                        io.to((await getSocketId(message.receiverId)) as string).emit(
+                            "receiveWarning",
+                            { ...message, date: new Date() }
+                        );
+
+                        // Acknowledge message
                         rabbitmq.channel.ack(data);
-                        console.log("data consumed from queue", message);
+
+                        console.log("Warning event consumed and send notification");
                     } catch (err) {
+                        console.error("Consumer processing error:", err);
                         rabbitmq.channel.nack(data as amqp.ConsumeMessage, false, true);
-                        console.log(err);
                     }
                 }
             );

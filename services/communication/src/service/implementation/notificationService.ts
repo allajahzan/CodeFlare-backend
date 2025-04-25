@@ -1,7 +1,7 @@
 import { BadRequestError } from "@codeflare/common";
 import { INotificationSchema } from "../../entities/INotification";
 import { INotificationRepository } from "../../repository/interface/INotificationRepository";
-import { INotificationService } from "../interface/InotificationService";
+import { INotificationService } from "../interface/INotificationService";
 
 /** Implemnetation of Notification Service */
 export class NotificationService implements INotificationService {
@@ -44,7 +44,7 @@ export class NotificationService implements INotificationService {
      * @throws {BadRequestError} If the notification could not be created.
      */
     async createNotification(
-        notification: INotificationSchema
+        notification: Partial<INotificationSchema>
     ): Promise<INotificationSchema> {
         try {
             const newNotifaction = await this.notificationRepository.create(

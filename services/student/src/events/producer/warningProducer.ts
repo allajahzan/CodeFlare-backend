@@ -1,62 +1,50 @@
 import { rabbitmq } from "../../config/rabbitmq";
-import { Exchanges } from "@codeflare/common";
+import { Exchanges, IUser } from "@codeflare/common";
 
 // Warning producer
 export class WarningProducer {
-    private time: string;
+    private senderId: string;
+    private sender: IUser;
+    private receiverId: string;
     private message: string;
-    private sender: {
-        name: string;
-        email: string;
-        role: string;
-        profilePic: string;
-    };
-    private reciver: string;
 
     constructor(
-        time: string,
-        message: string,
-        sender: {
-            name: string;
-            email: string;
-            role: string;
-            profilePic: string;
-        },
-        reciver: string
+        senderId: string,
+        sender: IUser,
+        receiverId: string,
+        message: string
     ) {
-        this.time = time;
-        this.message = message;
+        this.senderId = senderId;
         this.sender = sender;
-        this.reciver = reciver;
+        this.receiverId = receiverId;
+        this.message = message;
     }
 
-    publish() {
+    async publish() {
         try {
-            // Assert exchange - fanout
-            rabbitmq.channel.assertExchange(Exchanges.WARNING_EXCHANGE, "fanout", {
+            // Await the promise
+            await rabbitmq.channel.assertExchange(Exchanges.WARNING_EXCHANGE, "fanout", {
                 durable: true,
             });
-
-            // Publish to exchange
+    
             rabbitmq.channel.publish(
                 Exchanges.WARNING_EXCHANGE,
                 "",
                 Buffer.from(
                     JSON.stringify({
-                        time: this.time,
-                        message: this.message,
+                        senderId: this.senderId,
                         sender: this.sender,
-                        reciever: this.reciver,
-                        path: "/student/attendence/warning",
+                        receiverId: this.receiverId,
+                        message: this.message,
                     })
                 ),
                 { persistent: true }
             );
-
+    
             console.log("Warning event published");
         } catch (err: any) {
             console.log(err);
-            throw new Error(err);
+            throw new Error(err?.message || "Something went wrong !");
         }
     }
-}
+}    

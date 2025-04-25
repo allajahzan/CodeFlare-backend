@@ -8,7 +8,7 @@ const NotificationSchema = new Schema<INotificationSchema>(
             type: Schema.Types.ObjectId,
             required: true,
         },
-        recieverId: {
+        receiverId: {
             type: Schema.Types.ObjectId,
             required: true,
         },
@@ -22,7 +22,8 @@ const NotificationSchema = new Schema<INotificationSchema>(
         },
         date: {
             type: Date,
-            required: true,
+            required: false,
+            default: Date.now,
         },
         isRead: {
             type: Boolean,

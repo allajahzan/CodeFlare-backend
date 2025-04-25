@@ -72,14 +72,16 @@ export class WarningService implements IWarningService {
                 throw new NotFoundError("Failed to send warning to student !");
             }
 
-            // Send warning event
+            // Send warning event through rabbitmq
             const warningProducer = new WarningProducer(
-                new Date().toLocaleTimeString(),
-                newWarning.message,
+                newWarning.coordinatorId as unknown as string,
                 coordinator,
-                newWarning.studentId.toString()
+                newWarning.studentId as unknown as string,
+                newWarning.message
             );
-            warningProducer.publish();
+
+            // Publish event
+            warningProducer.publish(); 
 
             // Map data ro return type
             const warningDto: IWarningDto = {

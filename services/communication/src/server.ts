@@ -6,6 +6,7 @@ import app from "./app";
 import { connectRedis, MongodbConnection } from "@codeflare/common";
 import http from 'http'
 import { connectSocketIO } from "./socket/connection";
+import { rabbitmq } from "./config/rabbitmq";
 
 // server
 const startServer = async () => {
@@ -16,6 +17,9 @@ const startServer = async () => {
 
         // connect to redis
         connectRedis();
+
+        // connect to rabbitmq
+        await rabbitmq.connect();
 
         // Chat socket connection initialization
         const server = http.createServer(app);
