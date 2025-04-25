@@ -11,9 +11,10 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.38",
+    "@codeflare/common": "^1.0.43",
     "@grpc/grpc-js": "^1.12.5",
     "@grpc/proto-loader": "^0.7.13",
+    "amqplib": "^0.10.7",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -25,6 +26,7 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/express": "^5.0.0",
     "@types/express-fileupload": "^1.5.1",
     "@types/mongoose": "^5.11.96",

@@ -24,7 +24,3 @@ services/student/node_modules
 # Communication serrvice
 services/communication/.env
 services/communication/node_modules
-
-# Notification service
-services/notification/.env
-services/notification/node_modules
