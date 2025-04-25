@@ -1,7 +1,8 @@
 import { Schema, model } from "mongoose";
+import { INotificationSchema } from "../entities/INotification";
 
 /** Implementation of Notification Schema */
-const NotificationSchema = new Schema(
+const NotificationSchema = new Schema<INotificationSchema>(
     {
         senderId: {
             type: Schema.Types.ObjectId,
