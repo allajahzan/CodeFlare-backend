@@ -20,6 +20,10 @@ const NotificationSchema = new Schema<INotificationSchema>(
             type: String,
             required: true,
         },
+        path: {
+            type: String,
+            required: true,
+        },
         date: {
             type: Date,
             required: false,

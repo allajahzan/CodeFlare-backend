@@ -57,6 +57,7 @@ export class WarningService implements IWarningService {
      */
     async createWarning(warning: IWarningSchema): Promise<IWarningDto> {
         try {
+            // New warning
             const newWarning = await this.warningRepository.createWarning(warning);
 
             if (!newWarning)
@@ -69,7 +70,7 @@ export class WarningService implements IWarningService {
             if (resp.response.status === 200) {
                 coordinator = resp.response.user;
             } else {
-                throw new NotFoundError("Failed to send warning to student !");
+                throw new NotFoundError("An unexpected error occurred !");
             }
 
             // Send warning event through rabbitmq
@@ -77,11 +78,11 @@ export class WarningService implements IWarningService {
                 newWarning.coordinatorId as unknown as string,
                 coordinator,
                 newWarning.studentId as unknown as string,
-                newWarning.message
+                "Warning from coordinator regarding attendance."
             );
 
             // Publish event
-            warningProducer.publish(); 
+            warningProducer.publish();
 
             // Map data ro return type
             const warningDto: IWarningDto = {
@@ -107,7 +108,6 @@ export class WarningService implements IWarningService {
      * @returns A promise that resolves to the updated warning data transfer object if successful, otherwise throws an error.
      * @throws {BadRequestError} If the reply could not be sent to the coordinator.
      */
-
     async replyToWarning(warningId: string, reply: string): Promise<IWarningDto> {
         try {
             const warning = await this.warningRepository.replyToWarning(

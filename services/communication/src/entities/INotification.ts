@@ -6,6 +6,7 @@ export interface INotificationSchema extends Document {
     receiverId: Schema.Types.ObjectId;
     message: string,
     type: string;
+    path: string;
     date: Date;
     createdAt: Date;
     isRead: boolean;

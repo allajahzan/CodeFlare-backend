@@ -2,6 +2,8 @@ import { BadRequestError } from "@codeflare/common";
 import { INotificationSchema } from "../../entities/INotification";
 import { INotificationRepository } from "../../repository/interface/INotificationRepository";
 import { INotificationService } from "../interface/INotificationService";
+import { getUsers } from "../../grpc/client/userClient";
+import { INotificationDto } from "../../dto/notificationDto";
 
 /** Implemnetation of Notification Service */
 export class NotificationService implements INotificationService {
@@ -21,7 +23,7 @@ export class NotificationService implements INotificationService {
      * @returns A promise that resolves to the list of notifications as INotificationSchema objects or an empty array if no notifications are found.
      * @throws An error if there is a problem retrieving the notifications.
      */
-    async getNotifications(recieverId: string): Promise<INotificationSchema[]> {
+    async getNotifications(recieverId: string): Promise<INotificationDto[]> {
         try {
             const notifications = await this.notificationRepository.find({
                 recieverId,
@@ -31,7 +33,50 @@ export class NotificationService implements INotificationService {
                 return [];
             }
 
-            return notifications;
+            let userIds: string[] = []; // User Ids
+
+            for (let i = 0; i < notifications.length; i++) {
+                userIds.push(notifications[i].senderId as unknown as string);
+            }
+
+            let usersMap: Record<
+                string,
+                {
+                    _id: string;
+                    name: string;
+                    email: string;
+                    role: string;
+                    profilePic: string;
+                    batch: string;
+                }
+            >;
+
+            // Fetch users info from user service through gRPC
+            const resp = await getUsers([...new Set(userIds)]);
+
+            if (resp && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            } else {
+                throw new Error("Failed load chats due to some issues!");
+            }
+
+            // Map data to return type
+            const notificationsMapped: INotificationDto[] = notifications.map(
+                (notification) => {
+                    return {
+                        _id: notification._id as unknown as string,
+                        senderId: notification.senderId as unknown as string,
+                        sender: usersMap[notification.senderId as unknown as string],
+                        recieverId: notification.senderId as unknown as string,
+                        message: notification.message,
+                        type: notification.type,
+                        path: notification.path,
+                        date: notification.date,
+                    };
+                }
+            );
+
+            return notificationsMapped;
         } catch (err: unknown) {
             throw err;
         }

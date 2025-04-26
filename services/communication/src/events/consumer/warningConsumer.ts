@@ -55,6 +55,7 @@ class WarningConsumer {
                             receiverId: message.receiverId as unknown as ObjectId,
                             message: message.message,
                             type: "warning",
+                            path: "/student/attendance/warning-messages",
                         };
 
                         // Create new notification
@@ -63,7 +64,7 @@ class WarningConsumer {
                         // Socket instance
                         const io = getIO();
 
-                        // Send notification event to the exact receiver 
+                        // Send notification event to the exact receiver
                         io.to((await getSocketId(message.receiverId)) as string).emit(
                             "receiveWarning",
                             { ...message, date: new Date() }

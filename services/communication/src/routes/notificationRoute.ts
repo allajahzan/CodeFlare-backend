@@ -36,4 +36,4 @@ router.delete("/", (req: Request, res: Response, next: NextFunction) =>
     notificationController.deleteNotification(req, res, next)
 );
 
-export { router as messageRoute };
+export { router as notifiactionRoute };
