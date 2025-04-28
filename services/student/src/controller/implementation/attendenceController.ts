@@ -179,7 +179,8 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { type, batchIds, userId, month, year, filter } = req.query;
+            const { type, batchIds, userId, month, year, filter, skip, limit } =
+                req.query;
 
             const data = await this.attedenceService.getMonthlyAttendence(
                 type as string,
@@ -187,7 +188,9 @@ export class AttendenceController implements IAttendenceController {
                 (batchIds as string).split(","),
                 month as string,
                 Number(year),
-                filter as string
+                filter as string,
+                Number(skip),
+                Number(limit)
             );
 
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);

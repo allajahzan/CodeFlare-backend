@@ -516,7 +516,9 @@ export class AttendenceService implements IAttendenceService {
         batchIds: string[],
         month: string,
         year: number,
-        filter: string
+        filter: string,
+        skip: number,
+        limit: number
     ): Promise<IAttendenceSchema[]> {
         try {
             // Month map
@@ -545,17 +547,21 @@ export class AttendenceService implements IAttendenceService {
                     batchIds,
                     monthMap[month],
                     year,
-                    filter
+                    filter,
+                    skip,
+                    limit
                 );
             }
             // Attendence defaulters who is late or absent more thatn 2 days
             else if (type === "attendence-defaulters") {
-                attendences = await this.attendenceRepository.getFlaggedStudents(
+                attendences = await this.attendenceRepository.getDefaulters(
                     userId,
                     batchIds,
                     monthMap[month],
                     year,
-                    filter
+                    filter,
+                    skip,
+                    limit
                 );
             }
 

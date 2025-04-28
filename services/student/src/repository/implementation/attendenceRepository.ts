@@ -118,7 +118,9 @@ export class AttendenceRepository
         batchIds: string[],
         month: number,
         year: number,
-        filter: string
+        filter: string,
+        skip: number,
+        limit: number
     ): Promise<IAttendenceSchema[] | null> {
         try {
             const attendence = await this.model.aggregate([
@@ -146,6 +148,12 @@ export class AttendenceRepository
                         date: -1,
                     },
                 },
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: limit,
+                },
             ]);
 
             return attendence.length ? attendence : null;
@@ -164,12 +172,14 @@ export class AttendenceRepository
      * @returns {Promise<IAttendenceSchema[] | null>} - A promise that resolves to an array of attendance records if found, null otherwise.
      * @throws - Returns null in the event of an error.
      */
-    async getFlaggedStudents(
+    async getDefaulters(
         userId: string,
         batchIds: string[],
         month: number,
         year: number,
-        filter: string
+        filter: string,
+        skip: number,
+        limit: number
     ): Promise<IAttendenceSchema[] | null> {
         try {
             const attendences = await this.model.aggregate([
@@ -219,9 +229,15 @@ export class AttendenceRepository
                 },
                 {
                     $sort: {
-                        count: -1
-                    }
-                }
+                        count: -1,
+                    },
+                },
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: limit,
+                },
             ]);
 
             return attendences.length ? attendences : null;
