@@ -19,14 +19,14 @@ export class NotificationService implements INotificationService {
 
     /**
      * Retrieves the list of notifications for a user with the given recieverId.
-     * @param recieverId - The id of the user to retrieve notifications for.
+     * @param receiverId - The id of the user to retrieve notifications for.
      * @returns A promise that resolves to the list of notifications as INotificationSchema objects or an empty array if no notifications are found.
      * @throws An error if there is a problem retrieving the notifications.
      */
-    async getNotifications(recieverId: string): Promise<INotificationDto[]> {
+    async getNotifications(receiverId: string): Promise<INotificationDto[]> {
         try {
             const notifications = await this.notificationRepository.find({
-                recieverId,
+                receiverId,
             });
 
             if (!notifications || notifications.length === 0) {
@@ -131,14 +131,14 @@ export class NotificationService implements INotificationService {
 
     /**
      * Updates all unread notifications in the database to mark them as read.
-     * @param recieverId - The id of the user to update the notifications for.
+     * @param receiverId - The id of the user to update the notifications for.
      * @returns A promise that resolves to null if the update operation was successful, otherwise rejects with an error.
      * @throws {Error} If the update operation failed.
      */
-    async updateAllNotifications(recieverId: string): Promise<void> {
+    async updateAllNotifications(receiverId: string): Promise<void> {
         try {
             const result = await this.notificationRepository.updateAllNotifications(
-                recieverId
+                receiverId
             );
 
             if (!result) throw new Error("An unexpected error occured !");

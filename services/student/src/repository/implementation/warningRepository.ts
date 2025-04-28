@@ -1,7 +1,7 @@
 import { BaseRepository } from "@codeflare/common";
 import { IWarningSchema } from "../../entities/IWarning";
 import { IWarningRepository } from "../interface/IWarningRepository";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 /** Implementation of Warning Repository */
 export class WarningRepository
@@ -13,6 +13,46 @@ export class WarningRepository
      */
     constructor(model: Model<IWarningSchema>) {
         super(model);
+    }
+
+    /**
+     * Retrieves the list of warnings for a student with the given student ID and in the given month and year.
+     * @param studentId - The ID of the student to retrieve warnings for.
+     * @param month - The month to retrieve warnings for.
+     * @param year - The year to retrieve warnings for
+     * @returns A promise that resolves to the list of warnings as IWarningSchema
+     * objects, or null if no warnings are found.
+     */
+    async getWarnings(
+        studentId: string,
+        month: number,
+        year: number
+    ): Promise<IWarningSchema[] | null> {
+        try {
+            const warnings = await this.model.aggregate([
+                {
+                    $match: {
+                        studentId: new Types.ObjectId(studentId),
+                        ...(month &&
+                            year && {
+                            $expr: {
+                                $and: [
+                                    { $eq: [{ $year: "$date" }, year] },
+                                    { $eq: [{ $month: "$date" }, month] },
+                                ],
+                            },
+                        }),
+                    },
+                },
+                {
+                    $sort: { date: -1 },
+                },
+            ]);
+
+            return warnings.length ? warnings : null;
+        } catch (err: unknown) {
+            return null;
+        }
     }
 
     /**

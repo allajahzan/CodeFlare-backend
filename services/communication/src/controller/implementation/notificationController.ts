@@ -25,10 +25,10 @@ export class NotificationController implements INotificationController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { recieverId } = req.query;
+            const { receiverId } = req.query;
 
             const data = await this.notificationService.getNotifications(
-                recieverId as string
+                receiverId as string
             );
 
             SendResponse(res, HttpStatusCode.Ok, ResponseMessage.SUCCESS, data);
@@ -103,9 +103,9 @@ export class NotificationController implements INotificationController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { recieverId } = req.params;
+            const { receiverId } = req.params;
 
-            await this.notificationService.updateAllNotifications(recieverId);
+            await this.notificationService.updateAllNotifications(receiverId);
 
             SendResponse(res, HttpStatusCode.Ok, ResponseMessage.SUCCESS);
         } catch (err: unknown) {

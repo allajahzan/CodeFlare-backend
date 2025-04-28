@@ -548,9 +548,8 @@ export class AttendenceService implements IAttendenceService {
                     filter
                 );
             }
-            // Flagged students who is late or absent more thatn 2 days
-            else if (type === "flagged-students") {
-                console.log("hey")
+            // Attendence defaulters who is late or absent more thatn 2 days
+            else if (type === "attendence-defaulters") {
                 attendences = await this.attendenceRepository.getFlaggedStudents(
                     userId,
                     batchIds,

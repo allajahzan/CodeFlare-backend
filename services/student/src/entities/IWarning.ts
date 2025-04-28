@@ -12,6 +12,6 @@ export interface IWarningSchema extends Document {
     coordinatorId: MongooseSchema.Types.ObjectId;
     message: string;
     date: Date;
-    reply?: IReply;
+    reply?: IReply[];
     createdAt: Date;
 }

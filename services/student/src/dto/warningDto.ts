@@ -10,7 +10,7 @@ export interface IWarningDto {
     studentId: string;
     coordinatorId: string;
     message: string;
-    reply: IReply;
+    reply: IReply[];
     date: Date;
     createdAt: Date;
 }

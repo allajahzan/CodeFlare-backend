@@ -24,9 +24,33 @@ export class WarningService implements IWarningService {
      * @returns A promise that resolves to the list of warnings as IWarningDto objects.
      * @throws {NotFoundError} If the user is not found.
      */
-    async getWarnings(userId: string): Promise<IWarningDto[]> {
+    async getWarnings(
+        userId: string,
+        month: string,
+        year: number
+    ): Promise<IWarningDto[]> {
         try {
-            const warnings = await this.warningRepository.find({ studentId: userId });
+            // Month map
+            const monthMap: Record<string, number> = {
+                January: 1,
+                February: 2,
+                March: 3,
+                April: 4,
+                May: 5,
+                June: 6,
+                July: 7,
+                August: 8,
+                September: 9,
+                October: 10,
+                November: 11,
+                December: 12,
+            };
+
+            const warnings = await this.warningRepository.getWarnings(
+                userId,
+                monthMap[month],
+                year
+            );
 
             if (!warnings || warnings.length == 0) {
                 return [];
@@ -40,7 +64,7 @@ export class WarningService implements IWarningService {
                 message: warning.message,
                 date: warning.date,
                 createdAt: warning.createdAt,
-                reply: warning.reply as IReply,
+                reply: warning.reply as IReply[],
             }));
 
             return warningsDto;
@@ -90,7 +114,7 @@ export class WarningService implements IWarningService {
                 studentId: newWarning.studentId.toString(),
                 coordinatorId: newWarning.coordinatorId.toString(),
                 message: newWarning.message,
-                reply: newWarning.reply as IReply,
+                reply: newWarning.reply as IReply[],
                 date: newWarning.date,
                 createdAt: newWarning.createdAt,
             };
@@ -123,7 +147,7 @@ export class WarningService implements IWarningService {
                 studentId: warning.studentId.toString(),
                 coordinatorId: warning.coordinatorId.toString(),
                 message: warning.message,
-                reply: warning.reply as IReply,
+                reply: warning.reply as IReply[],
                 date: warning.date,
                 createdAt: warning.createdAt,
             };

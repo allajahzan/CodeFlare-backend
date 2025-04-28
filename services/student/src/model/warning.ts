@@ -20,10 +20,12 @@ const WarningSchema = new Schema<IWarningSchema>(
             type: Date,
             required: true,
         },
-        reply: {
-            message: { type: String },
-            repliedAt: { type: Date },
-        },
+        reply: [
+            {
+              message: { type: String },
+              date: { type: Date }
+            }
+          ],
     },
     { timestamps: true }
 );

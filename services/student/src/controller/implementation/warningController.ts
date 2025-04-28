@@ -15,13 +15,31 @@ export class WarningController implements IWarningController {
         this.warningService = warningService;
     }
 
-    async getWarnings(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try{
-            const { userId } = req.query;
+    /**
+     * Get warnings for a student of a perticular month and year.
+     * @param {Request} req - Express request object containing the warning data in the body.
+     * @param {Response} res - Express response object used to send the result back to the client.
+     * @param {NextFunction} next - Express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async getWarnings(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { userId, month, year } = req.query;
 
-            const warnings = await this.warningService.getWarnings(userId as string);
-        }catch(err: unknown){
-            next(err)
+            const data = await this.warningService.getWarnings(
+                userId as string,
+                month as string,
+                Number(year)
+            );
+
+            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
         }
     }
 
