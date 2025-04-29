@@ -25,10 +25,12 @@ export class NotificationController implements INotificationController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { receiverId } = req.query;
+            const { receiverId, limit, skip } = req.query;
 
             const data = await this.notificationService.getNotifications(
-                receiverId as string
+                receiverId as string,
+                Number(limit),
+                Number(skip)
             );
 
             SendResponse(res, HttpStatusCode.Ok, ResponseMessage.SUCCESS, data);

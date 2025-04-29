@@ -4,5 +4,6 @@ import { UpdateWriteOpResult } from "mongoose";
 
 /** Interface for Notification Repository */
 export interface INotificationRepository extends IBaseRepository<INotificationSchema> {
-    updateAllNotifications(recieverId: string): Promise<UpdateWriteOpResult| null>
+    updateAllNotifications(receiverId: string): Promise<UpdateWriteOpResult| null>
+    getNotifications(receiverId: string, limit: number, skip: number): Promise<INotificationSchema[] | null>
 }

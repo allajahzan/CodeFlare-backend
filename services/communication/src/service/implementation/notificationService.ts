@@ -23,11 +23,17 @@ export class NotificationService implements INotificationService {
      * @returns A promise that resolves to the list of notifications as INotificationSchema objects or an empty array if no notifications are found.
      * @throws An error if there is a problem retrieving the notifications.
      */
-    async getNotifications(receiverId: string): Promise<INotificationDto[]> {
+    async getNotifications(
+        receiverId: string,
+        limit: number,
+        skip: number
+    ): Promise<INotificationDto[]> {
         try {
-            const notifications = await this.notificationRepository.find({
-                receiverId,
-            });
+            const notifications = await this.notificationRepository.getNotifications(
+                receiverId as string,
+                limit,
+                skip
+            );
 
             if (!notifications || notifications.length === 0) {
                 return [];
