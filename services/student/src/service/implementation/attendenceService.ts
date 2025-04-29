@@ -6,17 +6,24 @@ import { ObjectId, UpdateQuery } from "mongoose";
 import { IAttendenceSchema, ISelfie } from "../../entities/IAttendence";
 import { getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
+import { IWarningRepository } from "../../repository/interface/IWarningRepository";
 
 /** Implementation of Attendence Service */
 export class AttendenceService implements IAttendenceService {
     private attendenceRepository: IAttendenceRepository;
+    private warningRepository: IWarningRepository;
 
     /**
-     * Constructor for Attendence Service
-     * @param {IAttendenceRepository} attendenceRepository instance of attendence repository
+     * Constructor for AttendenceService
+     * @param {IAttendenceRepository} attendenceRepository - Instance of AttendenceRepository
+     * @param {IWarningRepository} warningRepository - Instance of WarningRepository
      */
-    constructor(attendenceRepository: IAttendenceRepository) {
+    constructor(
+        attendenceRepository: IAttendenceRepository,
+        warningRepository: IWarningRepository
+    ) {
         this.attendenceRepository = attendenceRepository;
+        this.warningRepository = warningRepository;
     }
 
     /**
@@ -601,6 +608,13 @@ export class AttendenceService implements IAttendenceService {
                     ...(attendance.toObject ? attendance.toObject() : attendance),
                     user: usersMap[attendance.userId.toString()],
                     batch: await getCachedBatch(attendance.batchId), // Fetch batch details from Redis
+                    ...(type === "attendence-defaulters" && { // Fetch warnings also of the student in the given month
+                        warnings: await this.warningRepository.getWarnings(
+                            attendance.userId.toString(),
+                            monthMap[month],
+                            year
+                        ),
+                    }),
                 }))
             );
 
