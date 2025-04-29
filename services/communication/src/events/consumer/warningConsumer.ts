@@ -1,6 +1,6 @@
 import amqp from "amqplib";
 import { rabbitmq } from "../../config/rabbitmq";
-import { Exchanges, QUEUES, IWarning } from "@codeflare/common";
+import { Exchanges, QUEUES, IWarningProduced } from "@codeflare/common";
 import { getIO } from "../../socket/connection";
 import { NotificationRepository } from "../../repository/implementation/notificationRespository";
 import { NotificationService } from "../../service/implementation/notificationService";
@@ -45,29 +45,40 @@ class WarningConsumer {
                     try {
                         if (!data) throw new Error("Received null message");
 
-                        const message: IWarning = JSON.parse(data.content.toString());
+                        const warning: IWarningProduced = JSON.parse(
+                            data.content.toString()
+                        );
 
-                        if (!message) throw new Error("Received malformed message");
+                        if (!warning) throw new Error("Received null message");
 
                         // Notification
                         const notification: Partial<INotificationSchema> = {
-                            senderId: message.senderId as unknown as ObjectId,
-                            receiverId: message.receiverId as unknown as ObjectId,
-                            message: message.message,
+                            senderId: warning.senderId as unknown as ObjectId,
+                            receiverId: warning.receiverId as unknown as ObjectId,
+                            message: warning.message,
                             type: "warning",
-                            path: "/student/attendance/warning-messages",
+                            path: "/student/attendance",
+                            date: new Date(warning.date),
                         };
 
                         // Create new notification
-                        await notificationService.createNotification(notification);
+                        const newNotification =
+                            await notificationService.createNotification(notification);
 
                         // Socket instance
                         const io = getIO();
 
-                        // Send notification event to the exact receiver
-                        io.to((await getSocketId(message.receiverId)) as string).emit(
-                            "receiveWarning",
-                            { ...message, date: new Date() }
+                        // Emit notification event to the exact receiver
+                        io.to((await getSocketId(warning.receiverId)) as string).emit(
+                            "receiveNotification",
+                            {
+                                _id: newNotification._id,
+                                sender: warning.sender,
+                                type: newNotification.type,
+                                path: newNotification.path,
+                                message: newNotification.message,
+                                date: newNotification.date,
+                            }
                         );
 
                         // Acknowledge message

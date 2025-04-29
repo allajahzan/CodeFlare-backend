@@ -26,7 +26,7 @@ export class WarningProducer {
             await rabbitmq.channel.assertExchange(Exchanges.WARNING_EXCHANGE, "fanout", {
                 durable: true,
             });
-    
+
             rabbitmq.channel.publish(
                 Exchanges.WARNING_EXCHANGE,
                 "",
@@ -36,11 +36,12 @@ export class WarningProducer {
                         sender: this.sender,
                         receiverId: this.receiverId,
                         message: this.message,
+                        date: new Date().toString()
                     })
                 ),
                 { persistent: true }
             );
-    
+
             console.log("Warning event published");
         } catch (err: any) {
             console.log(err);

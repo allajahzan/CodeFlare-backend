@@ -26,8 +26,7 @@ const NotificationSchema = new Schema<INotificationSchema>(
         },
         date: {
             type: Date,
-            required: false,
-            default: Date.now,
+            required: false
         },
         isRead: {
             type: Boolean,
