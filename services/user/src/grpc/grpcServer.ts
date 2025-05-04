@@ -31,7 +31,7 @@ export const startGrpcServer = () => {
 
         // Bind server
         server.bindAsync(
-            "0.0.0.0:50052",
+            process.env.GRPC_URL as string,
             grpc.ServerCredentials.createInsecure(),
             () => {
                 console.log("GRPC server for user service running on port 50052");

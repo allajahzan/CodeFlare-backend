@@ -1,5 +1,3 @@
-/** Implementation of Profile Service */
-
 import {
     comparePassword,
     hashPassword,
@@ -14,6 +12,7 @@ import { IProfileSchema } from "../../entities/IProfileSchema";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
 
+/** Implementation of Profile Service */
 export class ProfileService implements IProfileService {
     private profileRepository: IProfileRepository;
     private userRepository: IUserRepository;

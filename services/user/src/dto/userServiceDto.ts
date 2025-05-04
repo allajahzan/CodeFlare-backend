@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import { IBatch } from "@codeflare/common";
 
 /** Dto for userLogin */
 export interface IUserLoginDto {
@@ -18,11 +18,7 @@ export interface IRefreshTokenDto {
     accessToken: string;
 }
 
-/** Dto for User */
-interface IBatch {
-    _id: string;
-    name: string;
-}
+/** Dto for user */
 export interface IUserDto {
     _id: string| unknown;
     name: string;
@@ -36,5 +32,4 @@ export interface IUserDto {
     lastActive?: Date;
     createdAt: Date;
     isBlock?: boolean;
-    qrCode?: string;
 }

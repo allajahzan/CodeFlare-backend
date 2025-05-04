@@ -560,7 +560,7 @@ export class AttendenceService implements IAttendenceService {
                 );
             }
             // Attendence defaulters who is late or absent more thatn 2 days
-            else if (type === "attendence-defaulters") {
+            else if (type === "monthly-defaulters") {
                 attendences = await this.attendenceRepository.getDefaulters(
                     userId,
                     batchIds,
@@ -608,7 +608,8 @@ export class AttendenceService implements IAttendenceService {
                     ...(attendance.toObject ? attendance.toObject() : attendance),
                     user: usersMap[attendance.userId.toString()],
                     batch: await getCachedBatch(attendance.batchId), // Fetch batch details from Redis
-                    ...(type === "attendence-defaulters" && { // Fetch warnings also of the student in the given month
+                    ...(type === "monthly-defaulters" && {
+                        // Fetch warnings also of the student in the given month
                         warnings: await this.warningRepository.getWarnings(
                             attendance.userId.toString(),
                             monthMap[month],

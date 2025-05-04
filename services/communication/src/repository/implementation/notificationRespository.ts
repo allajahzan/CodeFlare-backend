@@ -34,30 +34,30 @@ export class NotificationRepository
     }
 
     /**
-     * Retrieves the list of notifications for a user with the given recieverId for the current month.
+     * Retrieves the list of notifications for a user with the given recieverId. The retrieval is limited to the last four weeks.
      * @param receiverId - The id of the user to retrieve notifications for.
-     * @param limit - The number of notifications to return.
-     * @param skip - The number of notifications to skip.
+     * @param limit - The maximum number of notifications to retrieve.
+     * @param skip - The number of notifications to skip before retrieving notifications.
      * @returns A promise that resolves to the list of notifications as INotificationSchema objects or null if no notifications are found.
      * @throws An error if there is a problem retrieving the notifications.
      */
     async getNotifications(
         receiverId: string,
-        limit: number,
-        skip: number
+        limit?: number,
+        skip?: number
     ): Promise<INotificationSchema[] | null> {
         try {
             const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const fourWeeksAgo = new Date();
+            fourWeeksAgo.setDate(now.getDate() - 28);
 
-            const notifications = await this.model.aggregate([
+            const pipeline: any[] = [
                 {
                     $match: {
                         receiverId: new Types.ObjectId(receiverId),
                         createdAt: {
-                            $gte: firstDayOfMonth,
-                            $lte: lastDayOfMonth,
+                            $gte: fourWeeksAgo,
+                            $lte: now,
                         },
                     },
                 },
@@ -66,13 +66,18 @@ export class NotificationRepository
                         createdAt: -1,
                     },
                 },
-                {
-                    $skip: skip,
-                },
-                {
-                    $limit: limit,
-                },
-            ]);
+            ];
+
+            // If limit and skip is given, apply it to the aggregation pipeline
+            if (typeof skip === "number" && skip > 0) {
+                pipeline.push({ $skip: skip });
+            }
+
+            if (typeof limit === "number" && limit > 0) {
+                pipeline.push({ $limit: limit });
+            }
+
+            const notifications = await this.model.aggregate(pipeline);
 
             return notifications.length > 0 ? notifications : null;
         } catch (err: unknown) {

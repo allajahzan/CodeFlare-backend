@@ -1,6 +1,7 @@
-import { redisClient } from "@codeflare/common";
+import { redisClient, IBatch } from "@codeflare/common";
 import { IUserSchema } from "../entities/IUserSchema";
 import { ObjectId } from "mongoose";
+import { IUserDto } from "../dto/userServiceDto";
 
 /**
  * Retrieves a batch from the cache.
@@ -13,8 +14,8 @@ export const getCachedBatch = async (batchId: string | ObjectId) => {
         const data = await redisClient.get("batches");
         if (!data) return null;
 
-        const batches: { _id: string; name: string }[] = JSON.parse(data);
-        
+        const batches: IBatch[] = JSON.parse(data);
+
         return batches.find((b) => b._id === batchId?.toString()) || null;
     } catch (err) {
         console.error("Error fetching batch from cache:", err);
@@ -34,7 +35,7 @@ export const getCachedBatches = async (batchIds: ObjectId[]) => {
 
         if (!data) return [];
 
-        const batches: { _id: string; name: string }[] = JSON.parse(data);
+        const batches: IBatch[] = JSON.parse(data);
 
         //  Convert ObjectId to string
         const batchIdStrings = batchIds.map((id) => id.toString());
@@ -52,14 +53,15 @@ export const getCachedBatches = async (batchIds: ObjectId[]) => {
  * @returns A promise that resolves to an array of user objects with their batch details.
  * @throws An error if there is a problem retrieving the batch details from the cache.
  */
-export const getUsersWithBatchDetails = async (users: IUserSchema[]) => {
+export const getUsersWithBatchDetails = async (
+    users: IUserSchema[]
+): Promise<IUserDto[]> => {
     try {
-
         // plane users
-        const planeUsers = users.map(user => 
+        const planeUsers = users.map((user) =>
             user.toObject ? user.toObject() : user
         );
-        
+
         // Unique batch ids
         const uniqueBatchIds = [
             ...new Set(
@@ -74,8 +76,13 @@ export const getUsersWithBatchDetails = async (users: IUserSchema[]) => {
         const cachedBatches = await getCachedBatches(uniqueBatchIds);
 
         // Map planeUsers with batch details
-        return planeUsers.map((user : IUserSchema) => ({
-            ...user,
+        const mappedUsers: IUserDto[] = planeUsers.map((user: IUserSchema) => ({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profilePic: user.profilePic,
+            createdAt: user.createdAt,
             ...(user.batch
                 ? {
                     batch:
@@ -93,6 +100,8 @@ export const getUsersWithBatchDetails = async (users: IUserSchema[]) => {
                 }
                 : {}),
         }));
+
+        return mappedUsers;
     } catch (err) {
         throw err;
     }

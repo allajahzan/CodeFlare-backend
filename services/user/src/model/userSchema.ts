@@ -74,10 +74,6 @@ const userSchema = new Schema<IUserSchema>(
             type: Boolean,
             default: true,
         },
-        qrCode: {
-            type: String,
-            required: false
-        }
     },
     { timestamps: true }
 );

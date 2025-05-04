@@ -30,8 +30,6 @@ import {
     getCachedBatches,
     getUsersWithBatchDetails,
 } from "../../utils/cachedBatch";
-import { generateQRcode } from "../../utils/generateQRcode";
-import User from "../../model/userSchema";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -121,7 +119,7 @@ export class UserService implements IUserService {
                 password: hashedPassword,
             });
 
-            if (!newUser) throw new Error("Failed to add the user!");
+            if (!newUser) throw new BadRequestError("Failed to add the user!");
 
             // Mapping data to return type
             const userRegisterDto: IUserRegisterDto = {
@@ -213,15 +211,7 @@ export class UserService implements IUserService {
         }
     }
 
-    /**
-     * Resets the user's password using the provided token and new password.
-     * @param password - The new password to set for the user.
-     * @param confirmPassword - The confirmation of the new password to verify they match.
-     * @param token - The token used to verify the user's identity and authorization to reset the password.
-     * @returns A promise that resolves when the password reset process is complete.
-     * @throws {Error} If the token is not found, expired, or invalid, or if the passwords do not match.
-     * @throws {NotFoundError} If the user account associated with the token is not found.
-     */
+
     async userResetPassword(password: string, token: string): Promise<void> {
         try {
             if (!token) throw new NotFoundError("Token not found!");
@@ -272,7 +262,7 @@ export class UserService implements IUserService {
      * @param token - The refresh token used to verify and generate a new access token.
      * @returns A promise that resolves to an object containing the new access token if successful, otherwise the promise is rejected with an error.
      * @throws {ForbiddenError} If the token is not provided.
-     * @throws {Error} If any error occurs during token verification or generation.
+     * @throws {BadRequestError} If any error occurs during token verification or generation.
      */
     async refreshToken(token: string): Promise<IRefreshTokenDto> {
         try {
@@ -312,24 +302,24 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Retrieves the user data based on the x-user-id header.
-     * @param userId - The x-user-id header containing the user id.
-     * @returns A promise that resolves to an object containing the user data if found, otherwise the promise is rejected with an error.
-     * @throws {UnauthorizedError} If the userId is not provided or is invalid.
-     * @throws {NotFoundError} If the user is not found.
+     * Retrieves a user by id from the user repository.
+     * @param userQuery The stringified JSON object containing the user id.
+     * @returns A promise that resolves to the user if found, otherwise rejects with an error.
+     * @throws {UnauthorizedError} If the user query is not provided.
+     * @throws {NotFoundError} If the user account is not found.
      */
-    async getUser(userId: string): Promise<IUserDto> {
+    async getUser(userQuery: string): Promise<IUserDto> {
         try {
-            if (!userId)
+            if (!userQuery)
                 throw new UnauthorizedError(
-                    "Athentication failed. Please login again!"
+                    "Authorization failed. Please login again!"
                 );
 
-            const { _id, batchId } = JSON.parse(userId as string);
+            const { _id } = JSON.parse(userQuery as string);
 
             const user = await this.userRepository.findOne({
                 _id,
-                ...(batchId && { batch: batchId }),
+                // ...(batchId && { batch: batchId }),
             });
 
             if (!user)
@@ -350,7 +340,6 @@ export class UserService implements IUserService {
                 ...(user.batches ? { batches: batches } : {}),
                 ...(user.week ? { week: user.week } : {}),
                 createdAt: user.createdAt,
-                qrCode: user.qrCode,
             };
 
             return userDto;
@@ -428,7 +417,7 @@ export class UserService implements IUserService {
                 users as IUserSchema[]
             );
 
-            return usersWithBatchDetails as IUserDto[];
+            return usersWithBatchDetails;
         } catch (err: unknown) {
             throw err;
         }
@@ -441,7 +430,7 @@ export class UserService implements IUserService {
      * @returns A promise that resolves to an object containing the newly created user if successful, otherwise the promise is rejected with an error.
      * @throws {UnauthorizedError} If the token is not provided or is invalid.
      * @throws {ConflictError} If the user already exists with the same email.
-     * @throws {Error} If any error occurs during the creation of a new user.
+     * @throws {BadRequestError} If any error occurs during the creation of a new user.
      */
     async createUser(user: IUserSchema, tokenPayload: string): Promise<IUserDto> {
         try {
@@ -457,19 +446,7 @@ export class UserService implements IUserService {
 
             const newUser = await this.userRepository.create(user);
 
-            if (!newUser) throw new Error("Failed to add the user!");
-
-            if (user.role === "student") { // Generate a qr code for students
-                const qrCodeImage = await generateQRcode(
-                    newUser._id as unknown as string
-                );
-
-                // Save qrcode to db
-                await this.userRepository.update(
-                    { _id: newUser._id },
-                    { $set: { qrCode: qrCodeImage } }
-                );
-            }
+            if (!newUser) throw new BadRequestError("Failed to add the user!");
 
             const payload = { _id: newUser._id as string, role: newUser.role }; // Generate JWT token to send with email
 
@@ -516,7 +493,7 @@ export class UserService implements IUserService {
      * @param user - The user object to update the user with.
      * @returns A promise that resolves to an object containing the updated user if successful, otherwise rejects with an error.
      * @throws {ConflictError} If the user already exists.
-     * @throws {Error} If any error occurs during user update.
+     * @throws {BadRequestError} If any error occurs during user update.
      */
     async updateUser(_id: string, user: IUserSchema): Promise<IUserDto> {
         try {
@@ -534,7 +511,7 @@ export class UserService implements IUserService {
                 { new: true }
             );
 
-            if (!updatedUser) throw new Error("Failed to update the user!");
+            if (!updatedUser) throw new BadRequestError("Failed to update the user!");
 
             // Get batch details
             const batch = await getCachedBatch(user.batch);
@@ -569,7 +546,7 @@ export class UserService implements IUserService {
      * @param _id - The id of the user to block or unblock.
      * @returns A promise that resolves to an object containing the blocked or unblocked user if successful, otherwise rejects with an error.
      * @throws {NotFoundError} If the user is not found.
-     * @throws {Error} If any error occurs during user blocking or unblocking.
+     * @throws {BadRequestError} If any error occurs during user blocking or unblocking.
      */
     async changeUserStatus(_id: string): Promise<void> {
         try {
@@ -584,7 +561,7 @@ export class UserService implements IUserService {
                 : await this.userRepository.blockUser(_id);
 
             if (!updatedUser) {
-                throw new Error(
+                throw new BadRequestError(
                     user.isblock
                         ? "Failed to unblock the user!"
                         : "Failed to block the user!"
@@ -603,7 +580,7 @@ export class UserService implements IUserService {
      * @returns A promise that resolves to an array of user objects if the users are found, otherwise rejects with an error.
      * @throws {UnauthorizedError} If the token payload is invalid or not provided.
      * @throws {NotFoundError} If the user is not found.
-     * @throws {Error} If any error occurs during the user search process.
+     * @throws {BadRequestError} If any error occurs during the user search process.
      */
     async searchUsers(
         tokenPayload: string,
@@ -659,7 +636,7 @@ export class UserService implements IUserService {
                 users as IUserSchema[]
             );
 
-            return usersWithBatchDetails as IUserDto[];
+            return usersWithBatchDetails;
         } catch (err: unknown) {
             throw err;
         }

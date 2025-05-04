@@ -12,7 +12,7 @@ export interface IUserService {
     refreshToken(token: string): Promise<IRefreshTokenDto>
 
     // User CRUD related methods
-    getUser(requesterId: string): Promise<IUserDto>;
+    getUser(userQuery: string): Promise<IUserDto>;
     getUsers(tokenPayload?: string, status?: string): Promise<IUserDto[]>;
     searchUsers(tokenPayload: string, keyword: string, isBlocked: string, sort: string, order: number, category: string, batchId: string): Promise<IUserDto[]>
     createUser(user: Partial<IUserSchema>, tokenPayload: string): Promise<IUserDto>;
