@@ -28,9 +28,10 @@ export class BatchService implements IBatchService {
 
             const batchDto: IBatchDto[] = [];
 
+            // Mapping data to return type
             for (let i = 0; i < batches.length; i++) {
                 batchDto.push({
-                    _id: batches[i]._id as unknown as ObjectId,
+                    _id: batches[i]._id as unknown as string,
                     name: batches[i].name,
                 });
             }
@@ -59,7 +60,7 @@ export class BatchService implements IBatchService {
 
             // Map data to return type
             const batchDto: IBatchDto = {
-                _id: newbatch._id as unknown as ObjectId,
+                _id: newbatch._id as unknown as string,
                 name: newbatch.name,
             };
 
@@ -94,12 +95,12 @@ export class BatchService implements IBatchService {
             );
 
             const batchDto: IBatchDto = {
-                _id: _id as unknown as ObjectId,
+                _id: _id as unknown as string,
                 name,
             };
 
             // Cache updated batch to redis
-            cacheUpdatedBatch(batchDto);
+            await cacheUpdatedBatch(batchDto);
 
             if (!updatedBatch) throw new Error("Failed to update the batch!");
         } catch (err: unknown) {
@@ -127,7 +128,21 @@ export class BatchService implements IBatchService {
                 order
             );
 
-            return batches ? (batches as IBatchDto[]) : [];
+            if (!batches) {
+                return [];
+            }
+
+            const batchDto: IBatchDto[] = [];
+
+            // Mapping data to return type
+            for (let i = 0; i < batches.length; i++) {
+                batchDto.push({
+                    _id: batches[i]._id as unknown as string,
+                    name: batches[i].name,
+                });
+            }
+
+            return batchDto;
         } catch (err: unknown) {
             throw err;
         }

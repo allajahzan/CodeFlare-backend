@@ -11,9 +11,10 @@ export const cacheBatch = async (batch: IBatchDto) => {
     try {
         const data = await redisClient.get("batches");
         const batches = data ? JSON.parse(data) : [];
+
         await redisClient.set("batches", JSON.stringify([...batches, batch]));
 
-        console.log(batch, "Cached");
+        console.log(batch, "New batch cached");
     } catch (err: unknown) {
         throw err;
     }
@@ -40,7 +41,7 @@ export const cacheUpdatedBatch = async (batch: IBatchDto) => {
 
         await redisClient.set("batches", JSON.stringify(updatedBatches));
 
-        console.log(batch, "Cached updated batch");
+        console.log(batch, "Updated batch cached");
     } catch (err: unknown) {
         throw err;
     }
@@ -55,9 +56,11 @@ export const cacheUpdatedBatch = async (batch: IBatchDto) => {
 export const cacheAllBatch = async () => {
     try {
         const batches = await new BatchRepository(Batch).find({});  
-        const tranformedBatches = batches.map((b) => ({ _id: b._id, name: b.name }));      
+
+        const tranformedBatches = batches.map((b) => ({ _id: b._id, name: b.name }));  
+
         await redisClient.set("batches", JSON.stringify(tranformedBatches));
-        console.log("Cached all batches");
+        console.log("All batches cached");
     } catch (err: unknown) {
         throw err;
     }

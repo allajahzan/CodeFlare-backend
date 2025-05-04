@@ -75,6 +75,10 @@ export const getUsersWithBatchDetails = async (
         // Fetch batch details from cache
         const cachedBatches = await getCachedBatches(uniqueBatchIds);
 
+        // Fetch week details from cache
+
+        // Fetch domain detials from cache
+
         // Map planeUsers with batch details
         const mappedUsers: IUserDto[] = planeUsers.map((user: IUserSchema) => ({
             _id: user._id,
@@ -82,7 +86,8 @@ export const getUsersWithBatchDetails = async (
             email: user.email,
             role: user.role,
             profilePic: user.profilePic,
-            createdAt: user.createdAt,
+            ...(user.week ? { week: user.week } : {}), //  should take from redis cache
+            ...(user.domain ? { domain: user.domain } : {}), // should take from redis cache
             ...(user.batch
                 ? {
                     batch:
@@ -99,6 +104,10 @@ export const getUsersWithBatchDetails = async (
                     ),
                 }
                 : {}),
+            ...(user.category ? { category: user.category } : {}),
+            ...(user.lastActive ? { lastActive: user.lastActive } : {}),
+            createdAt: user.createdAt,
+            isBlock: user.isBlock,
         }));
 
         return mappedUsers;

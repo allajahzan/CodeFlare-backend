@@ -6,7 +6,9 @@ import {
     ForbiddenError,
     generateJwtToken,
     hashPassword,
+    IRole,
     isTokenExpired,
+    IStudentCategory,
     JwtPayloadType,
     NotFoundError,
     UnauthorizedError,
@@ -59,7 +61,7 @@ export class UserService implements IUserService {
 
             if (!user) throw new UnauthorizedError("Account not found!");
 
-            if (user.isblock) {
+            if (user.isBlock) {
                 throw new UnauthorizedError(
                     "Your account is blocked. Please contact support!"
                 );
@@ -102,7 +104,7 @@ export class UserService implements IUserService {
     async userRegister(
         name: string,
         email: string,
-        role: string,
+        role: IRole,
         password: string
     ): Promise<IUserRegisterDto> {
         try {
@@ -211,7 +213,15 @@ export class UserService implements IUserService {
         }
     }
 
-
+    /**
+     * Resets the user's password with the given new password and token.
+     * @param password - The new password of the user to reset.
+     * @param token - The token used to verify the password reset request.
+     * @returns A promise that resolves if the password is reset successfully, otherwise the promise is rejected with an error.
+     * @throws {NotFoundError} If the token is not found.
+     * @throws {ExpiredError} If the token is expired.
+     * @throws {NotFoundError} If the user associated with the token is not found.
+     */
     async userResetPassword(password: string, token: string): Promise<void> {
         try {
             if (!token) throw new NotFoundError("Token not found!");
@@ -283,7 +293,7 @@ export class UserService implements IUserService {
             if (!user) throw new ForbiddenError();
 
             // Check if user is blocked
-            if (user.isblock)
+            if (user.isBlock)
                 throw new UnauthorizedError(
                     "Your account has been blocked. Please contact support!"
                 );
@@ -315,11 +325,11 @@ export class UserService implements IUserService {
                     "Authorization failed. Please login again!"
                 );
 
-            const { _id } = JSON.parse(userQuery as string);
+            const { _id, batchId } = JSON.parse(userQuery as string);
 
             const user = await this.userRepository.findOne({
                 _id,
-                // ...(batchId && { batch: batchId }),
+                ...(batchId && { batch: batchId }),
             });
 
             if (!user)
@@ -329,16 +339,26 @@ export class UserService implements IUserService {
             const batch = await getCachedBatch(user.batch);
             const batches = await getCachedBatches(user.batches);
 
+            // Get week details
+
+            // Get domain details
+
+            console.log(batches);
+
             // Mapping data to return type
             const userDto: IUserDto = {
                 _id: user._id as string,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                ...(user.profilePic ? { profilePic: user.profilePic } : {}),
+                profilePic: user.profilePic,
+                ...(user.week ? { week: user.week } : {}), //  should take from redis cache
+                ...(user.domain ? { domain: user.domain } : {}), // should take from redis cache
                 ...(user.batch ? { batch: batch } : {}),
-                ...(user.batches ? { batches: batches } : {}),
-                ...(user.week ? { week: user.week } : {}),
+                ...(user.batches?.length ? { batches: batches } : {}),
+                ...(user.category ? { category: user.category } : {}),
+                ...(user.lastActive ? { lastActive: user.lastActive } : {}),
+                isBlock: user.isBlock,
                 createdAt: user.createdAt,
             };
 
@@ -349,14 +369,14 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Retrieves a list of users based on the given roles and the token payload.
-     * @param roles - The roles of the users to retrieve.
-     * @param tokenPayload - The JSON web token payload containing the requester id and role.
-     * @returns A promise that resolves to an array of user objects if the users are found, otherwise the promise is rejected with an error.
-     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
-     * @throws {NotFoundError} If no users are found with the given roles and requester id.
+     * Retrieves users based on the role of the requester.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param isBlock - The status of the users to search for, either "true" or "false".
+     * @returns A promise that resolves to an array of user DTOs if the search is successful, otherwise throws an error.
+     * @throws {UnauthorizedError} If the token payload is not provided.
+     * @throws {NotFoundError} If the user specified in the token payload is not found.
      */
-    async getUsers(tokenPayload: string, status: string): Promise<IUserDto[]> {
+    async getUsers(tokenPayload: string, isBlock: string): Promise<IUserDto[]> {
         try {
             let users;
 
@@ -372,15 +392,15 @@ export class UserService implements IUserService {
                 if (role === "admin") {
                     users = await this.userRepository.find({
                         role: { $in: ["coordinator", "instructor"] },
-                        ...(status !== undefined ? { isblock: status === "true" } : {}), // If status is there
+                        ...(isBlock !== undefined ? { isBlock: isBlock === "true" } : {}), // If isBlock is there
                     });
 
-                    // Coordinator or instructor
+                    // Coordinator or Instructor
                 } else if (role === "coordinator" || role === "instructor") {
                     const user = await this.userRepository.findOne({ _id }); // Find the coordinator or intructor
 
                     if (!user) {
-                        throw new UnauthorizedError("User not found.");
+                        throw new UnauthorizedError("User not found!");
                     }
 
                     users = await this.userRepository.find({
@@ -388,7 +408,7 @@ export class UserService implements IUserService {
                             { role: "student", batch: { $in: user.batches } },
                             { role: "admin" },
                         ],
-                        ...(status !== undefined ? { isblock: status === "true" } : {}), // Apply status filter if present
+                        ...(isBlock !== undefined ? { isBlock: isBlock === "true" } : {}), // If isBlock is there
                     });
 
                     // Student
@@ -396,7 +416,7 @@ export class UserService implements IUserService {
                     const student = await this.userRepository.findOne({ _id }); // Find the student
 
                     if (!student) {
-                        throw new UnauthorizedError("Student not found.");
+                        throw new UnauthorizedError("Student not found!");
                     }
 
                     users = await this.userRepository.find({
@@ -466,7 +486,13 @@ export class UserService implements IUserService {
 
             // Get batch details
             const batch = await getCachedBatch(user.batch);
-            const batches = await getCachedBatches(user.batches || []);
+            const batches = await getCachedBatches(user.batches);
+
+            // Get week details
+
+            // Get domain details
+
+            console.log(batches);
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -474,10 +500,14 @@ export class UserService implements IUserService {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
+                profilePic: newUser.profilePic,
+                ...(newUser.week ? { week: newUser.week } : {}), //  should take from redis cache
+                ...(newUser.domain ? { domain: newUser.domain } : {}), // should take from redis cache
                 ...(newUser.batch ? { batch: batch } : {}),
-                ...(newUser.batches ? { batches: batches } : {}),
-                ...(newUser.week ? { week: newUser.week } : {}),
+                ...(newUser.batches?.length ? { batches: batches } : {}),
+                ...(newUser.category ? { category: newUser.category } : {}),
                 ...(newUser.lastActive ? { lastActive: newUser.lastActive } : {}),
+                isBlock: newUser.isBlock,
                 createdAt: newUser.createdAt,
             };
 
@@ -515,7 +545,13 @@ export class UserService implements IUserService {
 
             // Get batch details
             const batch = await getCachedBatch(user.batch);
-            const batches = await getCachedBatches(user.batches || []);
+            const batches = await getCachedBatches(user.batches);
+
+            // Get week details
+
+            // Get domain details
+
+            console.log(batches);
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -523,15 +559,16 @@ export class UserService implements IUserService {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
-                ...(updatedUser.profilePic
-                    ? { profilePic: updatedUser.profilePic }
-                    : {}),
+                profilePic: updatedUser.profilePic,
+                ...(updatedUser.week ? { week: updatedUser.week } : {}), //  should take from redis cache
+                ...(updatedUser.domain ? { domain: updatedUser.domain } : {}), // should take from redis cache
                 ...(updatedUser.batch ? { batch: batch } : {}),
-                ...(updatedUser.batches ? { batches: batches } : {}),
-                ...(updatedUser.week ? { week: updatedUser.week } : {}),
+                ...(updatedUser.batches?.length ? { batches: batches } : {}),
+                ...(updatedUser.category ? { category: updatedUser.category } : {}),
                 ...(updatedUser.lastActive
                     ? { lastActive: updatedUser.lastActive }
                     : {}),
+                isBlock: updatedUser.isBlock,
                 createdAt: updatedUser.createdAt,
             };
 
@@ -556,13 +593,13 @@ export class UserService implements IUserService {
                 throw new NotFoundError("User not found!");
             }
 
-            const updatedUser = user.isblock
+            const updatedUser = user.isBlock
                 ? await this.userRepository.unblockUser(_id)
                 : await this.userRepository.blockUser(_id);
 
             if (!updatedUser) {
                 throw new BadRequestError(
-                    user.isblock
+                    user.isBlock
                         ? "Failed to unblock the user!"
                         : "Failed to block the user!"
                 );
@@ -573,22 +610,27 @@ export class UserService implements IUserService {
     }
 
     /**
-     * Searches for users based on the given keyword and status from the request query.
-     * @param tokenPayload - The JSON web token payload containing the requester id and role.
-     * @param keyword - The keyword to search for in the user's name, email, or batch.
-     * @param status - The status of the users to search for ("true" or "false").
-     * @returns A promise that resolves to an array of user objects if the users are found, otherwise rejects with an error.
-     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
-     * @throws {NotFoundError} If the user is not found.
-     * @throws {BadRequestError} If any error occurs during the user search process.
+     * Searches for users based on the provided parameters.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param keyword - The keyword to search for in the user's name or email.
+     * @param isBlock - The status of the users to search for, either "true" or "false".
+     * @param sort - The field by which to sort the results.
+     * @param order - The order of the sorting, either 1 for ascending or -1 for descending.
+     * @param roleWise - The role of the users to search for.
+     * @param category - The category of the users to search for.
+     * @param batchId - The ID of the batch to search for users in.
+     * @returns A promise that resolves to an array of user DTOs if the search is successful, otherwise throws an error.
+     * @throws {UnauthorizedError} If the token payload is not provided.
+     * @throws {NotFoundError} If the user specified in the token payload is not found.
      */
     async searchUsers(
         tokenPayload: string,
         keyword: string,
-        isBlocked: string,
+        isBlock: string,
         sort: string,
         order: number,
-        category: string,
+        roleWise: IRole,
+        category: IStudentCategory,
         batchId: string
     ): Promise<IUserDto[]> {
         try {
@@ -601,7 +643,7 @@ export class UserService implements IUserService {
                 );
             }
 
-            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType;
+            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
             const user = await this.userRepository.findOne({ _id });
 
@@ -612,9 +654,10 @@ export class UserService implements IUserService {
             if (role === "admin") {
                 users = await this.userRepository.searchUser(
                     keyword,
-                    isBlocked,
+                    isBlock,
                     sort,
                     order,
+                    roleWise,
                     category,
                     batchId,
                     ["coordinator", "instructor"]
@@ -622,9 +665,10 @@ export class UserService implements IUserService {
             } else if (role === "coordinator" || role === "instructor") {
                 users = await this.userRepository.searchUser(
                     keyword,
-                    isBlocked,
+                    isBlock,
                     sort,
                     order,
+                    roleWise,
                     category,
                     batchId,
                     ["student"]

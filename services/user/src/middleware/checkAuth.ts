@@ -50,12 +50,10 @@ export const checkAuth = async (
             throw new NotFoundError("Account not found. Please contact support!");
         }
 
-        if(user.isblock){
+        if(user.isBlock){
             throw new UnauthorizedError("Your account is blocked. Please contact support!");
         }
-
-        req.headers["x-user-id"] = JSON.stringify({ _id: user._id }); // Set _id in request header
-
+        
         next();
     } catch (err) {
         next(err);

@@ -28,7 +28,7 @@ export class BatchRepository
         order: number
     ): Promise<IBatchSchema[] | null> {
         try {
-            return this.model.aggregate([
+            const batches = await this.model.aggregate([
                 {
                     $match: keyword
                         ? {
@@ -42,6 +42,8 @@ export class BatchRepository
                     },
                 },
             ]);
+
+            return batches.length? batches : null
         } catch (err: unknown) {
             return null;
         }

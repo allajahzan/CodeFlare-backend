@@ -14,7 +14,7 @@ const userSchema = new Schema<IUserSchema>(
             required: true,
             index: true,
         },
-        phoneNumber: {
+        phoneNo: {
             type: String,
             required: false,
         },
@@ -25,6 +25,7 @@ const userSchema = new Schema<IUserSchema>(
         profilePic: {
             type: String,
             required: false,
+            default: "",
         },
         role: {
             type: String,
@@ -35,24 +36,10 @@ const userSchema = new Schema<IUserSchema>(
             type: String,
             required: false,
         },
-        stage: {
+        domain: {
             type: String,
-            enum: ["Normal", "Hold", "Intake", "QA"],
-            default: "Normal",
             required: false,
         },
-        category: {
-            type: String,
-            enum: ["Ongoing", "Placement", "Critical"],
-            default: "Ongoing",
-            required: false,
-        },
-        // status: {
-        //     type: String,
-        //     enum: ["Top", "Middle", "Bottom"],
-        //     default: "Top",
-        //     required: false,
-        // },
         batch: {
             type: Schema.Types.ObjectId,
             required: false,
@@ -61,18 +48,31 @@ const userSchema = new Schema<IUserSchema>(
             type: [Schema.Types.ObjectId],
             required: false,
         },
+        category: {
+            type: String,
+            enum: [
+                "Foundation",
+                "Ongoing",
+                "Held",
+                "Critical",
+                "terminated",
+                "Placement",
+            ],
+            default: "Foundation",
+            required: false,
+        },
         lastActive: {
             type: Date,
             required: false,
         },
-        isblock: {
-            type: Boolean,
-            default: false,
-            index: true,
-        },
         isTokenValid: {
             type: Boolean,
             default: true,
+        },
+        isBlock: {
+            type: Boolean,
+            default: false,
+            index: true,
         },
     },
     { timestamps: true }

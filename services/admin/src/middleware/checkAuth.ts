@@ -1,6 +1,10 @@
-import { NotFoundError, UnauthorizedError } from "@codeflare/common";
+import {
+    JwtPayloadType,
+    NotFoundError,
+    UnauthorizedError,
+} from "@codeflare/common";
 import { Request, Response, NextFunction } from "express";
-import Admin from "../modal/batch";
+import { getUser } from "../grpc/client/userClient";
 
 /**
  * Checks if the request is authenticated.
@@ -17,19 +21,44 @@ export const checkAuth = async (
     next: NextFunction
 ) => {
     try {
-        const userPayload = req.headers["x-user-payload"]; // payload from request header
-        if (!userPayload) throw new UnauthorizedError("Authentication failed. Please login again!");
+        const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+        const userRole = req.headers["x-user-role"]; // User role from request header
 
-        const payload = JSON.parse(userPayload as string);
-        if (!payload) throw new UnauthorizedError("Invalid authentication data. Please login again!");
+        if (!tokenPayload || !userRole) {
+            throw new UnauthorizedError("Authentication failed. Please login again!");
+        }
 
-        // const admin = await new AdminRepositoty(Admin).findOne({ _id: payload._id }); // Find admin by _id
-        // if (!admin) throw new NotFoundError("Account not found. Please contact support!");
+        const payload = JSON.parse(tokenPayload as string) as JwtPayloadType;
+        const role = JSON.parse(userRole as string);
 
-        // if (admin.role !== payload.role)
-        //     throw new UnauthorizedError("You do not have permission to access this resource!");
+        if (!payload) {
+            throw new UnauthorizedError(
+                "Invalid authentication data. Please login again!"
+            );
+        }
 
-        // req.headers["x-user-id"] = JSON.stringify({ _id: admin._id }); // Set _id as request header
+        if (role && role !== payload.role) {
+            throw new UnauthorizedError(
+                "You do not have permission to access this resource!"
+            );
+        }
+
+        // Get user info through gRPC
+        let user;
+
+        const resp = await getUser(payload._id);
+
+        if(resp.response && resp.response.status === 200){
+            user = resp.response.user;
+        }
+
+        if (!user) {
+            throw new NotFoundError("Account not found. Please contact support!");
+        }
+
+        if(user.isblock){
+            throw new UnauthorizedError("Your account is blocked. Please contact support!");
+        }
 
         next();
     } catch (err) {

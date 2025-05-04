@@ -1,21 +1,21 @@
+import { IRole, IStudentCategory } from "@codeflare/common";
 import { Document, Schema } from "mongoose";
 
 /** Interface for User Schema */
 export interface IUserSchema extends Document {
     name: string;
     email: string;
-    phoneNumber: string;
+    phoneNo: string;
     password: string;
     profilePic: string;
-    role: string;
+    role: IRole;
     week: string;
-    stage: string;
-    category: string;
-    status: string;
+    domain: string;
     batch: Schema.Types.ObjectId;
     batches: Schema.Types.ObjectId[];
+    category: IStudentCategory
     lastActive: Date;
-    isblock: boolean;
     isTokenValid: boolean;
+    isBlock: boolean;
     createdAt: Date;
 }

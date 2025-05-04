@@ -61,7 +61,7 @@ export class ProfileService implements IProfileService {
      */
     async updateProfileByUserId(
         tokenPayload: string,
-        profile: IProfileSchema | IUserSchema
+        profile: Partial<IProfileSchema> | Partial<IUserSchema>
     ): Promise<void> {
         try {
             if (!tokenPayload) {
@@ -72,16 +72,16 @@ export class ProfileService implements IProfileService {
 
             const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id
 
-            const { name, phoneNumber } = profile as IUserSchema;
+            const { name, phoneNo } = profile as IUserSchema;
 
+            // User promise
             const userPromise = this.userRepository.update(
-                // Update user
                 { _id },
-                { name, phoneNumber }
+                { name, phoneNo }
             );
 
+            // Profile promise
             const profilePromise = this.profileRepository.updateProfileByUserId(
-                // Update profile
                 _id,
                 profile as IProfileSchema
             );

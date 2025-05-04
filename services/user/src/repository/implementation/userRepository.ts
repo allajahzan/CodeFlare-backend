@@ -1,4 +1,4 @@
-import { BaseRepository } from "@codeflare/common";
+import { BaseRepository, IRole, IStudentCategory } from "@codeflare/common";
 import { IUserSchema } from "../../entities/IUserSchema";
 import { Model, Types } from "mongoose";
 import { IUserRepository } from "../interface/IUserRepository";
@@ -64,20 +64,26 @@ export class UserRepository
     }
 
     /**
-     * Searches for users based on the given keyword from the request query.
-     * @param keyword - The keyword to search for in the user's name, email, batch, or batches.
-     * @param status - The status of the user to search for, either "true" or "false".
-     * @param roles - The roles of the users to search for.
-     * @returns A promise that resolves to an array of users matching the search criteria if successful, otherwise null.
+     * Searches for users based on the given keyword, sort, order, status, roleWise, category, batchId, and roles.
+     * @param keyword - The keyword to search for in the user's name or email.
+     * @param isBlock - The status of the users to search for, either "true" or "false".
+     * @param sort - The field to sort the result by.
+     * @param order - The order of the sorting, either 1 for ascending or -1 for descending.
+     * @param roleWise - The role of the users to search for.
+     * @param category - The category of the users to search for.
+     * @param batchId - The id of the batch to search for users in.
+     * @param roles - The list of roles to search for users in.
+     * @returns A promise that resolves to an array of user objects if the users are found, otherwise null.
      */
     async searchUser(
         keyword: string,
-        isBlocked: string,
+        isBlock: string,
         sort: string,
         order: number,
-        category: string,
+        roleWise: IRole,
+        category: IStudentCategory,
         batchId: string,
-        roles: string[]
+        roles: IRole[]
     ): Promise<IUserSchema[] | null> {
         try {
             return await this.model.aggregate([
@@ -89,19 +95,20 @@ export class UserRepository
                                 { batches: new Types.ObjectId(batchId) },
                             ],
                         }),
-                        role: batchId ? {} : { $in: roles },
-                        ...(isBlocked !== undefined && { isblock: isBlocked === "true" }),
+                        ...(roles && { role: { $in: roles } }),
+                        ...(roleWise && { role: roleWise }),
+                        ...(isBlock && { isblock: isBlock === "true" }),
                         ...(keyword && {
                             $or: [
                                 { name: { $regex: keyword, $options: "i" } },
                                 { email: { $regex: keyword, $options: "i" } },
                             ],
                         }),
-                        ...(category && { role: category }),
+                        ...(category && { category }),
                     },
                 },
                 {
-                    $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : {createdAt: -1}
+                    $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { createdAt: -1 },
                 },
             ]);
         } catch (err: unknown) {

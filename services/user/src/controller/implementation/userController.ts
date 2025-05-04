@@ -3,6 +3,8 @@ import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
 import {
     HTTPStatusCodes,
+    IRole,
+    IStudentCategory,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -198,11 +200,12 @@ export class UserController implements IUserController {
     }
 
     /**
-     * Retrieves the user data based on the x-user-id header.
-     * @param req - The express request object containing the x-user-id header.
+     * Retrieves a user with given _id or batchId from the query parameters,
+     * or the user with the token payload from the x-user-payload header if no query parameters are given.
+     * @param req - The express request object.
      * @param res - The express response object.
      * @param next - The next middleware function in the express stack.
-     * @returns A promise that resolves when the user data retrieval process is complete.
+     * @returns A promise that resolves when the user retrieval process is complete.
      */
     async getUser(
         req: Request,
@@ -335,18 +338,20 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, isBlocked, sort, order, category, batchId } = req.query;
+            const { keyword, isBlock, sort, order, roleWise, category, batchId } = req.query;
             const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
 
             const data = await this.userService.searchUsers(
                 tokenPayload as string,
                 keyword as string,
-                isBlocked as string,
+                isBlock as string,
                 sort as string,
                 Number(order as string),
-                category as string,
+                roleWise as IRole,
+                category as IStudentCategory,
                 batchId as string
             );
+            
             SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

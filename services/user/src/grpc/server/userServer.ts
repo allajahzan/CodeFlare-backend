@@ -1,6 +1,9 @@
 import { status } from "@grpc/grpc-js";
 import User from "../../model/userSchema";
 import { UserRepository } from "../../repository/implementation/userRepository";
+import { IUserDto } from "../../dto/userServiceDto";
+import { IUserSchema } from "../../entities/IUserSchema";
+import { IStudent, IUser } from "@codeflare/common";
 
 const userRepository = new UserRepository(User);
 
@@ -20,20 +23,28 @@ export const getUser = async (call: any, callback: any) => {
             return callback(null, {
                 response: {
                     status: 404,
-                    message: "No user found!",
+                    message: "No user found !",
                     user: null,
                 },
             });
         }
 
         // Map user data to response type
-        const formattedUser = {
-            _id: user._id,
+        const formattedUser: IStudent | IUser = {
+            _id: user._id as unknown as string,
             name: user.name,
             email: user.email,
+            phoneNo: user.phoneNo,
+            profilePic: user.profilePic,
             role: user.role,
-            profilePic: user.profilePic || "",
-            batch: user.batch,
+            ...(user.week && { week: user.week }),
+            ...(user.domain && { domain: user.domain }),
+            ...(user.batch && { batch: user.batch as unknown as string }),
+            ...(user.batches && { batches: user.batches as unknown as string[] }),
+            ...(user.category && { category: user.category }),
+            ...(user.lastActive && { lastActive: user.lastActive }),
+            createdAt: user.createdAt,
+            isBlock: user.isBlock,
         };
 
         callback(null, {
@@ -80,15 +91,24 @@ export const getUsers = async (call: any, callback: any) => {
         }
 
         // Map user data to response type
-        const usersMap: Record<string, any> = {};
+        const usersMap: Record<string, IStudent | IUser> = {};
+
         users.forEach((user) => {
             usersMap[user._id as string] = {
-                _id: user._id,
+                _id: user._id as unknown as string,
                 name: user.name,
                 email: user.email,
-                role: user.role,
+                phoneNo: user.phoneNo,
                 profilePic: user.profilePic,
-                batch: user.batch,
+                role: user.role,
+                ...(user.week && { week: user.week }),
+                ...(user.domain && { domain: user.domain }),
+                ...(user.batch && { batch: user.batch as unknown as string }),
+                ...(user.batches && { batches: user.batches as unknown as string[] }),
+                ...(user.category && { category: user.category }),
+                ...(user.lastActive && { lastActive: user.lastActive }),
+                createdAt: user.createdAt,
+                isBlock: user.isBlock,
             };
         });
 
@@ -124,8 +144,6 @@ export const updateUser = async (call: any, callback: any) => {
         const user = await userRepository.findOne({ _id });
 
         if (!user) {
-            console.log("No user");
-
             // Correctly format the response
             return callback(null, {
                 response: {

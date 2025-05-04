@@ -1,4 +1,4 @@
-import { IBatch } from "@codeflare/common";
+import { IBatch, IRole, IStudentCategory } from "@codeflare/common";
 
 /** Dto for userLogin */
 export interface IUserLoginDto {
@@ -20,16 +20,18 @@ export interface IRefreshTokenDto {
 
 /** Dto for user */
 export interface IUserDto {
-    _id: string| unknown;
+    _id: string | unknown;
     name: string;
     email: string;
     phoneNo?: string;
-    role: string;
-    profilePic?: string;
-    batches?: IBatch[];
-    batch?: IBatch| null;
+    profilePic: string;
+    role: IRole;
     week?: string;
+    domain?: string;
+    batch?: IBatch | null;
+    batches?: IBatch[];
+    category?: IStudentCategory;
     lastActive?: Date;
+    isBlock: boolean;
     createdAt: Date;
-    isBlock?: boolean;
 }
