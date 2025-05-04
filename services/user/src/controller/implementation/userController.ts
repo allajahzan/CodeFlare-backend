@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IUserService } from "../../service/interface/IUserService";
 import { IUserController } from "../interface/IUserController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     IRole,
     IStudentCategory,
     ResponseMessage,
@@ -46,7 +46,7 @@ export class UserController implements IUserController {
                 maxAge: 1000 * 60 * 60 * 24,
             });
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, {
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, {
                 role: data.role,
                 accessToken: data.accessToken,
             });
@@ -79,7 +79,7 @@ export class UserController implements IUserController {
 
             return SendResponse(
                 res,
-                HTTPStatusCodes.CREATED,
+                HTTPStatusCode.CREATED,
                 ResponseMessage.SUCCESS,
                 data
             );
@@ -104,7 +104,7 @@ export class UserController implements IUserController {
             const { email, role } = req.body;
 
             await this.userService.userVerifyEmail(email, role);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -128,7 +128,7 @@ export class UserController implements IUserController {
             const { token } = req.query;
 
             await this.userService.checkResetPasswordLink(token as string);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -151,7 +151,7 @@ export class UserController implements IUserController {
             const { token } = req.query;
 
             await this.userService.userResetPassword(password, token as string);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -173,7 +173,7 @@ export class UserController implements IUserController {
             const refreshToken = req.cookies.refreshToken;
 
             const data = await this.userService.refreshToken(refreshToken);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -193,7 +193,7 @@ export class UserController implements IUserController {
     ): Promise<void> {
         try {
             res.clearCookie("refreshToken"); // Clear refresh token
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -221,7 +221,7 @@ export class UserController implements IUserController {
                     : req.headers["x-user-payload"]; // Token payload from request header
 
             const data = await this.userService.getUser(userQuery as string);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -246,7 +246,7 @@ export class UserController implements IUserController {
 
             const data = await this.userService.getUsers(tokenPayload as string);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -274,7 +274,7 @@ export class UserController implements IUserController {
                 tokenPayload as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.CREATED, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -297,7 +297,7 @@ export class UserController implements IUserController {
             const user = req.body;
 
             const data = await this.userService.updateUser(_id, user);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -319,7 +319,7 @@ export class UserController implements IUserController {
             const { id: _id } = req.params;
 
             const data = await this.userService.changeUserStatus(_id);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -352,7 +352,7 @@ export class UserController implements IUserController {
                 batchId as string
             );
             
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

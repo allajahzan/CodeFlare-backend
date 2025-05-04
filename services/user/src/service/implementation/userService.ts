@@ -343,8 +343,6 @@ export class UserService implements IUserService {
 
             // Get domain details
 
-            console.log(batches);
-
             // Mapping data to return type
             const userDto: IUserDto = {
                 _id: user._id as string,
@@ -464,7 +462,15 @@ export class UserService implements IUserService {
             if (isUserExist)
                 throw new ConflictError("An account with this email already exists!");
 
-            const newUser = await this.userRepository.create(user);
+            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
+
+            let newUser;
+
+            if(role === "admin"){
+                newUser = await this.userRepository.create(user);
+            }else{
+                newUser = await this.userRepository.create({...user, category: 'Foundation'})
+            }
 
             if (!newUser) throw new BadRequestError("Failed to add the user!");
 
@@ -491,8 +497,6 @@ export class UserService implements IUserService {
             // Get week details
 
             // Get domain details
-
-            console.log(batches);
 
             // Mapping data to return type
             const userDto: IUserDto = {
@@ -550,8 +554,6 @@ export class UserService implements IUserService {
             // Get week details
 
             // Get domain details
-
-            console.log(batches);
 
             // Mapping data to return type
             const userDto: IUserDto = {

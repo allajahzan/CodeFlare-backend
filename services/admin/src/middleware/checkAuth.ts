@@ -1,4 +1,6 @@
 import {
+    IStudent,
+    IUser,
     JwtPayloadType,
     NotFoundError,
     UnauthorizedError,
@@ -33,7 +35,7 @@ export const checkAuth = async (
 
         if (!payload) {
             throw new UnauthorizedError(
-                "Invalid authentication data. Please login again!"
+                "Authentication failed. Please login again!"
             );
         }
 
@@ -49,14 +51,16 @@ export const checkAuth = async (
         const resp = await getUser(payload._id);
 
         if(resp.response && resp.response.status === 200){
-            user = resp.response.user;
+            user = resp.response.user as IUser | IStudent;
+        }else{
+            throw new NotFoundError("Account not found. Please contact support!");
         }
 
         if (!user) {
             throw new NotFoundError("Account not found. Please contact support!");
         }
 
-        if(user.isblock){
+        if(user.isBlock){
             throw new UnauthorizedError("Your account is blocked. Please contact support!");
         }
 

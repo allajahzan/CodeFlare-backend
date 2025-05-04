@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IBatchService } from "../../service/interface/IBatchService";
 import { IBatchController } from "../interface/IBatchController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -34,7 +34,7 @@ export class BatchController implements IBatchController {
         try {
             const data = await this.batchService.getBatches();
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -58,7 +58,7 @@ export class BatchController implements IBatchController {
 
             const data = await this.batchService.addBatch(name);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -83,7 +83,7 @@ export class BatchController implements IBatchController {
 
             await this.batchService.updateBatch(id, name);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -111,7 +111,7 @@ export class BatchController implements IBatchController {
                 Number(order)
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

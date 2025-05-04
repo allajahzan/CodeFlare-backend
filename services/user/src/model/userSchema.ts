@@ -29,6 +29,7 @@ const userSchema = new Schema<IUserSchema>(
         },
         role: {
             type: String,
+            enum: ["admin", "coordinator", "instructor", "student"],
             required: true,
             index: true,
         },
@@ -55,10 +56,10 @@ const userSchema = new Schema<IUserSchema>(
                 "Ongoing",
                 "Held",
                 "Critical",
-                "terminated",
+                "Terminated",
                 "Placement",
+                "Placed",
             ],
-            default: "Foundation",
             required: false,
         },
         lastActive: {

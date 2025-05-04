@@ -1,4 +1,4 @@
-import { userClient } from "../grpc.connection";
+import { userClient } from "../grpcClient";
 
 /**
  * Retrieves a user by id from the user service.

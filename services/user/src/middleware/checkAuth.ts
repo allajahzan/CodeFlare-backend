@@ -34,7 +34,7 @@ export const checkAuth = async (
 
         if (!payload) {
             throw new UnauthorizedError(
-                "Invalid authentication data. Please login again!"
+                "Authentication failed. Please login again!"
             );
         }
 

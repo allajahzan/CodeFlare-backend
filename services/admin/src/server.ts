@@ -4,7 +4,7 @@ dotenv.config();
 
 import app from "./app";
 import { isEnvDefined } from "./utils/envChecker";
-import { connectRedis, MongodbConnection } from "@codeflare/common";
+import { redisConnection, MongodbConnection } from "@codeflare/common";
 import { cacheAllBatch } from "./utils/catchBatch";
 
 // Start Server
@@ -17,8 +17,8 @@ const startServer = async () => {
         const db = new MongodbConnection(process.env.MONGO_DB_URL as string);
         await db.retryConnection();
 
-        // Redis connection
-        connectRedis();
+        // Connect to redis
+        redisConnection();
 
         // Cache all batches
         cacheAllBatch();

@@ -2,7 +2,6 @@ import { IBatchRepository } from "../../repository/interface/IBatchRepository";
 import { IBatchService } from "../interface/IBatchService";
 import { ConflictError } from "@codeflare/common";
 import { IBatchDto } from "../../dto/batchServiceDto";
-import { ObjectId } from "mongoose";
 import { cacheBatch, cacheUpdatedBatch } from "../../utils/catchBatch";
 
 /** Implementaion of Batch Service */

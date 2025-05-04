@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IProfileService } from "../../service/interface/IProfileService";
 import { IProfileController } from "../interface/IProfileController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -39,7 +39,7 @@ export class ProfileController implements IProfileController {
                 tokenPayload as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -67,7 +67,7 @@ export class ProfileController implements IProfileController {
                 profile
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -91,7 +91,7 @@ export class ProfileController implements IProfileController {
             const tokenPayload = req.headers["x-user-payload"];
 
             this.profileService.changeProfilePic(tokenPayload as string, imageUrl);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -120,7 +120,7 @@ export class ProfileController implements IProfileController {
                 newPassword
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }

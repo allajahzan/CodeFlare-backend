@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ICloudinaryController } from "../interface/ICloudinaryController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -33,7 +33,7 @@ export class CloudinaryController implements ICloudinaryController {
 
             await this.cloudinaryService.delelteImage(public_id as string);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }

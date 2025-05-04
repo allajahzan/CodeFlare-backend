@@ -1,20 +1,11 @@
 import * as grpc from "@grpc/grpc-js";
-import * as protoLoader from "@grpc/proto-loader";
-import path from "path";
 import {
     getUser,
     getUsers,
     updateUser,
     getStudentsIds,
 } from "./server/userServer";
-
-// Load user proto file
-const packageDefinition = protoLoader.loadSync(
-    path.join(__dirname, "/proto/user.proto")
-);
-
-// Load user proto
-const userProto = grpc.loadPackageDefinition(packageDefinition).user;
+import { userProto } from "@codeflare/common";
 
 // GRPC server for user service
 export const startGrpcServer = () => {
