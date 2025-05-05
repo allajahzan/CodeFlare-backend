@@ -26,7 +26,6 @@ import { sendInvitation } from "../../utils/sendInvitation";
 import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
-import qrcode from "qrcode";
 import {
     getCachedBatch,
     getCachedBatches,
@@ -466,10 +465,13 @@ export class UserService implements IUserService {
 
             let newUser;
 
-            if(role === "admin"){
+            if (role === "admin") {
                 newUser = await this.userRepository.create(user);
-            }else{
-                newUser = await this.userRepository.create({...user, category: 'Foundation'})
+            } else {
+                newUser = await this.userRepository.create({
+                    ...user,
+                    category: "Foundation",
+                });
             }
 
             if (!newUser) throw new BadRequestError("Failed to add the user!");
@@ -491,8 +493,8 @@ export class UserService implements IUserService {
             ); // Send invitation to user
 
             // Get batch details
-            const batch = await getCachedBatch(user.batch);
-            const batches = await getCachedBatches(user.batches);
+            const batch = await getCachedBatch(newUser.batch);
+            const batches = await getCachedBatches(newUser.batches);
 
             // Get week details
 
@@ -548,8 +550,8 @@ export class UserService implements IUserService {
             if (!updatedUser) throw new BadRequestError("Failed to update the user!");
 
             // Get batch details
-            const batch = await getCachedBatch(user.batch);
-            const batches = await getCachedBatches(user.batches);
+            const batch = await getCachedBatch(updatedUser.batch);
+            const batches = await getCachedBatches(updatedUser.batches);
 
             // Get week details
 

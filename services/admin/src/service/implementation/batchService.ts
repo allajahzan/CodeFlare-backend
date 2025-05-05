@@ -1,8 +1,16 @@
 import { IBatchRepository } from "../../repository/interface/IBatchRepository";
 import { IBatchService } from "../interface/IBatchService";
-import { ConflictError } from "@codeflare/common";
+import {
+    BadRequestError,
+    ConflictError,
+    IStudent,
+    IUser,
+} from "@codeflare/common";
 import { IBatchDto } from "../../dto/batchServiceDto";
 import { cacheBatch, cacheUpdatedBatch } from "../../utils/catchBatch";
+import axios from "axios";
+import { getUsers } from "../../grpc/client/userClient";
+import { ObjectId } from "mongoose";
 
 /** Implementaion of Batch Service */
 export class BatchService implements IBatchService {
@@ -25,14 +33,50 @@ export class BatchService implements IBatchService {
         try {
             const batches = await this.batchRepository.find({});
 
+            if (!batches || !batches.length) {
+                return [];
+            }
+
+            // Get usersMap from user service through gRPC
+            let usersMap: Record<string, IUser[] | IStudent[]>;
+
+            const resp = await getUsers([], "coordinator"); // Getuser by role
+
+            if (resp.response && resp.response.status === 200) {
+                usersMap = resp.response.users;
+            } else {
+                throw new Error();
+            }
+
             const batchDto: IBatchDto[] = [];
 
-            // Mapping data to return type
-            for (let i = 0; i < batches.length; i++) {
-                batchDto.push({
-                    _id: batches[i]._id as unknown as string,
-                    name: batches[i].name,
+            // If usersMap is not empty
+            if (usersMap && Object.keys(usersMap).length > 0) {
+                let assignedBatches: Set<string> = new Set();
+
+                // Get coordinators assigned batches
+                Object.values(usersMap).forEach((coordinator) => {
+                    (coordinator as unknown as IUser).batches?.forEach((batch) => {
+                        assignedBatches.add(batch);
+                    });
                 });
+
+                // Get the available batches
+                for (let i = 0; i < batches.length; i++) {
+                    if (!assignedBatches.has((batches[i]._id as ObjectId).toString())) {
+                        batchDto.push({
+                            _id: batches[i]._id as unknown as string,
+                            name: batches[i].name,
+                        });
+                    }
+                }
+            } else {
+                for (let i = 0; i < batches.length; i++) {
+                    batchDto.push({
+                        _id: batches[i]._id as unknown as string,
+                        name: batches[i].name,
+                    });
+                }
             }
 
             return batchDto;

@@ -74,20 +74,18 @@ export const getUser = async (call: any, callback: any) => {
  */
 export const getUsers = async (call: any, callback: any) => {
     try {
-        const { userIds } = call.request;
+        const { userIds, role } = call.request;
 
-        const users = await userRepository.find({
-            _id: { $in: userIds },
-        }); // Find users with ids
+        let users = []
 
-        if (!users.length) {
-            return callback(null, {
-                response: {
-                    status: 404,
-                    message: "No users found!",
-                    users: null,
-                },
-            });
+        if (userIds && userIds.length > 0) {
+            users = await userRepository.find({
+                _id: { $in: userIds },
+            }); // Find users with ids
+        } else {
+            users = await userRepository.find({
+                role: role
+            }); // Find users with role
         }
 
         // Map user data to response type
@@ -159,11 +157,42 @@ export const updateUser = async (call: any, callback: any) => {
             { $set: JSON.parse(data).data }
         );
 
+        if (!updatedUser) {
+            return callback(null, {
+                response: {
+                    status: 500,
+                    message: "Failed to update user",
+                    data: null,
+                },
+            });
+        }
+
+        // Map user data to response type
+        const formattedUser: IStudent | IUser = {
+            _id: updatedUser._id as unknown as string,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phoneNo: updatedUser.phoneNo,
+            profilePic: updatedUser.profilePic,
+            role: updatedUser.role,
+            ...(updatedUser.week && { week: updatedUser.week }),
+            ...(updatedUser.domain && { domain: updatedUser.domain }),
+            ...(updatedUser.batch && { batch: updatedUser.batch.toString() }),
+            ...(updatedUser.batches && {
+                batches: updatedUser.batches.map((b: any) => b.toString()),
+            }),
+            ...(updatedUser.category && { category: updatedUser.category }),
+            ...(updatedUser.lastActive && { lastActive: updatedUser.lastActive }),
+            createdAt: updatedUser.createdAt,
+            isBlock: updatedUser.isBlock,
+        };
+
+        // Return response via gRPC callback
         callback(null, {
             response: {
                 status: 200,
                 message: "Successfully updated user info",
-                data: updatedUser,
+                user: formattedUser, // assuming your proto expects `user`, not `data`
             },
         });
     } catch (err) {

@@ -1,4 +1,4 @@
-import { IStudent, IUser } from "@codeflare/common";
+import { IRole, IStudent, IUser } from "@codeflare/common";
 import { userClient } from "../grpc.connection";
 
 /**
@@ -34,7 +34,8 @@ export const getUser = (
  *          otherwise rejects with an error.
  */
 export const getUsers = (
-    userIds: string[]
+    userIds: string[],
+    role: IRole
 ): Promise<{
     response: {
         status: number;
@@ -43,7 +44,7 @@ export const getUsers = (
     };
 }> => {
     return new Promise((resolve, reject) => {
-        userClient.getUsers({ userIds }, (error: any, response: any) => {
+        userClient.getUsers({ userIds, role }, (error: any, response: any) => {
             if (error) {
                 reject(error);
             } else {

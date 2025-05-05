@@ -38,7 +38,7 @@ export class UserRepository
         try {
             return await this.model.findOneAndUpdate(
                 { _id },
-                { $set: { isblock: true } },
+                { $set: { isBlock: true } },
                 { new: true }
             );
         } catch (err: any) {
@@ -55,7 +55,7 @@ export class UserRepository
         try {
             return await this.model.findOneAndUpdate(
                 { _id },
-                { $set: { isblock: false } },
+                { $set: { isBlock: false } },
                 { new: true }
             );
         } catch (err: any) {
@@ -97,7 +97,7 @@ export class UserRepository
                         }),
                         ...(roles && { role: { $in: roles } }),
                         ...(roleWise && { role: roleWise }),
-                        ...(isBlock && { isblock: isBlock === "true" }),
+                        ...(isBlock && { isBlock: isBlock === "true" }),
                         ...(keyword && {
                             $or: [
                                 { name: { $regex: keyword, $options: "i" } },
