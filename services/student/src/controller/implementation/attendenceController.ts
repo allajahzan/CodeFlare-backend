@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IAttendenceService } from "../../service/interface/IAttendenceService";
 import { IAttendenceController } from "../interface/IAttendenceController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -43,7 +43,7 @@ export class AttendenceController implements IAttendenceController {
                 attendanceId as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -70,7 +70,7 @@ export class AttendenceController implements IAttendenceController {
                 year as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -101,7 +101,7 @@ export class AttendenceController implements IAttendenceController {
                 filter as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -130,7 +130,7 @@ export class AttendenceController implements IAttendenceController {
                 location
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -159,7 +159,7 @@ export class AttendenceController implements IAttendenceController {
                 reason
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -193,7 +193,7 @@ export class AttendenceController implements IAttendenceController {
                 Number(limit)
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

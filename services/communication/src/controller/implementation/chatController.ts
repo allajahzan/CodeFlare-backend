@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { IChatController } from "../interface/IChatController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -28,10 +28,10 @@ export class ChatController implements IChatController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { _id } = req.body.user;
+            const { _id : userId } = req.body.user;
 
-            const data = await this.chatService.getChats(_id);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            const data = await this.chatService.getChatsByUserId(userId);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
         }

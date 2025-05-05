@@ -1,6 +1,6 @@
 import amqp from "amqplib";
 import { rabbitmq } from "../../config/rabbitmq";
-import { Exchanges, QUEUES } from "@codeflare/common";
+import { Exchanges, IUser, QUEUES } from "@codeflare/common";
 import { getIO } from "../../socket/connection";
 import { NotificationRepository } from "../../repository/implementation/notificationRespository";
 import { NotificationService } from "../../service/implementation/notificationService";
@@ -8,7 +8,6 @@ import Notification from "../../model/notificationSchema";
 import { INotificationSchema } from "../../entities/INotification";
 import { getSocketId } from "../../utils/registerUser";
 import { ObjectId } from "mongoose";
-import { IUser } from "../../dto/chatServiceDto";
 
 // Inteface for IWarningProduced
 interface IWarningProduced {

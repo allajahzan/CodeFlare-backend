@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { IReviewService } from "../../service/interface/IReviewService";
 import { IReviewController } from "../interface/IReviewController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -39,7 +39,7 @@ export class ReviewController implements IReviewController {
                 userId as string
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -67,7 +67,7 @@ export class ReviewController implements IReviewController {
                 tokenPayload as string,
                 reviewData
             );
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -97,7 +97,7 @@ export class ReviewController implements IReviewController {
                 reviewData,
                 reviewId
             );
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -127,7 +127,7 @@ export class ReviewController implements IReviewController {
                 reviewId,
                 status
             );
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -158,7 +158,7 @@ export class ReviewController implements IReviewController {
                 practical,
                 theory
             );
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
             next(err);
         }
@@ -190,7 +190,7 @@ export class ReviewController implements IReviewController {
                 Number(skip)
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

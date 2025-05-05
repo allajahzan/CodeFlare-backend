@@ -35,12 +35,12 @@ export const getUser = (
  */
 export const getUsers = (
     userIds: string[],
-    role: IRole
+    role: IRole | ""
 ): Promise<{
     response: {
         status: number;
         message: string;
-        users: Record<string, IUser[] | IStudent[]>;
+        users: Record<string, IUser | IStudent>;
     };
 }> => {
     return new Promise((resolve, reject) => {

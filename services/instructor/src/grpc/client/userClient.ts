@@ -1,3 +1,4 @@
+import { IRole, IStudent, IUser } from "@codeflare/common";
 import { userClient } from "../grpc.connection";
 
 /**
@@ -11,14 +12,7 @@ export const getUser = (
     response: {
         status: number;
         message: string;
-        user: {
-            _id: string;
-            name: string;
-            email: string;
-            role: string;
-            profilePic: string;
-            batch: string;
-        };
+        user: IUser | IStudent;
     };
 }> => {
     return new Promise((resolve, reject) => {
@@ -38,30 +32,21 @@ export const getUser = (
  * @returns A Promise that resolves to the users if found, otherwise rejects with an error.
  */
 export const getUsers = (
-    userIds: string[]
+    userIds: string[],
+    role: IRole | ""
 ): Promise<{
     response: {
         status: number;
         message: string;
-        users: Record<
-            string,
-            {
-                _id: string;
-                name: string;
-                email: string;
-                role: string;
-                profilePic: string;
-                batch: string;
-            }
-        >;
+        users: Record<string, IUser | IStudent>;
     };
 }> => {
     return new Promise((resolve, reject) => {
-        userClient.getUsers({ userIds }, (error: any, response: any) => {
+        userClient.getUsers({ userIds, role }, (error: any, response: any) => {
             if (error) {
                 reject(error);
             } else {
-                resolve(response)
+                resolve(response);
             }
         });
     });
@@ -79,14 +64,7 @@ export const updateUser = (
     response: {
         status: number;
         message: string;
-        user: {
-            _id: string;
-            name: string;
-            email: string;
-            role: string;
-            profilePic: string;
-            batch: string;
-        };
+        user: IUser | IStudent;
     };
 }> => {
     return new Promise((resolve, reject) => {

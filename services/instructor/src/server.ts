@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "./app";
-import { connectRedis, MongodbConnection } from "@codeflare/common";
+import { redisConnection, MongodbConnection } from "@codeflare/common";
 import { isEnvDefined } from "./utils/envChecker";
 // import { startGrpcServer } from "./grpc/grpc.server";
 import http from 'http'
@@ -20,7 +20,7 @@ const startServer = async () => {
         await db.retryConnection();
 
         // connect to redis
-        connectRedis();
+        redisConnection();
 
         // start grpc server
         // startGrpcServer()

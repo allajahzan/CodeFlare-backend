@@ -1,4 +1,4 @@
-import { BadRequestError } from "@codeflare/common";
+import { BadRequestError, IStudent, IUser } from "@codeflare/common";
 import { INotificationSchema } from "../../entities/INotification";
 import { INotificationRepository } from "../../repository/interface/INotificationRepository";
 import { INotificationService } from "../interface/INotificationService";
@@ -47,18 +47,11 @@ export class NotificationService implements INotificationService {
 
             let usersMap: Record<
                 string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: string;
-                }
+                IUser | IStudent
             >;
 
             // Fetch users info from user service through gRPC
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             if (resp && resp.response.status === 200) {
                 usersMap = resp.response.users;

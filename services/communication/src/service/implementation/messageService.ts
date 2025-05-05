@@ -1,4 +1,3 @@
-import { ObjectId } from "mongoose";
 import { IMessageSchema } from "../../entities/IMessageSchema";
 import { IMessageRepository } from "../../repository/interface/IMessageRepository";
 import { IMessageService } from "../interface/IMessageService";

@@ -38,7 +38,7 @@ export class BatchService implements IBatchService {
             }
 
             // Get usersMap from user service through gRPC
-            let usersMap: Record<string, IUser[] | IStudent[]>;
+            let usersMap: Record<string, IUser| IStudent>;
 
             const resp = await getUsers([], "coordinator"); // Getuser by role
 

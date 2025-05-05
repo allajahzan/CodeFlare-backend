@@ -1,11 +1,10 @@
-import { NotFoundError } from "@codeflare/common";
-import { IMeetDto } from "../../dto/meetServiceDto";
+import { IStudent, IUser, NotFoundError } from "@codeflare/common";
+import { IMeetDto, IRoomIdDto } from "../../dto/meetServiceDto";
 import { IMeetRepository } from "../../repository/interface/IMeetRepository";
 import { IMeetService } from "../interface/IMeetService";
 import { ObjectId } from "mongoose";
 import { IMeetSchema } from "../../entities/IMeetSchema";
 import { getUser } from "../../grpc/client/userClient";
-import { IUser } from "../../dto/chatServiceDto";
 
 /** Implementation for Meet Service */
 export class MeetService implements IMeetService {
@@ -25,7 +24,7 @@ export class MeetService implements IMeetService {
      * @returns A promise that resolves to the meet document if found, otherwise null if the meet is not found.
      * @throws {NotFoundError} If the meet with the given id doesn't exist
      */
-    async getMeetById(roomId: string): Promise<IMeetDto | null> {
+    async getMeetById(roomId: string): Promise<IMeetDto> {
         try {
             const meet = await this.meetRepository.findOne({ roomId });
             if (!meet)
@@ -34,7 +33,7 @@ export class MeetService implements IMeetService {
             // Get host details
             const resp = await getUser(meet.hostId as unknown as string);
 
-            let host: IUser;
+            let host: IUser | IStudent;
 
             // Success response
             if (resp.response && resp.response.status === 200) {
@@ -45,11 +44,11 @@ export class MeetService implements IMeetService {
 
             // Map data to return type
             const meetDto: IMeetDto = {
-                _id: meet._id as unknown as ObjectId,
+                _id: meet._id as unknown as string,
                 host,
-                hostId: meet.hostId,
+                hostId: meet.hostId as unknown as string,
                 roomId: meet.roomId,
-                invitedUsers: meet.invitedUsers,
+                invitedUsers: meet.invitedUsers as unknown as string[],
                 messages: meet.messages,
             };
 
@@ -61,17 +60,24 @@ export class MeetService implements IMeetService {
 
     /**
      * Creates a new meet document with the specified host ID.
-     * @param hostId - The ID of the host creating the meet.
-     * @returns A promise that resolves to the created meet document if successful, otherwise null.
-     * @throws An error if the creation fails.
+     * @param hostId - The id of the host user
+     * @returns A promise that resolves to the roomId of the created meet document if successful, otherwise throws an error.
+     * @throws {NotFoundError} If the host with the given id doesn't exist
      */
-    async createMeet(hostId: string): Promise<IMeetSchema | null> {
+    async createMeet(hostId: string): Promise<IRoomIdDto> {
         try {
             const meet = await this.meetRepository.create({
                 hostId: hostId as unknown as ObjectId,
             });
 
-            return meet;
+            if (!meet) throw new NotFoundError("Unable to create meet!");
+
+            // Mapping data to return type
+            const roomIdDto: IRoomIdDto = {
+                roomId: meet.roomId,
+            };
+
+            return roomIdDto;
         } catch (err: unknown) {
             throw err;
         }

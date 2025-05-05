@@ -1,8 +1,7 @@
-import { IMeetDto } from "../../dto/meetServiceDto";
-import { IMeetSchema } from "../../entities/IMeetSchema";
+import { IMeetDto, IRoomIdDto } from "../../dto/meetServiceDto";
 
 /** Interface for Meet Service */
 export interface IMeetService {
-    getMeetById(roomId: string): Promise<IMeetDto | null>;
-    createMeet(hostId: string) : Promise<IMeetSchema | null>
+    getMeetById(roomId: string): Promise<IMeetDto>;
+    createMeet(hostId: string) : Promise<IRoomIdDto>
 }

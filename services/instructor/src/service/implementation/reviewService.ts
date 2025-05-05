@@ -1,15 +1,15 @@
 import {
     ConflictError,
+    IStudent,
+    IUser,
     JwtPayloadType,
-    NotFoundError,
-    UnauthorizedError,
 } from "@codeflare/common";
-import { IReviewDto, IUser } from "../../dto/reviewService";
+import { IInstutructorReview, IReviewDto, IStudentReview } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
 import { getUser, getUsers, updateUser } from "../../grpc/client/userClient";
-import mongoose, { Mongoose, ObjectId, Schema, Types } from "mongoose";
+import { ObjectId } from "mongoose";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -47,19 +47,9 @@ export class ReviewService implements IReviewService {
             }
 
             // Users info through gRPC
-            let usersMap: Record<
-                string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: string;
-                }
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             if (resp && resp.response.status === 200) {
                 usersMap = resp.response.users;
@@ -68,8 +58,8 @@ export class ReviewService implements IReviewService {
             // Reviews detils with user info
             return reviews.map((review) => ({
                 ...(review as unknown as IReviewDto),
-                user: usersMap[review.userId as unknown as string],
-                instructor: usersMap[review.instructorId as unknown as string],
+                user: usersMap[review.userId as unknown as string] as unknown as IStudentReview,
+                instructor: usersMap[review.instructorId as unknown as string] as unknown as IInstutructorReview,
             }));
         } catch (err: unknown) {
             throw err;

@@ -1,9 +1,7 @@
-import { DefaultEventsMap, Server, Socket } from "socket.io";
+import { DefaultEventsMap, Socket } from "socket.io";
 import * as mediasoup from "mediasoup";
-import { IUser } from "../dto/chatServiceDto";
 import { getUser } from "../grpc/client/userClient";
-import { NotFoundError } from "@codeflare/common";
-import { logVerbosity } from "@grpc/grpc-js";
+import { IStudent, IUser } from "@codeflare/common";
 
 const rooms = new Map();
 let worker: mediasoup.types.Worker;
@@ -74,7 +72,7 @@ function getRoom(roomId: string): {
     peers: Map<
         string,
         {
-            user: IUser;
+            user: IUser | IStudent;
             transports: mediasoup.types.WebRtcTransport[];
             producers: mediasoup.types.Producer[];
             consumers: mediasoup.types.Consumer[];

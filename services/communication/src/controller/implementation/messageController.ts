@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { IMessageController } from "../interface/IMessageController";
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -35,7 +35,7 @@ export class MessageController implements IMessageController {
             const { chatId } = req.params;
 
             const data = await this.messageService.getMessages(chatId);
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err) {
             next(err);
         }

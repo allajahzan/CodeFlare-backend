@@ -39,14 +39,15 @@ export class ChatRepository extends BaseRepository<IChatSchema> implements IChat
     }
 
     /**
-     * Retrieves a chat document by its id.
-     * @param _id - The id of the a participant - sender
-     * @returns A promise that resolves to the chat document if found, otherwise null if the chat is not found.
+     * Retrieves the list of chats for a user with id `_id`.
+     * @param userId - The id of the user to retrieve chats for.
+     * @returns A promise that resolves to an array of chat documents or null if no chats are found.
+     * @throws An error if there is a problem retrieving the chats.
      */
-    async getChatsById(_id: string): Promise<IChatSchema[] | null> {
+    async getChatsByUserId(userId: string): Promise<IChatSchema[] | null> {
         try {
             const chat = await this.model
-                .find({ participants: _id as unknown as ObjectId })
+                .find({ participants: userId as unknown as ObjectId })
                 .sort({ updatedAt: -1 });
             return chat;
         } catch (err: unknown) {

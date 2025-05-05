@@ -1,5 +1,5 @@
+import { IStudent, IUser } from "@codeflare/common";
 import { Schema } from "mongoose";
-import { IUser } from "./chatServiceDto";
 
 // Interface for Message
 interface IMessage {
@@ -10,10 +10,15 @@ interface IMessage {
 
 /** Dto for meet */
 export interface IMeetDto {
-    _id: Schema.Types.ObjectId;
-    hostId: Schema.Types.ObjectId;
-    host: IUser;
+    _id: string;
+    hostId: string;
+    host: IUser | IStudent;
     roomId: string;
-    invitedUsers: Schema.Types.ObjectId[];
+    invitedUsers: string[];
     messages: IMessage[];
+}
+
+/** Dro for roomId */
+export interface IRoomIdDto {
+    roomId: string;
 }

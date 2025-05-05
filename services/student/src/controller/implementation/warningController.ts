@@ -1,5 +1,5 @@
 import {
-    HTTPStatusCodes,
+    HTTPStatusCode,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -37,7 +37,7 @@ export class WarningController implements IWarningController {
                 Number(year)
             );
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -57,7 +57,7 @@ export class WarningController implements IWarningController {
 
             const data = await this.warningService.createWarning(warning);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -81,7 +81,7 @@ export class WarningController implements IWarningController {
 
             const data = await this.warningService.replyToWarning(warningId, reply);
 
-            SendResponse(res, HTTPStatusCodes.OK, ResponseMessage.SUCCESS, data);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

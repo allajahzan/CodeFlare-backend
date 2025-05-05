@@ -1,7 +1,10 @@
-import { IChatDto, IUser } from "../../dto/chatServiceDto";
+import { IBatch, IStudent, IUser } from "@codeflare/common";
+import { IChatDto, IChatUser } from "../../dto/chatServiceDto";
 import { getUsers } from "../../grpc/client/userClient";
 import { IChatRepository } from "../../repository/interface/IChatRepository";
 import { IChatService } from "../interface/IChatService";
+import { getCachedBatch, getCachedBatches } from "../../utils/cachedBatch";
+import { ObjectId } from "mongoose";
 
 /** Implementation for Chat Service */
 export class ChatService implements IChatService {
@@ -21,12 +24,10 @@ export class ChatService implements IChatService {
      * @returns A promise that resolves to an array of chat documents or null if no chats are found.
      * @throws An error if there is a problem retrieving the chats.
      */
-    async getChats(_id: string): Promise<IChatDto[] | null> {
+    async getChatsByUserId(userId: string): Promise<IChatDto[] | null> {
         try {
-            console.log(_id);
-            
             // Get chats from repository
-            const chats = await this.chatRepository.getChatsById(_id);
+            const chats = await this.chatRepository.getChatsByUserId(userId);
             if (!chats || !chats.length) return null;
 
             let userIds: string[] = []; // User Ids
@@ -36,20 +37,10 @@ export class ChatService implements IChatService {
             }
 
             // Get users from user service through gRPC
-            let usersMap: Record<
-                string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: string;
-                }
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
             // Fetch users info through gRPC
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             if (resp && resp.response.status === 200) {
                 usersMap = resp.response.users;
@@ -57,23 +48,52 @@ export class ChatService implements IChatService {
                 throw new Error("Failed load chats due to some issues!");
             }
 
-            return chats.map((chat) => {
-                const sender = usersMap[
-                    chat.participants[0] as unknown as string
-                ] as IUser;
-                const receiver = usersMap[
-                    chat.participants[1] as unknown as string
-                ] as IUser;
-                return {
-                    ...chat.toObject(),
-                    sender: {
-                        ...sender,
-                    },
-                    receiver: {
-                        ...receiver,
-                    },
-                };
-            });
+            // Mapping data to return type
+            const chatsDto: IChatDto[] = await Promise.all(
+                chats.map(async (chat) => {
+                    const chatSender =
+                        usersMap[chat.participants[0] as unknown as string];
+                    const chatReceiver =
+                        usersMap[chat.participants[1] as unknown as string];
+
+                    const sender: IChatUser = {
+                        _id: chatSender._id,
+                        name: chatSender.name,
+                        email: chatSender.email,
+                        phoneNo: chatSender.phoneNo,
+                        role: chatSender.role,
+                        profilePic: chatSender.profilePic,
+                        ...((chatSender as IStudent)?.batch
+                            ? {
+                                batch: (await getCachedBatch(
+                                    (chatSender as IStudent).batch
+                                )) as IBatch,
+                            }
+                            : {}),
+                        ...((chatSender as IUser)?.batches
+                            ? {
+                                batches: (await getCachedBatches(
+                                    (chatSender as IUser).batches as unknown as ObjectId[]
+                                )) as IBatch[],
+                            }
+                            : {}),
+                        createdAt: chatSender.createdAt,
+                        isBlock: chatSender.isBlock,
+                    };
+
+                    return {
+                        _id: chat._id as string,
+                        content: chat.content,
+                        lastMessage: chat.lastMessage,
+                        participants: chat.participants as unknown as string[],
+                        sender,
+                        receiver: chatReceiver as unknown as IChatUser,
+                        updatedAt: chat.updatedAt,
+                    };
+                })
+            );
+
+            return chatsDto;
         } catch (err: unknown) {
             throw err;
         }

@@ -1,3 +1,4 @@
+import { IStudent, IUser } from "@codeflare/common";
 import { userClient } from "../grpc.connection";
 
 /**
@@ -11,14 +12,7 @@ export const getUser = (
     response: {
         status: number;
         message: string;
-        user: {
-            _id: string;
-            name: string;
-            email: string;
-            role: string;
-            profilePic: string;
-            batch: any;
-        };
+        user: IUser | IStudent;
     };
 }> => {
     return new Promise((resolve, reject) => {
@@ -45,14 +39,7 @@ export const getUsers = (
         message: string;
         users: Record<
             string,
-            {
-                _id: string;
-                name: string;
-                email: string;
-                role: string;
-                profilePic: string;
-                batch: any;
-            }
+            IUser | IStudent
         >;
     };
 }> => {

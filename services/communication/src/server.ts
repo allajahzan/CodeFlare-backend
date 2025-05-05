@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import app from "./app";
-import { connectRedis, MongodbConnection } from "@codeflare/common";
+import { redisConnection, MongodbConnection } from "@codeflare/common";
 import http from 'http'
 import { connectSocketIO } from "./socket/connection";
 import { rabbitmq } from "./config/rabbitmq";
@@ -16,7 +16,7 @@ const startServer = async () => {
         await db.retryConnection();
 
         // connect to redis
-        connectRedis();
+        redisConnection();
 
         // connect to rabbitmq
         await rabbitmq.connect();
