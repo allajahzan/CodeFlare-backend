@@ -1,5 +1,4 @@
-import { IStudent, IUser } from "@codeflare/common";
-import { Schema } from "mongoose";
+import { IUserBasic } from "@codeflare/common";
 
 // Interface for Message
 interface IMessage {
@@ -12,7 +11,7 @@ interface IMessage {
 export interface IMeetDto {
     _id: string;
     hostId: string;
-    host: IUser | IStudent;
+    host: IUserBasic;
     roomId: string;
     invitedUsers: string[];
     messages: IMessage[];

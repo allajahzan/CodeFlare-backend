@@ -63,6 +63,8 @@ export class ChatService implements IChatService {
                         phoneNo: chatSender.phoneNo,
                         role: chatSender.role,
                         profilePic: chatSender.profilePic,
+                        // week from cache
+                        // domain from cache
                         ...((chatSender as IStudent)?.batch
                             ? {
                                 batch: (await getCachedBatch(

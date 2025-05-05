@@ -45,7 +45,13 @@ export class MeetService implements IMeetService {
             // Map data to return type
             const meetDto: IMeetDto = {
                 _id: meet._id as unknown as string,
-                host,
+                host: {
+                    _id: host._id,
+                    name: host.name,
+                    email: host.email,
+                    role: host.role,
+                    profilePic: host.profilePic,
+                },
                 hostId: meet.hostId as unknown as string,
                 roomId: meet.roomId,
                 invitedUsers: meet.invitedUsers as unknown as string[],
