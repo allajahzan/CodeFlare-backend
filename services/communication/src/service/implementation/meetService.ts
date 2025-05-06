@@ -28,7 +28,7 @@ export class MeetService implements IMeetService {
         try {
             const meet = await this.meetRepository.findOne({ roomId });
             if (!meet)
-                throw new NotFoundError("This meeting link doesn't even exists !");
+                throw new NotFoundError("This meeting link doesn't even exists!");
 
             // Get host details
             const resp = await getUser(meet.hostId as unknown as string);

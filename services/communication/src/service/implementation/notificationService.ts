@@ -45,10 +45,7 @@ export class NotificationService implements INotificationService {
                 userIds.push(notifications[i].senderId as unknown as string);
             }
 
-            let usersMap: Record<
-                string,
-                IUser | IStudent
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
             // Fetch users info from user service through gRPC
             const resp = await getUsers([...new Set(userIds)], "");
@@ -60,7 +57,7 @@ export class NotificationService implements INotificationService {
             }
 
             // Map data to return type
-            const notificationsMapped: INotificationDto[] = notifications.map(
+            const notificationsDto: INotificationDto[] = notifications.map(
                 (notification) => {
                     return {
                         _id: notification._id as unknown as string,
@@ -75,7 +72,7 @@ export class NotificationService implements INotificationService {
                 }
             );
 
-            return notificationsMapped;
+            return notificationsDto;
         } catch (err: unknown) {
             throw err;
         }
@@ -89,30 +86,39 @@ export class NotificationService implements INotificationService {
      */
     async createNotification(
         notification: Partial<INotificationSchema>
-    ): Promise<INotificationSchema> {
+    ): Promise<INotificationDto> {
         try {
             const newNotifaction = await this.notificationRepository.create(
                 notification
             );
 
             if (!newNotifaction)
-                throw new BadRequestError("An unexpected error occured !");
+                throw new BadRequestError("An unexpected error occured!");
 
-            return newNotifaction;
+            // Map data to return type
+            const notificationDto: INotificationDto = {
+                _id: newNotifaction._id as unknown as string,
+                senderId: newNotifaction.senderId as unknown as string,
+                recieverId: newNotifaction.receiverId as unknown as string,
+                message: newNotifaction.message,
+                type: newNotifaction.type,
+                path: newNotifaction.path,
+                date: newNotifaction.date,
+            };
+
+            return notificationDto;
         } catch (err: unknown) {
             throw err;
         }
     }
 
     /**
-     * Updates a notification with the given notificationId to mark it as read.
-     * @param notificationId - The id of the notification to be updated.
-     * @returns A promise that resolves to the updated notification object.
+     * Updates a notification in the system to mark it as read.
+     * @param notificationId - The ID of the notification to be updated.
+     * @returns A promise that resolves when the notification update process is complete.
      * @throws {BadRequestError} If the notification could not be updated.
      */
-    async updateNotification(
-        notificationId: string
-    ): Promise<INotificationSchema> {
+    async updateNotification(notificationId: string): Promise<void> {
         try {
             const updatedNotification = await this.notificationRepository.update(
                 { _id: notificationId },
@@ -120,9 +126,7 @@ export class NotificationService implements INotificationService {
             );
 
             if (!updatedNotification)
-                throw new BadRequestError("An unexpected error occured !");
-
-            return updatedNotification;
+                throw new BadRequestError("Failed to mark notification as read!");
         } catch (err: unknown) {
             throw err;
         }
@@ -140,7 +144,7 @@ export class NotificationService implements INotificationService {
                 receiverId
             );
 
-            if (!result) throw new Error("An unexpected error occured !");
+            if (!result) throw new Error("Failed to mark notifications as read!");
         } catch (err: unknown) {
             throw err;
         }
@@ -158,7 +162,7 @@ export class NotificationService implements INotificationService {
                 _id: notificationId,
             });
 
-            if (!result) throw new BadRequestError("An unexpected error occured !");
+            if (!result) throw new BadRequestError("Failed to delete notification!");
         } catch (err: unknown) {
             throw err;
         }

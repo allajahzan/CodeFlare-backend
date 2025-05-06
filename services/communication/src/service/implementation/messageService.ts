@@ -22,7 +22,12 @@ export class MessageService implements IMessageService {
      */
     async getMessages(chatId: string): Promise<IMessageSchema[] | null> {
         try {
-            const messages = this.messageRepository.getMessages(chatId, 0);
+            const messages = await this.messageRepository.getMessages(chatId, 0);
+
+            if(!messages || messages.length === 0) {
+                return null;
+            }
+            
             return messages;
         } catch (err: unknown) {
             throw err;

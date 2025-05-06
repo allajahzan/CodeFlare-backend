@@ -122,7 +122,7 @@ export class UserService implements IUserService {
 
             if (!newUser) throw new BadRequestError("Failed to add the user!");
 
-            // Mapping data to return type
+            // Map data to return type
             const userRegisterDto: IUserRegisterDto = {
                 email: newUser.email,
                 role: newUser.role,
@@ -342,7 +342,7 @@ export class UserService implements IUserService {
 
             // Get domain details
 
-            // Mapping data to return type
+            // Map data to return type
             const userDto: IUserDto = {
                 _id: user._id as string,
                 name: user.name,
@@ -500,7 +500,7 @@ export class UserService implements IUserService {
 
             // Get domain details
 
-            // Mapping data to return type
+            // Map data to return type
             const userDto: IUserDto = {
                 _id: newUser._id as string,
                 name: newUser.name,
@@ -557,7 +557,7 @@ export class UserService implements IUserService {
 
             // Get domain details
 
-            // Mapping data to return type
+            // Map data to return type
             const userDto: IUserDto = {
                 _id: updatedUser._id as string,
                 name: updatedUser.name,
@@ -649,12 +649,6 @@ export class UserService implements IUserService {
 
             const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
-            const user = await this.userRepository.findOne({ _id });
-
-            if (!user) {
-                throw new NotFoundError("User not found!");
-            }
-
             if (role === "admin") {
                 users = await this.userRepository.searchUser(
                     keyword,
@@ -677,6 +671,10 @@ export class UserService implements IUserService {
                     batchId,
                     ["student"]
                 );
+            }
+
+            if (!users || users.length === 0) {
+                return [];
             }
 
             // Users info with batch details

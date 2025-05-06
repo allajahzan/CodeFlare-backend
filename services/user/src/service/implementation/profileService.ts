@@ -46,7 +46,27 @@ export class ProfileService implements IProfileService {
 
             const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id
 
-            return await this.profileRepository.getProfileByUserId(_id);
+            const profile = await this.profileRepository.getProfileByUserId(_id);
+
+            if (!profile) {
+                return null;
+            }
+
+            // Map data to return type
+            const profileDto: IProfileDto = {
+                bio: profile.bio,
+                about: profile.about,
+                education: profile.education,
+                work: profile.work,
+                softSkills: profile.softSkills,
+                techSkills: profile.techSkills,
+                portfolio: profile.portfolio,
+                github: profile.github,
+                linkedin: profile.linkedin,
+                instagram: profile.instagram,
+            };
+
+            return profileDto;
         } catch (err: unknown) {
             throw err;
         }

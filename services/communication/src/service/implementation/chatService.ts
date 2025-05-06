@@ -28,7 +28,9 @@ export class ChatService implements IChatService {
         try {
             // Get chats from repository
             const chats = await this.chatRepository.getChatsByUserId(userId);
-            if (!chats || !chats.length) return null;
+            if (!chats || chats.length === 0) {
+                return null;
+            };
 
             let userIds: string[] = []; // User Ids
 
@@ -48,7 +50,7 @@ export class ChatService implements IChatService {
                 throw new Error("Failed load chats due to some issues!");
             }
 
-            // Mapping data to return type
+            // Map data to return type
             const chatsDto: IChatDto[] = await Promise.all(
                 chats.map(async (chat) => {
                     const chatSender =

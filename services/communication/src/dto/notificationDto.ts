@@ -4,7 +4,7 @@ import { IStudent, IUser } from "@codeflare/common";
 export interface INotificationDto {
     _id: string;
     senderId: string;
-    sender: IUser | IStudent;
+    sender?: IUser | IStudent;
     recieverId: string;
     type: string;
     path: string;
