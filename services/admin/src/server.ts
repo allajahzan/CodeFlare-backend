@@ -6,6 +6,7 @@ import app from "./app";
 import { isEnvDefined } from "./utils/envChecker";
 import { redisConnection, MongodbConnection } from "@codeflare/common";
 import { cacheAllBatch } from "./utils/catchBatch";
+import { cacheAllWeeks } from "./utils/catchWeek";
 
 // Start Server
 const startServer = async () => {
@@ -18,10 +19,13 @@ const startServer = async () => {
         await db.retryConnection();
 
         // Connect to redis
-        redisConnection();
+        await redisConnection();
 
         // Cache all batches
-        cacheAllBatch();
+        await cacheAllBatch();
+
+        // Cache all weeks
+        await cacheAllWeeks();
 
         // port listening
         app.listen(process.env.PORT, () => {

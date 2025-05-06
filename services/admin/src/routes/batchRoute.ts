@@ -22,7 +22,7 @@ router.post("/", (req: Request, res: Response, next: NextFunction) =>
 );
 
 // Update batch
-router.put("/:id", (req: Request, res: Response, next: NextFunction) =>
+router.put("/:batchId", (req: Request, res: Response, next: NextFunction) =>
     batchController.updateBatch(req, res, next)
 );
 
@@ -31,4 +31,4 @@ router.get("/search", (req: Request, res: Response, next: NextFunction) =>
     batchController.searchBatches(req, res, next)
 );
 
-export { router as adminRoute };
+export { router as batchRoute };

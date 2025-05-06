@@ -65,8 +65,8 @@ export class BatchController implements IBatchController {
     }
 
     /**
-     * Updates the name of a batch with the given id.
-     * @param req - The express request object containing the id of the batch to update in the request parameters, and the new name in the request body.
+     * Updates the name of a batch with the given batchId.
+     * @param req - The express request object containing the batchId of the batch to update in the request parameters, and the new name in the request body.
      * @param res - The express response object used to send the response.
      * @param next - The next middleware function in the express stack.
      * @returns A promise that resolves when the batch is updated successfully.
@@ -78,10 +78,10 @@ export class BatchController implements IBatchController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { id } = req.params;
+            const { batchId } = req.params;
             const { name } = req.body;
 
-            await this.batchService.updateBatch(id, name);
+            await this.batchService.updateBatch(batchId, name);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {

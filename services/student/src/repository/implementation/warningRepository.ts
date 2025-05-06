@@ -29,7 +29,7 @@ export class WarningRepository
         year: number
     ): Promise<IWarningSchema[] | null> {
         try {
-            const warnings = await this.model.aggregate([
+            return await this.model.aggregate([
                 {
                     $match: {
                         studentId: new Types.ObjectId(studentId),
@@ -48,8 +48,6 @@ export class WarningRepository
                     $sort: { date: -1 },
                 },
             ]);
-
-            return warnings.length ? warnings : null;
         } catch (err: unknown) {
             return null;
         }

@@ -8,7 +8,6 @@ import {
 } from "@codeflare/common";
 import { IBatchDto } from "../../dto/batchServiceDto";
 import { cacheBatch, cacheUpdatedBatch } from "../../utils/catchBatch";
-import axios from "axios";
 import { getUsers } from "../../grpc/client/userClient";
 import { ObjectId } from "mongoose";
 
@@ -38,7 +37,7 @@ export class BatchService implements IBatchService {
             }
 
             // Get usersMap from user service through gRPC
-            let usersMap: Record<string, IUser| IStudent>;
+            let usersMap: Record<string, IUser | IStudent>;
 
             const resp = await getUsers([], "coordinator"); // Getuser by role
 
@@ -90,7 +89,7 @@ export class BatchService implements IBatchService {
      * @param name - The name of the batch to add.
      * @returns A promise that resolves when the batch is added successfully.
      * @throws A ConflictError if a batch with the same name already exist.
-     * @throws An error if there is a problem adding the batch.
+     * @throws An BadRequestError if there is a problem adding the batch.
      */
     async addBatch(name: string): Promise<IBatchDto> {
         try {
@@ -99,7 +98,7 @@ export class BatchService implements IBatchService {
             if (isBatchExist) throw new ConflictError("This batch is already exist!");
 
             const newbatch = await this.batchRepository.create({ name });
-            if (!newbatch) throw new Error("Failed to add the batch!");
+            if (!newbatch) throw new BadRequestError("Failed to add the batch!");
 
             // Map data to return type
             const batchDto: IBatchDto = {
@@ -121,31 +120,33 @@ export class BatchService implements IBatchService {
      * @param _id - The id of the batch to update.
      * @param name - The new name of the batch.
      * @returns A promise that resolves when the batch is updated successfully.
-     * @throws An error if there is a problem updating the batch.
+     * @throws An BadRequestError if there is a problem updating the batch.
      */
-    async updateBatch(_id: string, name: string): Promise<void> {
+    async updateBatch(batchId: string, name: string): Promise<void> {
         try {
             const isBatchExist = await this.batchRepository.findOne({
-                _id: { $ne: _id },
+                _id: { $ne: batchId },
                 name,
             });
 
             if (isBatchExist) throw new ConflictError("This batch is already exist!");
 
             const updatedBatch = this.batchRepository.update(
-                { _id },
+                { _id: batchId },
                 { $set: { name } }
             );
 
+            if (!updatedBatch)
+                throw new BadRequestError("Failed to update the batch!");
+
+            // Map data
             const batchDto: IBatchDto = {
-                _id: _id as unknown as string,
+                _id: batchId as unknown as string,
                 name,
             };
 
             // Cache updated batch to redis
             await cacheUpdatedBatch(batchDto);
-
-            if (!updatedBatch) throw new Error("Failed to update the batch!");
         } catch (err: unknown) {
             throw err;
         }
@@ -165,19 +166,19 @@ export class BatchService implements IBatchService {
         order: number
     ): Promise<IBatchDto[]> {
         try {
-            const batches = await this.batchRepository.searchBatch(
+            const batches = await this.batchRepository.searchBatches(
                 keyword,
                 sort,
                 order
             );
 
-            if (!batches) {
+            if (!batches || batches.length === 0) {
                 return [];
             }
 
             const batchDto: IBatchDto[] = [];
 
-            // Mapping data to return type
+            // Map data to return type
             for (let i = 0; i < batches.length; i++) {
                 batchDto.push({
                     _id: batches[i]._id as unknown as string,

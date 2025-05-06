@@ -1,32 +1,32 @@
 import { BaseRepository } from "@codeflare/common";
-import { IBatchSchema } from "../../entities/IBatchSchema";
+import { IWeekSchema } from "../../entities/IWeekSchema";
 import { Model } from "mongoose";
-import { IBatchRepository } from "../interface/IBatchRepository";
+import { IWeekRepository } from "../interface/IWeekRepository";
 
-/** Implementation of Batch Repository */
-export class BatchRepository
-    extends BaseRepository<IBatchSchema>
-    implements IBatchRepository {
+/** Implementation of Week Repository */
+export class WeekRepository
+    extends BaseRepository<IWeekSchema>
+    implements IWeekRepository {
     /**
-     * Constructs an instance of the BatchRepository
-     * @param model - The Mongoose model for the BatchSchema
+     * Constructor for WeekRepository
+     * @param model - The Week model from Mongoose
      */
-    constructor(model: Model<IBatchSchema>) {
+    constructor(model: Model<IWeekSchema>) {
         super(model);
     }
 
     /**
-     * Searches for batches based on the given keyword from the request query.
-     * @param keyword - The keyword to search for in the batch's name.
+     * Searches for weeks based on the given keyword from the request query.
+     * @param keyword - The keyword to search for in the week's name.
      * @param sort - The field to sort the results by.
      * @param order - The order of the sorting, either ascending (1) or descending (-1).
-     * @returns A promise that resolves to an array of batches matching the search criteria if successful, otherwise null.
+     * @returns A promise that resolves to an array of weeks matching the search criteria if successful, otherwise null.
      */
-    async searchBatches(
+    async searchWeeks(
         keyword: string,
         sort: string,
         order: number
-    ): Promise<IBatchSchema[] | null> {
+    ): Promise<IWeekSchema[] | null> {
         try {
             return await this.model.aggregate([
                 {

@@ -3,5 +3,5 @@ import { IBatchSchema } from "../../entities/IBatchSchema";
 
 /** Inteface for Batch Repository */
 export interface IBatchRepository extends IBaseRepository<IBatchSchema> {
-    searchBatch(keyword: string, sort: string, order: number) : Promise<IBatchSchema[] | null>
+    searchBatches(keyword: string, sort: string, order: number) : Promise<IBatchSchema[] | null>
 }

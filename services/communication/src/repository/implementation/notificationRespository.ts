@@ -23,11 +23,10 @@ export class NotificationRepository
         receiverId: string
     ): Promise<UpdateWriteOpResult | null> {
         try {
-            const updatedNotifications = await this.model.updateMany(
+            return await this.model.updateMany(
                 { receiverId, isRead: false },
                 { $set: { isRead: true } }
             );
-            return updatedNotifications;
         } catch (err: unknown) {
             return null;
         }
@@ -77,9 +76,7 @@ export class NotificationRepository
                 pipeline.push({ $limit: limit });
             }
 
-            const notifications = await this.model.aggregate(pipeline);
-
-            return notifications.length > 0 ? notifications : null;
+            return await this.model.aggregate(pipeline); 
         } catch (err: unknown) {
             return null;
         }

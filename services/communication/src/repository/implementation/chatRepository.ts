@@ -46,10 +46,9 @@ export class ChatRepository extends BaseRepository<IChatSchema> implements IChat
      */
     async getChatsByUserId(userId: string): Promise<IChatSchema[] | null> {
         try {
-            const chat = await this.model
+            return await this.model
                 .find({ participants: userId as unknown as ObjectId })
                 .sort({ updatedAt: -1 });
-            return chat;
         } catch (err: unknown) {
             return null;
         }

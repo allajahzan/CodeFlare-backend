@@ -48,8 +48,7 @@ export class AttendenceRepository
         update: UpdateQuery<IAttendenceSchema>
     ): Promise<UpdateWriteOpResult | null> {
         try {
-            const attendence = await this.model.updateMany(filter, update);
-            return attendence;
+            return await this.model.updateMany(filter, update);
         } catch (err: unknown) {
             return null;
         }
@@ -75,7 +74,7 @@ export class AttendenceRepository
         filter: string
     ): Promise<IAttendenceSchema[] | null> {
         try {
-            const attendence = await this.model.aggregate([
+            return await this.model.aggregate([
                 {
                     $match: {
                         ...(batchIds.length && {
@@ -96,8 +95,6 @@ export class AttendenceRepository
                     },
                 },
             ]);
-
-            return attendence.length ? attendence : null;
         } catch (err: unknown) {
             return null;
         }
@@ -123,7 +120,7 @@ export class AttendenceRepository
         limit: number
     ): Promise<IAttendenceSchema[] | null> {
         try {
-            const attendence = await this.model.aggregate([
+            return await this.model.aggregate([
                 {
                     $match: {
                         ...(batchIds.length && {
@@ -155,8 +152,6 @@ export class AttendenceRepository
                     $limit: limit,
                 },
             ]);
-
-            return attendence.length ? attendence : null;
         } catch (err: unknown) {
             return null;
         }
@@ -182,7 +177,7 @@ export class AttendenceRepository
         limit: number
     ): Promise<IAttendenceSchema[] | null> {
         try {
-            const attendences = await this.model.aggregate([
+            return await this.model.aggregate([
                 {
                     $match: { status: { $in: ["Absent", "Late"] } },
                 },
@@ -239,8 +234,6 @@ export class AttendenceRepository
                     $limit: limit,
                 },
             ]);
-
-            return attendences.length ? attendences : null;
         } catch (err: unknown) {
             return null;
         }
