@@ -7,6 +7,7 @@ const weekSchema = new Schema<IWeekSchema>(
         name: {
             type: String,
             required: true,
+            index: true
         },
     },
     { timestamps: true }

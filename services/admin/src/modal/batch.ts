@@ -7,6 +7,7 @@ const batchSchema = new Schema<IBatchSchema>(
         name: {
             type: String,
             required: true,
+            index: true
         },
     },
     { timestamps: true }
