@@ -315,7 +315,7 @@ export class AttendenceService implements IAttendenceService {
             // Users info through gRPC
             let usersMap: Record<string, IUser | IStudent>;
 
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             // Success response from gRPC
             if (resp && resp.response.status === 200) {
@@ -630,7 +630,7 @@ export class AttendenceService implements IAttendenceService {
             // Users info through gRPC
             let usersMap: Record<string, IUser | IStudent>;
 
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             // Success response from gRPC
             if (resp && resp.response.status === 200) {

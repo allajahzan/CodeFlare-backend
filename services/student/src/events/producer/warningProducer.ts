@@ -1,16 +1,16 @@
 import { rabbitmq } from "../../config/rabbitmq";
-import { Exchanges, IStudent, IUser } from "@codeflare/common";
+import { Exchanges, IUserBasic } from "@codeflare/common";
 
 // Warning producer
 export class WarningProducer {
     private senderId: string;
-    private sender: IUser | IStudent;
+    private sender: IUserBasic;
     private receiverId: string;
     private message: string;
 
     constructor(
         senderId: string,
-        sender: IUser | IStudent,
+        sender: IUserBasic,
         receiverId: string,
         message: string
     ) {

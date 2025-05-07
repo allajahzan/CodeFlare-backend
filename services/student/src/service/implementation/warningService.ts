@@ -105,7 +105,13 @@ export class WarningService implements IWarningService {
             // Send warning event through rabbitmq
             const warningProducer = new WarningProducer(
                 newWarning.coordinatorId as unknown as string,
-                coordinator,
+                {
+                    _id: coordinator._id,
+                    name: coordinator.name,
+                    email: coordinator.email,
+                    profilePic: coordinator.profilePic,
+                    role: coordinator.role,
+                },
                 newWarning.studentId as unknown as string,
                 "Warning from coordinator regarding attendance."
             );
