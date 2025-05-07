@@ -3,6 +3,11 @@ import { IDomainDto, ISearchDomainsDto } from "../../dto/domainServiceDto";
 import { IDomainsWeekSchema } from "../../entities/IDomainSchema";
 import { IDomainRepository } from "../../repository/interface/IDomainRepository";
 import { IDomainService } from "../interface/IDomainService";
+import {
+    cacheDomain,
+    cacheUpdatedDomain,
+    transformUpdatedDomainAndCache,
+} from "../../utils/cacheDomain";
 
 /** Implementation of Domain Service */
 export class DomainService implements IDomainService {
@@ -53,6 +58,9 @@ export class DomainService implements IDomainService {
                 domainsWeeks: populatedDomain.domainsWeeks,
             };
 
+            // Cache domain to redis
+            await cacheDomain(domainDto);
+
             return domainDto;
         } catch (err: unknown) {
             throw err;
@@ -81,15 +89,17 @@ export class DomainService implements IDomainService {
             if (isDomainExists)
                 throw new BadRequestError("This domain already exists!");
 
-            const domain = await this.domainRepository.update(
+            const updatedDomain = await this.domainRepository.update(
                 { _id: domainId },
                 { $set: { name, imageUrl } },
                 { new: true }
             );
 
-            console.log(domain);
+            if (!updatedDomain)
+                throw new BadRequestError("Failed to update the domain!");
 
-            if (!domain) throw new BadRequestError("Failed to update the domain!");
+            // Cache updated domain
+            await transformUpdatedDomainAndCache(updatedDomain);
         } catch (err: unknown) {
             throw err;
         }
@@ -103,13 +113,17 @@ export class DomainService implements IDomainService {
      */
     async unlistDomain(domainId: string): Promise<void> {
         try {
-            const domain = await this.domainRepository.update(
+            const updatedDomain = await this.domainRepository.update(
                 { _id: domainId },
                 { $set: { isDomainListed: false } },
                 { new: true }
             );
 
-            if (!domain) throw new BadRequestError("Failed to unlist the domain!");
+            if (!updatedDomain)
+                throw new BadRequestError("Failed to unlist the domain!");
+
+            // Cache updated domain
+            await transformUpdatedDomainAndCache(updatedDomain);
         } catch (err: unknown) {
             throw err;
         }
@@ -161,13 +175,16 @@ export class DomainService implements IDomainService {
         weeks: { week: string; title: string }[]
     ): Promise<void> {
         try {
-            const result = await this.domainRepository.addWeeksToDomain(
+            const updatedDomain = await this.domainRepository.addWeeksToDomain(
                 domainId,
                 weeks
             );
 
-            if (!result)
+            if (!updatedDomain)
                 throw new BadRequestError("Failed to add weeks to this domain!");
+
+            // Cache updated domain
+            await transformUpdatedDomainAndCache(updatedDomain);
         } catch (err: unknown) {
             throw err;
         }
@@ -187,13 +204,17 @@ export class DomainService implements IDomainService {
         title: string
     ): Promise<void> {
         try {
-            const result = await this.domainRepository.updateWeekInDomain(
+            const updatedDomain = await this.domainRepository.updateWeekInDomain(
                 domainId,
                 week,
                 title
             );
-            if (!result)
+
+            if (!updatedDomain)
                 throw new BadRequestError("Failed to update week in this domain!");
+
+            // Cache updated domain
+            await transformUpdatedDomainAndCache(updatedDomain);
         } catch (err: unknown) {
             throw err;
         }
@@ -208,12 +229,16 @@ export class DomainService implements IDomainService {
      */
     async unlistWeekInDomain(domainId: string, week: string): Promise<void> {
         try {
-            const result = await this.domainRepository.unlistWeekInDomain(
+            const updatedDomain = await this.domainRepository.unlistWeekInDomain(
                 domainId,
                 week
             );
-            if (!result)
+
+            if (!updatedDomain)
                 throw new BadRequestError("Failed to unlist week in this domain!");
+
+            // Cache updated domain
+            await transformUpdatedDomainAndCache(updatedDomain);
         } catch (err: unknown) {
             throw err;
         }

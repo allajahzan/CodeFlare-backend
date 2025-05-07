@@ -3,7 +3,7 @@ import { IWeekDto } from "../../dto/weekServiceDto";
 import { WeekRepository } from "../../repository/implementation/weekRepository";
 import { IWeekRepository } from "../../repository/interface/IWeekRepository";
 import { IWeekService } from "../interface/IWeekService";
-import { cacheUpdatedWeek, cacheWeek } from "../../utils/catchWeek";
+import { cacheUpdatedWeek, cacheWeek } from "../../utils/cacheWeek";
 
 /** Implementation of Week Service */
 export class WeekService implements IWeekService {

@@ -5,8 +5,9 @@ dotenv.config();
 import app from "./app";
 import { isEnvDefined } from "./utils/envChecker";
 import { redisConnection, MongodbConnection } from "@codeflare/common";
-import { cacheAllBatch } from "./utils/catchBatch";
-import { cacheAllWeeks } from "./utils/catchWeek";
+import { cacheAllBatch } from "./utils/cacheBatch";
+import { cacheAllWeeks } from "./utils/cacheWeek";
+import { cacheAllDomains } from "./utils/cacheDomain";
 
 // Start Server
 const startServer = async () => {
@@ -26,6 +27,9 @@ const startServer = async () => {
 
         // Cache all weeks
         await cacheAllWeeks();
+
+        // Cache all domains
+        await cacheAllDomains();
 
         // port listening
         app.listen(process.env.PORT, () => {

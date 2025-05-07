@@ -24,8 +24,11 @@ class RabbitMQ {
                 this.connect();
             });
 
-            // consumers
-
+            this._channel.on("error", () => {
+                console.log("Rabbitmq connection error, reconnecting...");
+                this._channel = null;
+                this.connect();
+            });
         } catch (err: any) {
             throw new Error(err);
         }

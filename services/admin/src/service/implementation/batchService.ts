@@ -7,7 +7,7 @@ import {
     IUser,
 } from "@codeflare/common";
 import { IBatchDto } from "../../dto/batchServiceDto";
-import { cacheBatch, cacheUpdatedBatch } from "../../utils/catchBatch";
+import { cacheBatch, cacheUpdatedBatch } from "../../utils/cacheBatch";
 import { getUsers } from "../../grpc/client/userClient";
 import { ObjectId } from "mongoose";
 
