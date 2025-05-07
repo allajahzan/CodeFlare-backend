@@ -29,7 +29,7 @@ import { IUserSchema } from "../../entities/IUserSchema";
 import { getCachedBatch, getCachedBatches } from "../../utils/cachedBatch";
 import { getCachedWeek } from "../../utils/cachedWeek";
 import { getCachedDomain } from "../../utils/cachedDomain";
-import { getUsersWithBatchDetails } from "../../utils/transformUserDto";
+import { getTransformedUserDto } from "../../utils/transformUserDto";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -431,7 +431,7 @@ export class UserService implements IUserService {
             }
 
             // Users info with batch details
-            const usersWithBatchDetails = await getUsersWithBatchDetails(
+            const usersWithBatchDetails = await getTransformedUserDto(
                 users as IUserSchema[]
             );
 
@@ -683,7 +683,7 @@ export class UserService implements IUserService {
             }
 
             // Users info with batch details
-            const usersWithBatchDetails = await getUsersWithBatchDetails(
+            const usersWithBatchDetails = await getTransformedUserDto(
                 users as IUserSchema[]
             );
 

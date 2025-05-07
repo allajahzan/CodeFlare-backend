@@ -11,7 +11,7 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.67",
+    "@codeflare/common": "^1.0.77",
     "@grpc/grpc-js": "^1.13.1",
     "amqplib": "^0.10.7",
     "dotenv": "^16.4.7",

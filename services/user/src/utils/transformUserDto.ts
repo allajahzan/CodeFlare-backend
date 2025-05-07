@@ -10,7 +10,7 @@ import { getCachedWeeks } from "./cachedWeek";
  * @returns A promise that resolves to an array of user objects with their batch details.
  * @throws An error if there is a problem retrieving the batch details from the cache.
  */
-export const getUsersWithBatchDetails = async (
+export const getTransformedUserDto = async (
     users: IUserSchema[]
 ): Promise<IUserDto[]> => {
     try {

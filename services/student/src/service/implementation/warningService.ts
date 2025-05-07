@@ -1,4 +1,9 @@
-import { BadRequestError, NotFoundError } from "@codeflare/common";
+import {
+    BadRequestError,
+    IStudent,
+    IUser,
+    NotFoundError,
+} from "@codeflare/common";
 import { IReply, IWarningDto } from "../../dto/warningDto";
 import { IWarningSchema } from "../../entities/IWarning";
 import { IWarningRepository } from "../../repository/interface/IWarningRepository";
@@ -88,7 +93,7 @@ export class WarningService implements IWarningService {
                 throw new BadRequestError("Failed to send warning to student !");
 
             // Coordinator info through gRPC
-            let coordinator;
+            let coordinator: IUser | IStudent;
             const resp = await getUser(newWarning.coordinatorId.toString());
 
             if (resp.response.status === 200) {

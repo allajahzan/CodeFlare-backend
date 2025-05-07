@@ -1,29 +1,28 @@
-import { BadRequestError, NotFoundError } from "@codeflare/common";
-import { ICheckInOutDto } from "../../dto/attendenceDto";
+import {
+    BadRequestError,
+    IBatch,
+    IStudent,
+    IUser,
+    NotFoundError,
+} from "@codeflare/common";
+import { IAttendenceDto, ICheckInOutDto } from "../../dto/attendenceDto";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
-import { ObjectId, UpdateQuery } from "mongoose";
+import { UpdateQuery } from "mongoose";
 import { IAttendenceSchema, ISelfie } from "../../entities/IAttendence";
 import { getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
-import { IWarningRepository } from "../../repository/interface/IWarningRepository";
 
 /** Implementation of Attendence Service */
 export class AttendenceService implements IAttendenceService {
     private attendenceRepository: IAttendenceRepository;
-    private warningRepository: IWarningRepository;
 
     /**
      * Constructor for AttendenceService
      * @param {IAttendenceRepository} attendenceRepository - Instance of AttendenceRepository
-     * @param {IWarningRepository} warningRepository - Instance of WarningRepository
      */
-    constructor(
-        attendenceRepository: IAttendenceRepository,
-        warningRepository: IWarningRepository
-    ) {
+    constructor(attendenceRepository: IAttendenceRepository) {
         this.attendenceRepository = attendenceRepository;
-        this.warningRepository = warningRepository;
     }
 
     /**
@@ -187,14 +186,14 @@ export class AttendenceService implements IAttendenceService {
      * @param {string} userId - The ID of the user to retrieve attendance lists for
      * @param {string} [month] - The month to retrieve attendance lists for (Format: MM)
      * @param {string} [year] - The year to retrieve attendance lists for (Format: YYYY)
-     * @returns {Promise<IAttendenceSchema | IAttendenceSchema[]>} - The attendance lists if found, error otherwise
+     * @returns {Promise<IAttendenceDto | IAttendenceDto[]>} - The attendance lists if found, error otherwise
      * @throws {NotFoundError} - If no attendance lists are found
      */
     async getAttendence(
         userId: string,
         month?: string,
         year?: string
-    ): Promise<IAttendenceSchema | IAttendenceSchema[]> {
+    ): Promise<IAttendenceDto | IAttendenceDto[]> {
         try {
             // If month and year are not there
             // To get single attendence of a student
@@ -213,12 +212,30 @@ export class AttendenceService implements IAttendenceService {
 
                 if (!attendance) throw new NotFoundError("No attendence found !");
 
-                return attendance;
+                // Map data to return type
+                const attendenceDto: IAttendenceDto = {
+                    _id: attendance._id as unknown as string,
+                    userId: attendance.userId as unknown as string,
+                    batchId: attendance.batchId as unknown as string,
+                    date: attendance.date,
+                    checkIn: attendance.checkIn,
+                    checkOut: attendance.checkOut,
+                    isApproved: attendance.isApproved,
+                    isPartial: attendance.isPartial,
+                    status: attendance.status,
+                    reason: {
+                        description: attendance.reason.description,
+                        time: attendance.reason.time,
+                    },
+                    selfies: attendance.selfies,
+                };
+
+                return attendenceDto;
             }
             // If month and year are there
             // To get attendence of that month of that year of a student
             else {
-                const attendence = await this.attendenceRepository.find({
+                const attendances = await this.attendenceRepository.find({
                     userId,
                     date: {
                         $gte: new Date(`${year}-${month}-01`),
@@ -226,10 +243,32 @@ export class AttendenceService implements IAttendenceService {
                     },
                 });
 
-                if (!attendence || attendence.length === 0)
+                if (!attendances || attendances.length === 0)
                     throw new NotFoundError("No attendence recorded this month !");
 
-                return attendence;
+                // Map data to return type
+                const attendenceDtos: IAttendenceDto[] = attendances.map(
+                    (attendance) => {
+                        return {
+                            _id: attendance._id as unknown as string,
+                            userId: attendance.userId as unknown as string,
+                            batchId: attendance.batchId as unknown as string,
+                            date: attendance.date,
+                            checkIn: attendance.checkIn,
+                            checkOut: attendance.checkOut,
+                            isApproved: attendance.isApproved,
+                            isPartial: attendance.isPartial,
+                            status: attendance.status,
+                            reason: {
+                                description: attendance.reason.description,
+                                time: attendance.reason.time,
+                            },
+                            selfies: attendance.selfies,
+                        };
+                    }
+                );
+
+                return attendenceDtos;
             }
         } catch (err: unknown) {
             throw err;
@@ -254,7 +293,7 @@ export class AttendenceService implements IAttendenceService {
         sort: string,
         order: number,
         filter: string
-    ): Promise<IAttendenceSchema[] | []> {
+    ): Promise<IAttendenceDto[] | []> {
         try {
             const attendences = await this.attendenceRepository.searchAttendence(
                 userId,
@@ -265,7 +304,7 @@ export class AttendenceService implements IAttendenceService {
                 filter
             );
 
-            if (!attendences || !attendences.length) return [];
+            if (!attendences || attendences.length === 0) return [];
 
             const userIds = []; // UserIds
 
@@ -274,17 +313,7 @@ export class AttendenceService implements IAttendenceService {
             }
 
             // Users info through gRPC
-            let usersMap: Record<
-                string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: any;
-                }
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
             const resp = await getUsers([...new Set(userIds)]);
 
@@ -295,13 +324,31 @@ export class AttendenceService implements IAttendenceService {
                 throw new BadRequestError(resp.response.message);
             }
 
-            // Fetch batch details and user detils
-            const attendencesWithUserAndBatch = await Promise.all(
-                attendences.map(async (attendance) => ({
-                    ...(attendance.toObject ? attendance.toObject() : attendance),
-                    user: usersMap[attendance.userId.toString()],
-                    batch: await getCachedBatch(attendance.batchId), // Fetch batch details from Redis
-                }))
+            // Map data to return type
+            // Get user details thorugh gRPC and batch details from cache
+            const attendencesWithUserAndBatch: IAttendenceDto[] = await Promise.all(
+                attendences.map(async (attendence) => {
+                    return {
+                        _id: attendence._id as unknown as string,
+                        userId: attendence.userId as unknown as string,
+                        user: usersMap[attendence.userId as unknown as string],
+                        batchId: attendence.batchId as unknown as string,
+                        batch: (await getCachedBatch(
+                            attendence.batchId as unknown as string
+                        )) as IBatch,
+                        date: attendence.date,
+                        checkIn: attendence.checkIn,
+                        checkOut: attendence.checkOut,
+                        isApproved: attendence.isApproved,
+                        isPartial: attendence.isPartial,
+                        status: attendence.status,
+                        reason: {
+                            description: attendence.reason.description,
+                            time: attendence.reason.time,
+                        },
+                        selfies: attendence.selfies,
+                    };
+                })
             );
 
             return attendencesWithUserAndBatch;
@@ -526,7 +573,7 @@ export class AttendenceService implements IAttendenceService {
         filter: string,
         skip: number,
         limit: number
-    ): Promise<IAttendenceSchema[]> {
+    ): Promise<IAttendenceDto[]> {
         try {
             // Month map
             const monthMap: Record<string, number> = {
@@ -581,17 +628,7 @@ export class AttendenceService implements IAttendenceService {
             }
 
             // Users info through gRPC
-            let usersMap: Record<
-                string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: any;
-                }
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
             const resp = await getUsers([...new Set(userIds)]);
 
@@ -603,23 +640,36 @@ export class AttendenceService implements IAttendenceService {
             }
 
             // Fetch batch details and user detils
-            const attendencesWithUserAndBatch = await Promise.all(
-                attendences.map(async (attendance) => ({
-                    ...(attendance.toObject ? attendance.toObject() : attendance),
-                    user: usersMap[attendance.userId.toString()],
-                    batch: await getCachedBatch(attendance.batchId), // Fetch batch details from Redis
-                    ...(type === "monthly-defaulters" && {
-                        // Fetch warnings also of the student in the given month
-                        warnings: await this.warningRepository.getWarnings(
-                            attendance.userId.toString(),
-                            monthMap[month],
-                            year
-                        ),
-                    }),
-                }))
-            );
+            const attendencesWithUserAndBatchDetails: IAttendenceDto[] =
+                await Promise.all(
+                    attendences.map(async (attendence) => {
+                        const user = usersMap[attendence.userId.toString()] as
+                            | IUser
+                            | IStudent;
+                        const batch = (await getCachedBatch(attendence.batchId)) as IBatch;
 
-            return attendencesWithUserAndBatch;
+                        return {
+                            _id: String(attendence._id),
+                            userId: String(attendence.userId),
+                            user,
+                            batchId: String(attendence.batchId),
+                            batch,
+                            date: attendence.date,
+                            checkIn: attendence.checkIn,
+                            checkOut: attendence.checkOut,
+                            isApproved: attendence.isApproved,
+                            isPartial: attendence.isPartial,
+                            status: attendence.status,
+                            reason: {
+                                description: attendence.reason.description,
+                                time: attendence.reason.time,
+                            },
+                            selfies: attendence.selfies,
+                        };
+                    })
+                );
+
+            return attendencesWithUserAndBatchDetails;
         } catch (err: unknown) {
             throw err;
         }

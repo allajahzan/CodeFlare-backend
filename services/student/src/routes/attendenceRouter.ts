@@ -3,16 +3,12 @@ import { AttendenceRepository } from "../repository/implementation/attendenceRep
 import Attendence from "../model/attendence";
 import { AttendenceService } from "../service/implementation/attendenceService";
 import { AttendenceController } from "../controller/implementation/attendenceController";
-import { WarningRepository } from "../repository/implementation/warningRepository";
-import { Warning } from "../model/warning";
 
 const router = Router();
 
 // Dependency Injuction
-const warningRepository = new WarningRepository(Warning);
-
 const attendenceRepository = new AttendenceRepository(Attendence);
-const attendenceService = new AttendenceService(attendenceRepository, warningRepository);
+const attendenceService = new AttendenceService(attendenceRepository);
 const attendenceController = new AttendenceController(attendenceService);
 
 // Get Attendence
