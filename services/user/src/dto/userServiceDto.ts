@@ -1,4 +1,4 @@
-import { IBatch, IRole, IStudentCategory } from "@codeflare/common";
+import { IBatch, IDomain, IRole, IStudentCategory, IWeek } from "@codeflare/common";
 
 /** Dto for userLogin */
 export interface IUserLoginDto {
@@ -26,8 +26,8 @@ export interface IUserDto {
     phoneNo?: string;
     profilePic: string;
     role: IRole;
-    week?: string;
-    domain?: string;
+    week?: IWeek | null;
+    domain?: IDomain | null;
     batch?: IBatch | null;
     batches?: IBatch[];
     category?: IStudentCategory;

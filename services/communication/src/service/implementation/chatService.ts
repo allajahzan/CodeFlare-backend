@@ -1,10 +1,17 @@
-import { IBatch, IStudent, IUser } from "@codeflare/common";
+import {
+    IBatch,
+    IStudent,
+    IStudentCategory,
+    IUser,
+    IWeek,
+} from "@codeflare/common";
 import { IChatDto, IChatUser } from "../../dto/chatServiceDto";
 import { getUsers } from "../../grpc/client/userClient";
 import { IChatRepository } from "../../repository/interface/IChatRepository";
 import { IChatService } from "../interface/IChatService";
 import { getCachedBatch, getCachedBatches } from "../../utils/cachedBatch";
 import { ObjectId } from "mongoose";
+import { getCachedWeek } from "../../utils/cachedWeek";
 
 /** Implementation for Chat Service */
 export class ChatService implements IChatService {
@@ -30,7 +37,7 @@ export class ChatService implements IChatService {
             const chats = await this.chatRepository.getChatsByUserId(userId);
             if (!chats || chats.length === 0) {
                 return null;
-            };
+            }
 
             let userIds: string[] = []; // User Ids
 
@@ -62,11 +69,12 @@ export class ChatService implements IChatService {
                         _id: chatSender._id,
                         name: chatSender.name,
                         email: chatSender.email,
-                        phoneNo: chatSender.phoneNo,
                         role: chatSender.role,
                         profilePic: chatSender.profilePic,
-                        // week from cache
-                        // domain from cache
+                        ...(chatSender.phoneNo ? { phoneNo: chatSender.phoneNo } : {}),
+                        week: (await getCachedWeek(
+                            (chatSender as IStudent).week as string
+                        )) as IWeek,
                         ...((chatSender as IStudent)?.batch
                             ? {
                                 batch: (await getCachedBatch(
@@ -81,6 +89,12 @@ export class ChatService implements IChatService {
                                 )) as IBatch[],
                             }
                             : {}),
+                        ...((chatSender as IStudent).category
+                            ? {
+                                category: (chatSender as IStudent).category,
+                            }
+                            : {}),
+                        lastActive: chatSender.lastActive,
                         createdAt: chatSender.createdAt,
                         isBlock: chatSender.isBlock,
                     };

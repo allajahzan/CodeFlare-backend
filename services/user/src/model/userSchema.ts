@@ -34,11 +34,11 @@ const userSchema = new Schema<IUserSchema>(
             index: true,
         },
         week: {
-            type: String,
+            type: Schema.Types.ObjectId,
             required: false,
         },
         domain: {
-            type: String,
+            type: Schema.Types.ObjectId,
             required: false,
         },
         batch: {

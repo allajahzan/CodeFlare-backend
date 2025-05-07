@@ -9,8 +9,8 @@ export interface IUserSchema extends Document {
     password: string;
     profilePic: string;
     role: IRole;
-    week: string;
-    domain: string;
+    week: Schema.Types.ObjectId;
+    domain: Schema.Types.ObjectId;
     batch: Schema.Types.ObjectId;
     batches: Schema.Types.ObjectId[];
     category: IStudentCategory

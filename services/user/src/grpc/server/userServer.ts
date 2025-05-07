@@ -37,8 +37,8 @@ export const getUser = async (call: any, callback: any) => {
             phoneNo: user.phoneNo,
             profilePic: user.profilePic,
             role: user.role,
-            ...(user.week && { week: user.week }),
-            ...(user.domain && { domain: user.domain }),
+            ...(user.week && { week: user.week as unknown as string }),
+            ...(user.domain && { domain: user.domain as unknown as string }),
             ...(user.batch && { batch: user.batch as unknown as string }),
             ...(user.batches && { batches: user.batches as unknown as string[] }),
             ...(user.category && { category: user.category }),
@@ -76,7 +76,7 @@ export const getUsers = async (call: any, callback: any) => {
     try {
         const { userIds, role } = call.request;
 
-        let users = []
+        let users = [];
 
         if (userIds && userIds.length > 0) {
             users = await userRepository.find({
@@ -84,7 +84,7 @@ export const getUsers = async (call: any, callback: any) => {
             }); // Find users with ids
         } else {
             users = await userRepository.find({
-                role: role
+                role: role,
             }); // Find users with role
         }
 
@@ -99,8 +99,8 @@ export const getUsers = async (call: any, callback: any) => {
                 phoneNo: user.phoneNo,
                 profilePic: user.profilePic,
                 role: user.role,
-                ...(user.week && { week: user.week }),
-                ...(user.domain && { domain: user.domain }),
+                ...(user.week && { week: user.week as unknown as string }),
+                ...(user.domain && { domain: user.domain as unknown as string }),
                 ...(user.batch && { batch: user.batch as unknown as string }),
                 ...(user.batches && { batches: user.batches as unknown as string[] }),
                 ...(user.category && { category: user.category }),
@@ -175,8 +175,8 @@ export const updateUser = async (call: any, callback: any) => {
             phoneNo: updatedUser.phoneNo,
             profilePic: updatedUser.profilePic,
             role: updatedUser.role,
-            ...(updatedUser.week && { week: updatedUser.week }),
-            ...(updatedUser.domain && { domain: updatedUser.domain }),
+            ...(user.week && { week: user.week as unknown as string }),
+            ...(user.domain && { domain: user.domain as unknown as string }),
             ...(updatedUser.batch && { batch: updatedUser.batch.toString() }),
             ...(updatedUser.batches && {
                 batches: updatedUser.batches.map((b: any) => b.toString()),

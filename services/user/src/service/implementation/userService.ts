@@ -26,11 +26,10 @@ import { sendInvitation } from "../../utils/sendInvitation";
 import { IUserService } from "../interface/IUserService";
 import { IUserRepository } from "../../repository/interface/IUserRepository";
 import { IUserSchema } from "../../entities/IUserSchema";
-import {
-    getCachedBatch,
-    getCachedBatches,
-    getUsersWithBatchDetails,
-} from "../../utils/cachedBatch";
+import { getCachedBatch, getCachedBatches } from "../../utils/cachedBatch";
+import { getCachedWeek } from "../../utils/cachedWeek";
+import { getCachedDomain } from "../../utils/cachedDomain";
+import { getUsersWithBatchDetails } from "../../utils/transformUserDto";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -339,8 +338,10 @@ export class UserService implements IUserService {
             const batches = await getCachedBatches(user.batches);
 
             // Get week details
+            const week = await getCachedWeek(user.week);
 
             // Get domain details
+            const domain = await getCachedDomain(user.domain);
 
             // Map data to return type
             const userDto: IUserDto = {
@@ -349,8 +350,8 @@ export class UserService implements IUserService {
                 email: user.email,
                 role: user.role,
                 profilePic: user.profilePic,
-                ...(user.week ? { week: user.week } : {}), //  should take from redis cache
-                ...(user.domain ? { domain: user.domain } : {}), // should take from redis cache
+                ...(user.week ? { week: week } : {}),
+                ...(user.domain ? { domain: domain } : {}),
                 ...(user.batch ? { batch: batch } : {}),
                 ...(user.batches?.length ? { batches: batches } : {}),
                 ...(user.category ? { category: user.category } : {}),
@@ -497,8 +498,10 @@ export class UserService implements IUserService {
             const batches = await getCachedBatches(newUser.batches);
 
             // Get week details
+            const week = await getCachedWeek(newUser.week);
 
             // Get domain details
+            const domain = await getCachedDomain(newUser.domain);
 
             // Map data to return type
             const userDto: IUserDto = {
@@ -507,8 +510,8 @@ export class UserService implements IUserService {
                 email: newUser.email,
                 role: newUser.role,
                 profilePic: newUser.profilePic,
-                ...(newUser.week ? { week: newUser.week } : {}), //  should take from redis cache
-                ...(newUser.domain ? { domain: newUser.domain } : {}), // should take from redis cache
+                ...(newUser.week ? { week: week } : {}),
+                ...(newUser.domain ? { domain: domain } : {}),
                 ...(newUser.batch ? { batch: batch } : {}),
                 ...(newUser.batches?.length ? { batches: batches } : {}),
                 ...(newUser.category ? { category: newUser.category } : {}),
@@ -554,8 +557,10 @@ export class UserService implements IUserService {
             const batches = await getCachedBatches(updatedUser.batches);
 
             // Get week details
+            const week = await getCachedWeek(updatedUser.week);
 
             // Get domain details
+            const domain = await getCachedDomain(updatedUser.domain);
 
             // Map data to return type
             const userDto: IUserDto = {
@@ -564,8 +569,8 @@ export class UserService implements IUserService {
                 email: updatedUser.email,
                 role: updatedUser.role,
                 profilePic: updatedUser.profilePic,
-                ...(updatedUser.week ? { week: updatedUser.week } : {}), //  should take from redis cache
-                ...(updatedUser.domain ? { domain: updatedUser.domain } : {}), // should take from redis cache
+                ...(updatedUser.week ? { week: week } : {}),
+                ...(updatedUser.domain ? { domain: domain } : {}),
                 ...(updatedUser.batch ? { batch: batch } : {}),
                 ...(updatedUser.batches?.length ? { batches: batches } : {}),
                 ...(updatedUser.category ? { category: updatedUser.category } : {}),
