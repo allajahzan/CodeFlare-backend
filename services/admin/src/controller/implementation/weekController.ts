@@ -78,10 +78,10 @@ export class WeekController implements IWeekController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { batchId } = req.params;
+            const { weekId } = req.params;
             const { name } = req.body;
 
-            await this.weekService.updateWeek(batchId, name);
+            await this.weekService.updateWeek(weekId, name);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {

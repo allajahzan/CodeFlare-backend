@@ -97,6 +97,36 @@ export class DomainRepository
     ): Promise<IDomainSchema[] | null> {
         try {
             return await this.model.aggregate([
+                { $unwind: "$domainsWeeks" },
+                {
+                    $lookup: {
+                        from: "weeks",
+                        localField: "domainsWeeks.week",
+                        foreignField: "_id",
+                        as: "weekDetails",
+                    },
+                },
+                {
+                    $unwind: "$weekDetails",
+                },
+                {
+                    $group: {
+                        _id: "$_id",
+                        name: { $first: "$name" },
+                        isListed: { $first: "$isListed" },
+                        domainsWeeks: {
+                            $push: {
+                                week: {
+                                    _id: "$weekDetails._id",
+                                    name: "$weekDetails.name",
+                                },
+                                title: "$domainsWeeks.title",
+                            },
+                        },
+                    },
+                },
+
+                // Apply keyword filter
                 {
                     $match: keyword
                         ? {
@@ -104,6 +134,8 @@ export class DomainRepository
                         }
                         : {},
                 },
+
+                // Sorting
                 {
                     $sort: {
                         [sort]: order === 1 ? 1 : -1,

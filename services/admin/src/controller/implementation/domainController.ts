@@ -34,9 +34,9 @@ export class DomainController implements IDomainController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { name, imageUrl, weeks } = req.body;
+            const { name, weeks } = req.body;
 
-            const data = await this.domainService.addDomain(name, imageUrl, weeks);
+            const data = await this.domainService.addDomain(name, weeks);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
@@ -59,11 +59,11 @@ export class DomainController implements IDomainController {
     ): Promise<void> {
         try {
             const { domainId } = req.params;
-            const { name, imageUrl } = req.body;
+            const { name, weeks } = req.body;
 
-            await this.domainService.updateDomain(domainId, name, imageUrl);
+            const data = await this.domainService.updateDomain(domainId, name, weeks);
 
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -125,22 +125,22 @@ export class DomainController implements IDomainController {
      * @returns A promise that resolves when the weeks are successfully added to the domain.
      * @throws Passes any errors to the next middleware.
      */
-    async addWeeksToDomain(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            const { domainId } = req.params;
-            const { weeks } = req.body;
+    // async addWeeksToDomain(
+    //     req: Request,
+    //     res: Response,
+    //     next: NextFunction
+    // ): Promise<void> {
+    //     try {
+    //         const { domainId } = req.params;
+    //         const { weeks } = req.body;
 
-            await this.domainService.addWeeksToDomain(domainId, weeks);
+    //         await this.domainService.addWeeksToDomain(domainId, weeks);
 
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
+    //         SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
 
     /**
      * Updates the title of a specific week in the domain's week list.
@@ -150,22 +150,22 @@ export class DomainController implements IDomainController {
      * @returns A promise that resolves when the update operation is complete.
      * @throws {BadRequestError} If there is a problem updating the week in the domain.
      */
-    async updateWeekInDomain(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            const { domainId, weekId } = req.params;
-            const { title } = req.body;
+    // async updateWeekInDomain(
+    //     req: Request,
+    //     res: Response,
+    //     next: NextFunction
+    // ): Promise<void> {
+    //     try {
+    //         const { domainId, weekId } = req.params;
+    //         const { title } = req.body;
 
-            await this.domainService.updateWeekInDomain(domainId, weekId, title);
+    //         await this.domainService.updateWeekInDomain(domainId, weekId, title);
 
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
+    //         SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
 
     /**
      * Unlists a specific week in the domain's week list.
@@ -175,21 +175,21 @@ export class DomainController implements IDomainController {
      * @returns A promise that resolves when the week is successfully unlisted.
      * @throws Passes any errors to the next middleware.
      */
-    async unlistWeekInDomain(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
-        try {
-            const { domainId, weekId } = req.params;
+    // async unlistWeekInDomain(
+    //     req: Request,
+    //     res: Response,
+    //     next: NextFunction
+    // ): Promise<void> {
+    //     try {
+    //         const { domainId, weekId } = req.params;
 
-            await this.domainService.unlistWeekInDomain(domainId, weekId);
+    //         await this.domainService.unlistWeekInDomain(domainId, weekId);
 
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
-        } catch (err: unknown) {
-            next(err);
-        }
-    }
+    //         SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+    //     } catch (err: unknown) {
+    //         next(err);
+    //     }
+    // }
 
     /**
      * Searches for domains based on the provided keyword, sorting field, and order.
@@ -205,11 +205,11 @@ export class DomainController implements IDomainController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, sort, order } = req.params;
+            const { keyword, sort, order } = req.query;
 
             const data = await this.domainService.searchDomains(
-                keyword,
-                sort,
+                keyword as string,
+                sort as string,
                 Number(order)
             );
 

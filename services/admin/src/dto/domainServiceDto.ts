@@ -5,15 +5,14 @@ import { IDomainsWeekSchema } from "../entities/IDomainSchema";
 export interface IDomainDto {
     _id: string;
     name: string;
-    imageUrl: string;
     domainsWeeks: IDomainsWeek[];
+    isListed: boolean;
 }
 
 /** Dto for searchDomains */
 export interface ISearchDomainsDto {
     _id: string;
     name: string;
-    imageUrl: string;
-    isDomainListed: boolean;
     domainsWeeks: IDomainsWeekSchema[];
+    isListed: boolean;
 }

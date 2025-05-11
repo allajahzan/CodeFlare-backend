@@ -640,7 +640,9 @@ export class UserService implements IUserService {
         order: number,
         roleWise: IRole,
         category: IStudentCategory,
-        batchId: string
+        batchId: string,
+        weekId: string,
+        domainId: string
     ): Promise<IUserDto[]> {
         try {
             let users;
@@ -655,6 +657,7 @@ export class UserService implements IUserService {
             const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
             if (role === "admin") {
+                console.log("here only")
                 users = await this.userRepository.searchUser(
                     keyword,
                     isBlock,
@@ -663,6 +666,8 @@ export class UserService implements IUserService {
                     roleWise,
                     category,
                     batchId,
+                    weekId,
+                    domainId,
                     ["coordinator", "instructor"]
                 );
             } else if (role === "coordinator" || role === "instructor") {
@@ -674,6 +679,8 @@ export class UserService implements IUserService {
                     roleWise,
                     category,
                     batchId,
+                    weekId,
+                    domainId,
                     ["student"]
                 );
             }

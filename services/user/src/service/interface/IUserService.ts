@@ -15,7 +15,7 @@ export interface IUserService {
     // User CRUD related methods
     getUser(userQuery: string): Promise<IUserDto>;
     getUsers(tokenPayload: string, isBlock?: string): Promise<IUserDto[]>;
-    searchUsers(tokenPayload: string, keyword: string, isBlock: string, sort: string, order: number, roleWise: IRole, category: IStudentCategory, batchId: string): Promise<IUserDto[]>
+    searchUsers(tokenPayload: string, keyword: string, isBlock: string, sort: string, order: number, roleWise: IRole, category: IStudentCategory, batchId: string, weekId: string, domainId: string): Promise<IUserDto[]>
     createUser(user: Partial<IUserSchema>, tokenPayload: string): Promise<IUserDto>;
     updateUser(_id: string, user: Partial<IUserSchema>): Promise<IUserDto>;
     changeUserStatus(_id: string): Promise<void>;

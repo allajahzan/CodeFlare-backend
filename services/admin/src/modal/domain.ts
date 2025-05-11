@@ -9,10 +9,6 @@ const domainSchema = new Schema<IDomainSchema>(
             required: true,
             index: true,
         },
-        imageUrl: {
-            type: String,
-            required: true,
-        },
         domainsWeeks: {
             type: [
                 {
@@ -26,15 +22,11 @@ const domainSchema = new Schema<IDomainSchema>(
                         type: String,
                         required: true,
                     },
-                    isWeekListed: {
-                        type: Boolean,
-                        default: true,
-                    },
                 },
             ],
             required: true,
         },
-        isDomainListed: {
+        isListed: {
             type: Boolean,
             default: true,
         },

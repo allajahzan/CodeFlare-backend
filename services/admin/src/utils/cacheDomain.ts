@@ -69,8 +69,8 @@ export const cacheAllDomains = async () => {
                 return {
                     _id: populatedDomain._id,
                     name: populatedDomain.name,
-                    imageUrl: populatedDomain.imageUrl,
                     domainsWeeks: populatedDomain.domainsWeeks,
+                    isListed: populatedDomain.isListed,
                 };
             })
         );
@@ -88,12 +88,13 @@ export const cacheAllDomains = async () => {
  * @param updatedDomain - The updated domain schema to be transformed and cached.
  * @throws Will throw an error if there is an issue during the transformation or caching process.
  */
-export const transformUpdatedDomainAndCache = async (
-    updatedDomain: IDomainSchema
+export const transformDomainAndCache = async (
+    domain: IDomainSchema,
+    type: "add" | "update"
 ) => {
     try {
         // Populate week in domainsWeeks
-        const populatedDomain: IDomain = await updatedDomain.populate({
+        const populatedDomain: IDomain = await domain.populate({
             path: "domainsWeeks.week",
             model: "Week",
             select: "_id name",
@@ -103,12 +104,24 @@ export const transformUpdatedDomainAndCache = async (
         const domainDto: IDomainDto = {
             _id: populatedDomain._id as unknown as string,
             name: populatedDomain.name,
-            imageUrl: populatedDomain.imageUrl,
-            domainsWeeks: populatedDomain.domainsWeeks,
+            domainsWeeks: populatedDomain.domainsWeeks.map((w) => {
+                return {
+                    week: w.week,
+                    title: w.title,
+                };
+            }),
+            isListed: populatedDomain.isListed,
         };
 
-        // Cache updated domain
-        await cacheUpdatedDomain(domainDto);
+        if (type === "add") {
+            // Cache new domain to redis
+            await cacheDomain(domainDto);
+        } else {
+            // Cache updated domain to redis
+            await cacheUpdatedDomain(domainDto);
+        }
+
+        return domainDto;
     } catch (err: unknown) {
         throw err;
     }

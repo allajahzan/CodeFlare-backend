@@ -83,9 +83,12 @@ export class UserRepository
         roleWise: IRole,
         category: IStudentCategory,
         batchId: string,
+        weekId: string,
+        domainId: string,
         roles: IRole[]
     ): Promise<IUserSchema[] | null> {
         try {
+            console.log(batchId, weekId, domainId)
             return await this.model.aggregate([
                 {
                     $match: {
@@ -95,6 +98,8 @@ export class UserRepository
                                 { batches: new Types.ObjectId(batchId) },
                             ],
                         }),
+                        ...(weekId && { week: new Types.ObjectId(weekId)}),
+                        ...(domainId && { domain: new Types.ObjectId(domainId)}),
                         ...(roles && { role: { $in: roles } }),
                         ...(roleWise && { role: roleWise }),
                         ...(isBlock && { isBlock: isBlock === "true" }),

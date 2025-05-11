@@ -33,22 +33,22 @@ router.delete("/:domainId", (req: Request, res: Response, next: NextFunction) =>
 
 // Get weeks in domain
 router.get("/:domainId/weeks", (req: Request, res: Response, next: NextFunction) =>
-        domainController.getWeeksInDomain(req, res, next)
+    domainController.getWeeksInDomain(req, res, next)
 );
 
-// Add weeks to domain
-router.post("/:domainId/weeks", (req: Request, res: Response, next: NextFunction) =>
-        domainController.addWeeksToDomain(req, res, next)
-);
+// // Add weeks to domain
+// router.post("/:domainId/weeks", (req: Request, res: Response, next: NextFunction) =>
+//         domainController.addWeeksToDomain(req, res, next)
+// );
 
-// Update week in domain
-router.put("/:domainId/weeks/:weekId", (req: Request, res: Response, next: NextFunction) =>
-        domainController.updateWeekInDomain(req, res, next)
-);
+// // Update week in domain
+// router.put("/:domainId/weeks/:weekId", (req: Request, res: Response, next: NextFunction) =>
+//         domainController.updateWeekInDomain(req, res, next)
+// );
 
-// Unlist week in domain
-router.delete("/:domainId/weeks/:weekId", (req: Request, res: Response, next: NextFunction) =>
-        domainController.unlistWeekInDomain(req, res, next)
-);
+// // Unlist week in domain
+// router.delete("/:domainId/weeks/:weekId", (req: Request, res: Response, next: NextFunction) =>
+//         domainController.unlistWeekInDomain(req, res, next)
+// );
 
 export { router as domainRoute };    

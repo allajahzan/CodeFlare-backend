@@ -80,6 +80,7 @@ export class WeekService implements IWeekService {
      */
     async updateWeek(weekId: string, name: string): Promise<void> {
         try {
+            console.log(weekId,name)
             const isWeekExists = await this.weekRepository.findOne({
                 _id: { $ne: weekId },
                 name,

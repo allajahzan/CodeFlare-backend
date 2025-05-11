@@ -4,13 +4,11 @@ import { Document, Schema } from "mongoose";
 export interface IDomainsWeekSchema {
     week: Schema.Types.ObjectId;
     title: string;
-    isWeekListed?: boolean;
 }
 
 /** Implementation of Domain Schema */
 export interface IDomainSchema extends Document {
     name: string;
-    imageUrl: string;
     domainsWeeks: IDomainsWeekSchema[];
-    isDomainListed: boolean;
+    isListed: boolean;
 }

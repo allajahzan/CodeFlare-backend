@@ -3,11 +3,7 @@ import { IDomainDto, ISearchDomainsDto } from "../../dto/domainServiceDto";
 import { IDomainsWeekSchema } from "../../entities/IDomainSchema";
 import { IDomainRepository } from "../../repository/interface/IDomainRepository";
 import { IDomainService } from "../interface/IDomainService";
-import {
-    cacheDomain,
-    cacheUpdatedDomain,
-    transformUpdatedDomainAndCache,
-} from "../../utils/cacheDomain";
+import { transformDomainAndCache } from "../../utils/cacheDomain";
 
 /** Implementation of Domain Service */
 export class DomainService implements IDomainService {
@@ -31,36 +27,25 @@ export class DomainService implements IDomainService {
      */
     async addDomain(
         name: string,
-        imageUrl: string,
         weeks: IDomainsWeekSchema[]
     ): Promise<IDomainDto> {
         try {
+            const isDomainExists = await this.domainRepository.findOne({
+                name: { $regex: new RegExp(`^${name}$`, "i") },
+            });
+
+            if (isDomainExists)
+                throw new BadRequestError("This domain already exists!");
+
             const domain = await this.domainRepository.create({
                 name,
-                imageUrl,
                 domainsWeeks: weeks,
             });
 
             if (!domain) throw new BadRequestError("Failed to add the domain!");
 
-            // Populate week in domainsWeeks
-            const populatedDomain: IDomain = await domain.populate({
-                path: "domainsWeeks.week",
-                model: "Week",
-                select: "_id name",
-            });
-
-            // Map data to return type
-            const domainDto: IDomainDto = {
-                _id: populatedDomain._id as unknown as string,
-                name: populatedDomain.name,
-                imageUrl: populatedDomain.imageUrl,
-                domainsWeeks: populatedDomain.domainsWeeks,
-            };
-
-            // Cache domain to redis
-            await cacheDomain(domainDto);
-
+            // Cache new domain and transform
+            const domainDto = await transformDomainAndCache(domain, "add");
             return domainDto;
         } catch (err: unknown) {
             throw err;
@@ -78,8 +63,8 @@ export class DomainService implements IDomainService {
     async updateDomain(
         domainId: string,
         name: string,
-        imageUrl: string
-    ): Promise<void> {
+        weeks: IDomainsWeekSchema[]
+    ): Promise<IDomainDto> {
         try {
             const isDomainExists = await this.domainRepository.findOne({
                 _id: { $ne: domainId },
@@ -91,15 +76,16 @@ export class DomainService implements IDomainService {
 
             const updatedDomain = await this.domainRepository.update(
                 { _id: domainId },
-                { $set: { name, imageUrl } },
+                { $set: { name, domainsWeeks: weeks } },
                 { new: true }
             );
 
             if (!updatedDomain)
                 throw new BadRequestError("Failed to update the domain!");
 
-            // Cache updated domain
-            await transformUpdatedDomainAndCache(updatedDomain);
+            // Cache updated domain and transform
+            const domainDto = await transformDomainAndCache(updatedDomain, "update");
+            return domainDto;
         } catch (err: unknown) {
             throw err;
         }
@@ -123,7 +109,7 @@ export class DomainService implements IDomainService {
                 throw new BadRequestError("Failed to unlist the domain!");
 
             // Cache updated domain
-            await transformUpdatedDomainAndCache(updatedDomain);
+            await transformDomainAndCache(updatedDomain, "update");
         } catch (err: unknown) {
             throw err;
         }
@@ -153,8 +139,8 @@ export class DomainService implements IDomainService {
             const domainDto: IDomainDto = {
                 _id: populatedDomain._id as unknown as string,
                 name: populatedDomain.name,
-                imageUrl: populatedDomain.imageUrl,
                 domainsWeeks: populatedDomain.domainsWeeks,
+                isListed: populatedDomain.isListed,
             };
 
             return domainDto;
@@ -170,25 +156,25 @@ export class DomainService implements IDomainService {
      * @returns A promise that resolves to void if the operation is successful.
      * @throws {BadRequestError} If there is a problem adding the weeks to the domain.
      */
-    async addWeeksToDomain(
-        domainId: string,
-        weeks: { week: string; title: string }[]
-    ): Promise<void> {
-        try {
-            const updatedDomain = await this.domainRepository.addWeeksToDomain(
-                domainId,
-                weeks
-            );
+    // async addWeeksToDomain(
+    //     domainId: string,
+    //     weeks: { week: string; title: string }[]
+    // ): Promise<void> {
+    //     try {
+    //         const updatedDomain = await this.domainRepository.addWeeksToDomain(
+    //             domainId,
+    //             weeks
+    //         );
 
-            if (!updatedDomain)
-                throw new BadRequestError("Failed to add weeks to this domain!");
+    //         if (!updatedDomain)
+    //             throw new BadRequestError("Failed to add weeks to this domain!");
 
-            // Cache updated domain
-            await transformUpdatedDomainAndCache(updatedDomain);
-        } catch (err: unknown) {
-            throw err;
-        }
-    }
+    //         // Cache updated domain
+    //         await transformUpdatedDomainAndCache(updatedDomain);
+    //     } catch (err: unknown) {
+    //         throw err;
+    //     }
+    // }
 
     /**
      * Updates the title of a specific week in the domain's week list.
@@ -198,27 +184,27 @@ export class DomainService implements IDomainService {
      * @returns A promise that resolves when the update operation is complete.
      * @throws {BadRequestError} If the update operation fails.
      */
-    async updateWeekInDomain(
-        domainId: string,
-        week: string,
-        title: string
-    ): Promise<void> {
-        try {
-            const updatedDomain = await this.domainRepository.updateWeekInDomain(
-                domainId,
-                week,
-                title
-            );
+    // async updateWeekInDomain(
+    //     domainId: string,
+    //     week: string,
+    //     title: string
+    // ): Promise<void> {
+    //     try {
+    //         const updatedDomain = await this.domainRepository.updateWeekInDomain(
+    //             domainId,
+    //             week,
+    //             title
+    //         );
 
-            if (!updatedDomain)
-                throw new BadRequestError("Failed to update week in this domain!");
+    //         if (!updatedDomain)
+    //             throw new BadRequestError("Failed to update week in this domain!");
 
-            // Cache updated domain
-            await transformUpdatedDomainAndCache(updatedDomain);
-        } catch (err: unknown) {
-            throw err;
-        }
-    }
+    //         // Cache updated domain
+    //         await transformUpdatedDomainAndCache(updatedDomain);
+    //     } catch (err: unknown) {
+    //         throw err;
+    //     }
+    // }
 
     /**
      * Unlists a specific week in the domain's week list.
@@ -227,22 +213,22 @@ export class DomainService implements IDomainService {
      * @returns A promise that resolves when the unlist operation is complete.
      * @throws {BadRequestError} If the unlist operation fails.
      */
-    async unlistWeekInDomain(domainId: string, week: string): Promise<void> {
-        try {
-            const updatedDomain = await this.domainRepository.unlistWeekInDomain(
-                domainId,
-                week
-            );
+    // async unlistWeekInDomain(domainId: string, week: string): Promise<void> {
+    //     try {
+    //         const updatedDomain = await this.domainRepository.unlistWeekInDomain(
+    //             domainId,
+    //             week
+    //         );
 
-            if (!updatedDomain)
-                throw new BadRequestError("Failed to unlist week in this domain!");
+    //         if (!updatedDomain)
+    //             throw new BadRequestError("Failed to unlist week in this domain!");
 
-            // Cache updated domain
-            await transformUpdatedDomainAndCache(updatedDomain);
-        } catch (err: unknown) {
-            throw err;
-        }
-    }
+    //         // Cache updated domain
+    //         await transformUpdatedDomainAndCache(updatedDomain);
+    //     } catch (err: unknown) {
+    //         throw err;
+    //     }
+    // }
 
     /**
      * Searches for domains based on the provided keyword, sorting field, and order.
@@ -271,9 +257,8 @@ export class DomainService implements IDomainService {
             return domains.map((domain) => ({
                 _id: domain._id as unknown as string,
                 name: domain.name,
-                imageUrl: domain.imageUrl,
-                isDomainListed: domain.isDomainListed,
                 domainsWeeks: domain.domainsWeeks,
+                isListed: domain.isListed,
             }));
         } catch (err: unknown) {
             throw err;

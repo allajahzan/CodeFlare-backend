@@ -338,7 +338,7 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, isBlock, sort, order, roleWise, category, batchId } = req.query;
+            const { keyword, isBlock, sort, order, roleWise, category, batchId, weekId, domainId } = req.query;
             const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
 
             const data = await this.userService.searchUsers(
@@ -349,7 +349,9 @@ export class UserController implements IUserController {
                 Number(order as string),
                 roleWise as IRole,
                 category as IStudentCategory,
-                batchId as string
+                batchId as string,
+                weekId as string,
+                domainId as string
             );
             
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
