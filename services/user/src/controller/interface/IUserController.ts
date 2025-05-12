@@ -18,4 +18,7 @@ export interface IUserController {
     createUser(req: Request, res: Response, next: NextFunction): Promise<void>;
     updateUser(req: Request, res: Response, next: NextFunction): Promise<void>;
     changeUserStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
+
+    // Count
+    getUsersCount(req: Request, res: Response, next: NextFunction) : Promise<void>;
 }

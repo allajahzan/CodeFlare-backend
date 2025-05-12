@@ -88,7 +88,6 @@ export class UserRepository
         roles: IRole[]
     ): Promise<IUserSchema[] | null> {
         try {
-            console.log(batchId, weekId, domainId)
             return await this.model.aggregate([
                 {
                     $match: {
@@ -98,8 +97,8 @@ export class UserRepository
                                 { batches: new Types.ObjectId(batchId) },
                             ],
                         }),
-                        ...(weekId && { week: new Types.ObjectId(weekId)}),
-                        ...(domainId && { domain: new Types.ObjectId(domainId)}),
+                        ...(weekId && { week: new Types.ObjectId(weekId) }),
+                        ...(domainId && { domain: new Types.ObjectId(domainId) }),
                         ...(roles && { role: { $in: roles } }),
                         ...(roleWise && { role: roleWise }),
                         ...(isBlock && { isBlock: isBlock === "true" }),
@@ -116,6 +115,63 @@ export class UserRepository
                     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { createdAt: -1 },
                 },
             ]);
+        } catch (err: unknown) {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves the count of users matching the given criteria.
+     * @param role - The role of the users to count.
+     * @param batchId - The ID of the batch to which the users should belong.
+     * @param weekId - The ID of the week to which the users should belong.
+     * @param domainId - The ID of the domain to which the users should belong.
+     * @returns A promise that resolves to the count of users matching the criteria if successful, otherwise resolves to null.
+     */
+    async getUsersCount(
+        role: IRole,
+        batchId?: string[],
+        weekId?: string,
+        domainId?: string
+    ): Promise<number | null> {
+        try {
+            // console.log(role, batchId, weekId, domainId)
+            const result = await this.model.aggregate([
+                {
+                    $match: {
+                        role,
+                    },
+                },
+                {
+                    $match: {
+                        ...(batchId &&
+                            batchId.length > 0 && {
+                            ...(role === "student"
+                                ? {
+                                    batch: {
+                                        $in: batchId.map((batch) => new Types.ObjectId(batch)),
+                                    },
+                                }
+                                : role === "coordinator"
+                                    ? {
+                                        batches: {
+                                            $in: batchId.map((batch) => new Types.ObjectId(batch)),
+                                        },
+                                    }
+                                    : {}),
+                        }),
+                        ...(weekId && { week: new Types.ObjectId(weekId) }),
+                        ...(domainId && { domain: new Types.ObjectId(domainId) }),
+                    },
+                },
+                {
+                    $count: "total",
+                },
+            ]);
+
+            const count = result[0]?.total || 0;
+
+            return count;
         } catch (err: unknown) {
             return null;
         }

@@ -35,3 +35,10 @@ export interface IUserDto {
     isBlock: boolean;
     createdAt: Date;
 }
+
+/** Dto for user count */
+export interface IUsersCount {
+    students?: number;
+    coordinators?: number;
+    instructors?: number;
+}

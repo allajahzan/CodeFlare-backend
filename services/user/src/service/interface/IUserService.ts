@@ -1,5 +1,5 @@
 import { IRole, IStudentCategory } from "@codeflare/common";
-import { IUserLoginDto, IUserRegisterDto, IRefreshTokenDto, IUserDto } from "../../dto/userServiceDto";
+import { IUserLoginDto, IUserRegisterDto, IRefreshTokenDto, IUserDto, IUsersCount } from "../../dto/userServiceDto";
 import { IUserSchema } from "../../entities/IUserSchema";
 
 /** Interface for User Service */
@@ -19,4 +19,7 @@ export interface IUserService {
     createUser(user: Partial<IUserSchema>, tokenPayload: string): Promise<IUserDto>;
     updateUser(_id: string, user: Partial<IUserSchema>): Promise<IUserDto>;
     changeUserStatus(_id: string): Promise<void>;
+
+    // Count
+    getUsersCount(tokenPayload: string, batchId: string, weekId: string, domainId: string): Promise<IUsersCount>;
 }

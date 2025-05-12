@@ -338,7 +338,17 @@ export class UserController implements IUserController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, isBlock, sort, order, roleWise, category, batchId, weekId, domainId } = req.query;
+            const {
+                keyword,
+                isBlock,
+                sort,
+                order,
+                roleWise,
+                category,
+                batchId,
+                weekId,
+                domainId,
+            } = req.query;
             const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
 
             const data = await this.userService.searchUsers(
@@ -353,7 +363,37 @@ export class UserController implements IUserController {
                 weekId as string,
                 domainId as string
             );
-            
+
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
+     * Retrieves the count of users matching the given criteria.
+     * @param req - The express request object containing the criteria in the query parameters.
+     * @param res - The express response object used to send the count of users.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the user count retrieval process is complete.
+     */
+    async getUsersCount(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { batchId, weekId, domainId } = req.query;
+
+            const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+
+            const data = await this.userService.getUsersCount(
+                tokenPayload as string,
+                batchId as string,
+                weekId as string,
+                domainId as string
+            );
+
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);

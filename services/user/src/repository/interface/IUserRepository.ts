@@ -7,4 +7,5 @@ export interface IUserRepository extends IBaseRepository<IUserSchema> {
     blockUser(_id: string): Promise<IUserSchema | null>;
     unblockUser(_id: string): Promise<IUserSchema | null>;
     searchUser(keyword: string, isBlock: string, sort: string, order:number, roleWise: IRole, category: IStudentCategory, batchId: string, weekId: string, domainId: string, roles: IRole[]): Promise<IUserSchema[] | null>;
+    getUsersCount(role: IRole, batchId?: string[], weekId?: string, domainId?: string): Promise<number | null>;
 }

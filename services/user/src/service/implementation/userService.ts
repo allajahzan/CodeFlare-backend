@@ -20,6 +20,7 @@ import {
     IUserRegisterDto,
     IRefreshTokenDto,
     IUserDto,
+    IUsersCount,
 } from "../../dto/userServiceDto";
 import { sendOtp } from "../../utils/sendResetLink";
 import { sendInvitation } from "../../utils/sendInvitation";
@@ -657,7 +658,6 @@ export class UserService implements IUserService {
             const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
 
             if (role === "admin") {
-                console.log("here only")
                 users = await this.userRepository.searchUser(
                     keyword,
                     isBlock,
@@ -696,6 +696,105 @@ export class UserService implements IUserService {
 
             return usersWithBatchDetails;
         } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Retrieves the count of users based on the given criteria and the role of the requester.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param batchId - The ID of the batch to filter users by, if applicable.
+     * @param weekId - The ID of the week to filter users by, if applicable.
+     * @param domainId - The ID of the domain to filter users by, if applicable.
+     * @returns A promise that resolves to an object containing the count of users categorized by role
+     *          (students, coordinators, and instructors) based on the requester's role and criteria.
+     * @throws {UnauthorizedError} If the token payload is not provided or the requester does not
+     *          have permission to access the resource.
+     */
+    async getUsersCount(
+        tokenPayload: string,
+        batchId: string,
+        weekId: string,
+        domainId: string
+    ): Promise<IUsersCount> {
+        try {
+            // No token
+            if (!tokenPayload) {
+                throw new UnauthorizedError(
+                    "You do not have permission to access this resource!"
+                );
+            }
+
+            const { _id, role: requesterRole } = JSON.parse(
+                tokenPayload
+            ) as JwtPayloadType; // Requester id and role
+
+            // If requester is admin
+            if (requesterRole === "admin") {
+                // If batchId is there
+                if (batchId) {
+                    const [students, coordinators] = await Promise.all([
+                        this.userRepository.getUsersCount("student", [batchId]),
+                        this.userRepository.getUsersCount("coordinator", [batchId]),
+                    ]);
+
+                    return {
+                        students: students || 0,
+                        coordinators: coordinators || 0,
+                    };
+                }
+
+                // If weekId is there
+                if (weekId) {
+                    const students = await this.userRepository.getUsersCount(
+                        "student",
+                        [],
+                        weekId
+                    );
+                    return { students: students || 0 };
+                }
+
+                // If domainId is there
+                if (domainId) {
+                    const [students, instructors] = await Promise.all([
+                        this.userRepository.getUsersCount("student", [], "", domainId),
+                        this.userRepository.getUsersCount("instructor", [], "", domainId),
+                    ]);
+
+                    return {
+                        students: students || 0,
+                        instructors: instructors || 0,
+                    };
+                }
+
+                const [students, coordinators, instructors] = await Promise.all([
+                    this.userRepository.getUsersCount("student"),
+                    this.userRepository.getUsersCount("coordinator"),
+                    this.userRepository.getUsersCount("instructor"),
+                ]);
+
+                return {
+                    students: students || 0,
+                    coordinators: coordinators || 0,
+                    instructors: instructors || 0,
+                };
+            } else if (
+                requesterRole === "coordinator" ||
+                requesterRole === "instructor"
+            ) {
+                const students = await this.userRepository.getUsersCount(
+                    "student",
+                    JSON.parse(batchId) as string[]
+                );
+                return { students: students || 0 };
+            }
+            // If requester role is not defined
+            else {
+                throw new UnauthorizedError(
+                    "You do not have permission to access this resource!"
+                );
+            }
+        } catch (err) {
             throw err;
         }
     }

@@ -41,4 +41,9 @@ router.patch("/status/:id", (req: Request, res: Response, next: NextFunction) =>
     userController.changeUserStatus(req, res, next)
 );
 
+// Get users count
+router.get("/count", (req: Request, res: Response, next: NextFunction) =>
+    userController.getUsersCount(req, res, next)
+)
+
 export { router as userRoute };
