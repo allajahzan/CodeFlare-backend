@@ -31,6 +31,7 @@ import { getCachedBatch, getCachedBatches } from "../../utils/cachedBatch";
 import { getCachedWeek } from "../../utils/cachedWeek";
 import { getCachedDomain } from "../../utils/cachedDomain";
 import { getTransformedUserDto } from "../../utils/transformUserDto";
+import { ObjectId } from "mongoose";
 
 /** Implementation of User Service */
 export class UserService implements IUserService {
@@ -614,6 +615,36 @@ export class UserService implements IUserService {
                         : "Failed to block the user!"
                 );
             }
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Selects a domain for the user with the given user id from the token payload.
+     * @param tokenPayload - The JSON web token payload containing the requester id.
+     * @param domainId - The id of the domain to select.
+     * @returns A promise that resolves if the domain is selected successfully, otherwise rejects with an error.
+     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
+     */
+    async selectDomain(tokenPayload: string, domainId: string): Promise<void> {
+        try {
+            // No token
+            if (!tokenPayload) {
+                throw new UnauthorizedError(
+                    "You do not have permission to access this resource!"
+                );
+            }
+
+            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
+
+            const user = await this.userRepository.findOne({ _id });
+            if (user?.domain) throw new BadRequestError("Domain already selected!");
+
+            await this.userRepository.update(
+                { _id },
+                { domain: domainId as unknown as ObjectId }
+            );
         } catch (err: unknown) {
             throw err;
         }

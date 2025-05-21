@@ -326,6 +326,32 @@ export class UserController implements IUserController {
     }
 
     /**
+     * Selects a domain for the user with the given user id from the token payload.
+     * @param req - The express request object containing the domain id in the request body.
+     * @param res - The express response object used to send the response.
+     * @param next - The next middleware function in the express stack, called in case of an error.
+     * @returns A promise that resolves if the domain is selected successfully, otherwise rejects with an error.
+     * @throws {UnauthorizedError} If the token payload is invalid or not provided.
+     */
+    async selectDomain(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { domainId } = req.body;
+
+            const tokenPayload = req.headers["x-user-payload"]; // Token payload from request header
+
+            await this.userService.selectDomain(tokenPayload as string, domainId);
+
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Searches for users based on the given keyword from the request query.
      * @param req - The express request object containing the keyword in the request query.
      * @param res - The express response object used to send the list of users.

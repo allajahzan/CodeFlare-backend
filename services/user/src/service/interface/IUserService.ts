@@ -19,6 +19,7 @@ export interface IUserService {
     createUser(user: Partial<IUserSchema>, tokenPayload: string): Promise<IUserDto>;
     updateUser(_id: string, user: Partial<IUserSchema>): Promise<IUserDto>;
     changeUserStatus(_id: string): Promise<void>;
+    selectDomain(tokenPayload: string, domainId: string): Promise<void>;
 
     // Count
     getUsersCount(tokenPayload: string, batchId: string, weekId: string, domainId: string): Promise<IUsersCount>;
