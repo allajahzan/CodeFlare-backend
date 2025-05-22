@@ -1,7 +1,7 @@
 import { IDomain, redisClient } from "@codeflare/common";
 import { IDomainDto } from "../dto/domainServiceDto";
 import { DomainRepository } from "../repository/implementation/domainRepository";
-import Domain from "../modal/domain";
+import Domain from "../model/domain";
 import { IDomainSchema } from "../entities/IDomainSchema";
 
 /**

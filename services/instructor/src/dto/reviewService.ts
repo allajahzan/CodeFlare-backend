@@ -1,39 +1,20 @@
-import { IBatch } from "@codeflare/common";
-
-// Interface for student review
-export interface IStudentReview {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    profilePic: string;
-    batch?: IBatch;
-}
-
-// Interface for instructor review
-export interface IInstutructorReview {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    profilePic: string;
-}
+import { IBatch, IReveiewCategory, IStudent, IUser, IWeek } from "@codeflare/common";
 
 /** Dto for review */
 export interface IReviewDto {
-    _id: string | unknown;
-    user: IStudentReview,
-    instructor: IInstutructorReview;
-    batchId: string;
+    _id: string;
+    instructor: IUser;
+    student: IStudent,
+    week?: IWeek;
     title: string;
-    week: string;
     date: Date;
     time: string;
-    rating: number;
+    category: IReveiewCategory;
     feedback: string;
     pendings: string[];
     score: { practical: number; theory: number };
     status: string;
     result: string;
+    rating: number;
     updatedAt: Date;
 }

@@ -24,11 +24,12 @@ export class BatchService implements IBatchService {
     }
 
     /**
-     * Retrieves the list of batches.
-     * @returns A promise that resolves to an array of batch documents.
+     * Retrieves a list of batches based on the given type.
+     * @param type - The type of batches to retrieve, either "unassigned" or "all".
+     * @returns A promise that resolves to an array of batch objects if the batches are found, or an empty array if they are not.
      * @throws An error if there is a problem retrieving the batches.
      */
-    async getBatches(): Promise<IBatchDto[]> {
+    async getBatches(type: string): Promise<IBatchDto[]> {
         try {
             const batches = await this.batchRepository.find({});
 
@@ -36,33 +37,42 @@ export class BatchService implements IBatchService {
                 return [];
             }
 
-            // Get usersMap from user service through gRPC
-            let usersMap: Record<string, IUser | IStudent>;
-
-            const resp = await getUsers([], "coordinator"); // Getuser by role
-
-            if (resp.response && resp.response.status === 200) {
-                usersMap = resp.response.users;
-            } else {
-                throw new Error();
-            }
-
             const batchDto: IBatchDto[] = [];
 
-            // If usersMap is not empty
-            if (usersMap && Object.keys(usersMap).length > 0) {
-                let assignedBatches: Set<string> = new Set();
+            if (type === "unassigned") {
+                // Get usersMap from user service through gRPC
+                let usersMap: Record<string, IUser | IStudent>;
 
-                // Get coordinators assigned batches
-                Object.values(usersMap).forEach((coordinator) => {
-                    (coordinator as unknown as IUser).batches?.forEach((batch) => {
-                        assignedBatches.add(batch);
+                const resp = await getUsers([], "coordinator"); // Getuser by role
+
+                if (resp.response && resp.response.status === 200) {
+                    usersMap = resp.response.users;
+                } else {
+                    throw new Error();
+                }
+
+                // If usersMap is not empty
+                if (usersMap && Object.keys(usersMap).length > 0) {
+                    let assignedBatches: Set<string> = new Set();
+
+                    // Get coordinators assigned batches
+                    Object.values(usersMap).forEach((coordinator) => {
+                        (coordinator as unknown as IUser).batches?.forEach((batch) => {
+                            assignedBatches.add(batch);
+                        });
                     });
-                });
 
-                // Get the available batches
-                for (let i = 0; i < batches.length; i++) {
-                    if (!assignedBatches.has((batches[i]._id as ObjectId).toString())) {
+                    // Get the available batches
+                    for (let i = 0; i < batches.length; i++) {
+                        if (!assignedBatches.has((batches[i]._id as ObjectId).toString())) {
+                            batchDto.push({
+                                _id: batches[i]._id as unknown as string,
+                                name: batches[i].name,
+                            });
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < batches.length; i++) {
                         batchDto.push({
                             _id: batches[i]._id as unknown as string,
                             name: batches[i].name,

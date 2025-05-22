@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { BatchController } from "../controller/implementation/batchController";
 import { BatchService } from "../service/implementation/batchService";
 import { BatchRepository } from "../repository/implementation/batchRepository";
-import Batch from "../modal/batch";
+import Batch from "../model/batch";
 
 const router = Router();
 

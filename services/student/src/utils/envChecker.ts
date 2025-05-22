@@ -6,4 +6,7 @@ import { envChecker } from "@codeflare/common";
 export const isEnvDefined = () => {
     envChecker(process.env.PORT as string, "PORT");
     envChecker(process.env.MONGO_DB_URL as string, "MONDO_DB_URL");
+    envChecker(process.env.REDIS_URL as string, "REDIS_URL");
+    envChecker(process.env.RABBIT_MQ_URL as string, "RABBIT_MQ_URL");
+    envChecker(process.env.GRPC_URL as string, "GRPC_URL");
 };

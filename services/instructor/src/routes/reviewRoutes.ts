@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { ReviewController } from "../controller/implementation/reviewController";
 import { ReviewService } from "../service/implementation/reviewService";
 import { ReviewRepository } from "../repository/implementation/reviewRepository";
-import Review from "../schema/reviewSchema";
+import Review from "../model/reviewSchema";
 
 const router = Router();
 

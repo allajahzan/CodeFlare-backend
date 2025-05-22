@@ -1,7 +1,7 @@
 import { redisClient } from "@codeflare/common";
 import { IBatchDto } from "../dto/batchServiceDto";
 import { BatchRepository } from "../repository/implementation/batchRepository";
-import Batch from "../modal/batch";
+import Batch from "../model/batch";
 
 /**
  * Caches the given batch to Redis.

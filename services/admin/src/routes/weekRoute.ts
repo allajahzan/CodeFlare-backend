@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { WeekController } from "../controller/implementation/weekController";
 import { WeekService } from "../service/implementation/weekService";
 import { WeekRepository } from "../repository/implementation/weekRepository";
-import Week from "../modal/week";
+import Week from "../model/week";
 
 const router = Router();
 

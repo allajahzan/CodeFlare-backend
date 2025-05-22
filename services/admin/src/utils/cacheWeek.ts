@@ -1,7 +1,7 @@
 import { redisClient } from "@codeflare/common";
 import { IWeekDto } from "../dto/weekServiceDto";
 import { WeekRepository } from "../repository/implementation/weekRepository";
-import Week from "../modal/week";
+import Week from "../model/week";
 
 /**
  * Caches a week in Redis cache.

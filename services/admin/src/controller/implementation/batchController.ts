@@ -3,6 +3,7 @@ import { IBatchService } from "../../service/interface/IBatchService";
 import { IBatchController } from "../interface/IBatchController";
 import {
     HTTPStatusCode,
+    JwtPayloadType,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -32,7 +33,9 @@ export class BatchController implements IBatchController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const data = await this.batchService.getBatches();
+            const { type } = req.query;
+
+            const data = await this.batchService.getBatches(type as string);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {

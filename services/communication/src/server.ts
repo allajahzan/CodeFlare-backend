@@ -7,10 +7,14 @@ import { redisConnection, MongodbConnection } from "@codeflare/common";
 import http from 'http'
 import { connectSocketIO } from "./socket/connection";
 import { rabbitmq } from "./config/rabbitmq";
+import { isEnvDefined } from "./utils/envChecker";
 
 // server
 const startServer = async () => {
     try {
+         // check all env are defined
+        isEnvDefined();
+        
         // connect to mongodb
         const db = new MongodbConnection(process.env.MONGO_DB_URL as string);
         await db.retryConnection();

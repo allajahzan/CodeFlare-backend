@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import { DomainController } from "../controller/implementation/domainController";
 import { DomainService } from "../service/implementation/domainService";
 import { DomainRepository } from "../repository/implementation/domainRepository";
-import Domain from "../modal/domain";
+import Domain from "../model/domain";
 
 const router = Router();
 

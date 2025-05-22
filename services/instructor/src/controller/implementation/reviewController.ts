@@ -3,6 +3,7 @@ import { IReviewService } from "../../service/interface/IReviewService";
 import { IReviewController } from "../interface/IReviewController";
 import {
     HTTPStatusCode,
+    IReveiewCategory,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -165,8 +166,8 @@ export class ReviewController implements IReviewController {
     }
 
     /**
-     * Searches for reviews based on the given keyword from the request query.
-     * @param req - The express request object containing the keyword, sort, order, status and batchIds in the request query.
+     * Searches for reviews based on the given parameters.
+     * @param req - The express request object containing the search parameters in the request query.
      * @param res - The express response object used to send the list of reviews.
      * @param next - The next middleware function in the express stack, called in case of an error.
      * @returns A promise that resolves when the review search process is complete.
@@ -178,15 +179,29 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { keyword, sort, order, date, status, batchIds, skip } = req.query;
+            const {
+                batchId,
+                studentId,
+                domainId,
+                weekId,
+                sort,
+                order,
+                date,
+                status,
+                category,
+                skip,
+            } = req.query;
 
             const data = await this.reviewService.searchReviews(
-                keyword as string,
+                batchId as string,
+                studentId as string,
+                domainId as string,
+                weekId as string,
                 sort as string,
                 Number(order),
                 date as string,
                 status as string,
-                (batchIds as string).split(","),
+                category as IReveiewCategory,
                 Number(skip)
             );
 

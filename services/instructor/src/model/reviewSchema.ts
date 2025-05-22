@@ -9,7 +9,7 @@ const reviewSchema = new Schema<IReviewSchema>(
             required: true,
             index: true,
         },
-        userId: {
+        studentId: {
             type: Schema.Types.ObjectId,
             required: true,
             index: true,
@@ -19,14 +19,18 @@ const reviewSchema = new Schema<IReviewSchema>(
             required: true,
             index: true,
         },
+        domainId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            index: true,
+        },
+        weekId: {
+            type: Schema.Types.ObjectId,
+            index: true,
+        },
         title: {
             type: String,
             required: true,
-        },
-        week: {
-            type: String,
-            required: true,
-            index: true,
         },
         date: {
             type: Date,
@@ -36,9 +40,9 @@ const reviewSchema = new Schema<IReviewSchema>(
             type: String,
             required: true,
         },
-        rating: {
-            type: Number,
-            required: false,
+        category: {
+            type: String,
+            enum: ["Foundation", "Weekly", "QA", "InTake"],
         },
         feedback: {
             type: String,
@@ -59,7 +63,7 @@ const reviewSchema = new Schema<IReviewSchema>(
                     required: false,
                 },
             },
-            default: null,  
+            default: null,
         },
         status: {
             type: String,
@@ -69,6 +73,10 @@ const reviewSchema = new Schema<IReviewSchema>(
         result: {
             type: String,
             enum: ["Pass", "Fail"],
+        },
+        rating: {
+            type: Number,
+            required: false,
         },
     },
     { timestamps: true }

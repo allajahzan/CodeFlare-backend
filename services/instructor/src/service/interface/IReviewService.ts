@@ -1,3 +1,4 @@
+import { IReveiewCategory } from "@codeflare/common";
 import { IReviewDto } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 
@@ -8,5 +9,5 @@ export interface IReviewService {
     updateReview(tokenPayload: string, data: Partial<IReviewSchema>, reviewId: string): Promise<IReviewDto>;
     changeStatus(tokenPayload: string, reviewId: string, status: string): Promise<void>;
     updateScore(tokenPayload: string, reviewId: string, practical: number, theory: number) : Promise<void>
-    searchReviews(keyword: string, sort: string, order: number, date: string, status: string, batchIds: string[], skip: number): Promise<IReviewDto[]>;
+    searchReviews(batchId: string, studentId: string, domainId: string, weekId: string, sort: string, order: number, date: string, status: string, category: IReveiewCategory, skip: number): Promise<IReviewDto[]>;
 }

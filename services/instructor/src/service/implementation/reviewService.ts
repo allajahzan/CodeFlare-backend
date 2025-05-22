@@ -1,10 +1,11 @@
 import {
     ConflictError,
+    IReveiewCategory,
     IStudent,
     IUser,
     JwtPayloadType,
 } from "@codeflare/common";
-import { IInstutructorReview, IReviewDto, IStudentReview } from "../../dto/reviewService";
+import { IReviewDto } from "../../dto/reviewService";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../../repository/interface/IReviewRepository";
 import { IReviewService } from "../interface/IReviewService";
@@ -35,12 +36,12 @@ export class ReviewService implements IReviewService {
 
             if (!reviews || !reviews.length) return [];
 
-            const userIds = []; // UserIds
+            const studentIds = []; // studentIds
 
             for (let i = 0; i < reviews.length; i++) {
-                userIds.push(
+                studentIds.push(
                     ...[
-                        reviews[i].userId as unknown as string,
+                        reviews[i].studentId as unknown as string,
                         reviews[i].instructorId as unknown as string,
                     ]
                 );
@@ -49,7 +50,7 @@ export class ReviewService implements IReviewService {
             // Users info through gRPC
             let usersMap: Record<string, IUser | IStudent>;
 
-            const resp = await getUsers([...new Set(userIds)], "");
+            const resp = await getUsers([...new Set(studentIds)], "");
 
             if (resp && resp.response.status === 200) {
                 usersMap = resp.response.users;
@@ -57,9 +58,25 @@ export class ReviewService implements IReviewService {
 
             // Reviews detils with user info
             return reviews.map((review) => ({
-                ...(review as unknown as IReviewDto),
-                user: usersMap[review.userId as unknown as string] as unknown as IStudentReview,
-                instructor: usersMap[review.instructorId as unknown as string] as unknown as IInstutructorReview,
+                _id: review._id as unknown as string,
+                student: usersMap[
+                    review.studentId as unknown as string
+                ] as unknown as IStudent,
+                instructor: usersMap[
+                    review.instructorId as unknown as string
+                ] as unknown as IUser,
+                title: review.title,
+                // week: review.week,
+                date: review.date,
+                time: review.time,
+                category: review.category as IReveiewCategory,
+                score: review.score,
+                result: review.result,
+                status: review.status,
+                pendings: review.pendings,
+                feedback: review.feedback,
+                rating: review.rating,
+                updatedAt: review.updatedAt,
             }));
         } catch (err: unknown) {
             throw err;
@@ -83,34 +100,36 @@ export class ReviewService implements IReviewService {
 
             // Find the latest review of a user for a perticular week
             const isReviewExists = await this.reviewRepository.findReviewsWithLimit(
-                data.userId as unknown as string,
-                data.week as string,
+                data.studentId as unknown as string,
+                data.weekId as unknown as string,
                 1
             );
 
-            // Check review status is pending or completed
-            if (
-                isReviewExists &&
-                isReviewExists.length > 0 &&
-                (isReviewExists[0].status === "Pending" ||
-                    (isReviewExists[0].status === "Completed" &&
-                        isReviewExists[0].result !== "Fail"))
-            )
-                throw new ConflictError(
-                    isReviewExists?.[0].status === "Pending"
-                        ? isReviewExists[0].instructorId == instructorId
-                            ? "Review already scheduled for this student !"
-                            : "Review already scheduled by another instructor !"
-                        : isReviewExists[0].instructorId == instructorId
-                            ? "Review already completed. please update score !"
-                            : "Review already completed by another instructor !"
-                );
+            console.log(isReviewExists);
+
+            // Check latest review status is pending or completed
+            //   if (
+            //     isReviewExists &&
+            //     isReviewExists.length > 0 &&
+            //     (isReviewExists[0].status === "Pending" ||
+            //       (isReviewExists[0].status === "Completed" &&
+            //         isReviewExists[0].result !== "Fail"))
+            //   )
+            //     throw new ConflictError(
+            //       isReviewExists?.[0].status === "Pending"
+            //         ? isReviewExists[0].instructorId == instructorId
+            //           ? "Review already scheduled for this student !"
+            //           : "Review already scheduled by another instructor !"
+            //         : isReviewExists[0].instructorId == instructorId
+            //         ? "Review already completed. please update score !"
+            //         : "Review already completed by another instructor !"
+            //     );
 
             // User and instrucor details through gRPC
-            let user;
+            let student;
             let instructor;
 
-            const resp1 = await getUser(data.userId as unknown as string);
+            const resp1 = await getUser(data.studentId as unknown as string);
             const resp2 = await getUser(instructorId as unknown as string);
 
             if (
@@ -119,28 +138,35 @@ export class ReviewService implements IReviewService {
                 resp1.response.status === 200 &&
                 resp2.response.status === 200
             ) {
-                user = resp1.response.user;
+                student = resp1.response.user;
                 instructor = resp2.response.user;
             } else {
                 throw new Error("Failed to schedule review!");
             }
 
-            // Schedule review
-            const review = await this.reviewRepository.create({
+            // Review data
+            const reviewData = {
                 ...data,
                 instructorId,
-            });
+            };
+
+            // Remove weekId if it's empty
+            if (!reviewData.weekId) {
+                delete reviewData.weekId;
+            }
+
+            // Create review
+            const review = await this.reviewRepository.create(reviewData);
 
             if (!review) throw new Error("Failed to schedule review!");
 
             // Map data to reutrn type
             const reviewDto: Partial<IReviewDto> = {
-                _id: review._id,
+                _id: review._id as unknown as string,
+                student: student as unknown as IStudent,
                 instructor: instructor as unknown as IUser,
-                user: user as unknown as IUser,
-                batchId: review.batchId as unknown as string,
                 title: review.title,
-                week: review.week,
+                // week: review.week,
                 date: review.date,
                 time: review.time,
                 status: review.status,
@@ -185,7 +211,7 @@ export class ReviewService implements IReviewService {
             if (data.date || data.time) {
                 // Find the latest review of the user
                 let latestReview = await this.reviewRepository.findReviewsWithLimit(
-                    review.userId as unknown as string,
+                    review.studentId as unknown as string,
                     "",
                     1
                 );
@@ -201,7 +227,7 @@ export class ReviewService implements IReviewService {
             let user;
             let instructor;
 
-            const resp1 = await getUser(review.userId as unknown as string);
+            const resp1 = await getUser(review.studentId as unknown as string);
             const resp2 = await getUser(instructorId as unknown as string);
 
             if (
@@ -226,14 +252,14 @@ export class ReviewService implements IReviewService {
 
             // Map data to return type
             const reviewDto: IReviewDto = {
-                _id: updatedReview._id,
+                _id: updatedReview._id as unknown as string,
+                student: user as unknown as IStudent,
                 instructor: instructor as unknown as IUser,
-                user: user as unknown as IUser,
-                batchId: updatedReview.batchId as unknown as string,
                 title: updatedReview.title,
-                week: updatedReview.week,
+                // week: updatedReview.week,
                 date: updatedReview.date,
                 time: updatedReview.time,
+                category: updatedReview.category as IReveiewCategory,
                 rating: updatedReview.rating,
                 feedback: updatedReview.feedback,
                 pendings: updatedReview.pendings,
@@ -277,7 +303,7 @@ export class ReviewService implements IReviewService {
 
             // Find the latest review of the user
             let latestReview = await this.reviewRepository.findReviewsWithLimit(
-                review.userId as unknown as string,
+                review.studentId as unknown as string,
                 "",
                 1
             );
@@ -290,8 +316,8 @@ export class ReviewService implements IReviewService {
 
             // Find the last two reviews of the user of same week
             let reviews = await this.reviewRepository.findReviewsWithLimit(
-                review.userId as unknown as string,
-                review.week,
+                review.studentId as unknown as string,
+                review.weekId as unknown as string,
                 2
             );
 
@@ -310,10 +336,10 @@ export class ReviewService implements IReviewService {
 
             // Update user through gRPC
             const { response } = await updateUser(
-                review.userId as unknown as string,
+                review.studentId as unknown as string,
                 {
                     stage: flag ? "Intake" : "Normal",
-                    week: review.week, // Old week
+                    week: review.weekId, // Old week
                 }
             );
 
@@ -365,7 +391,7 @@ export class ReviewService implements IReviewService {
 
             // Find latest review of the user
             let latestReview = await this.reviewRepository.findReviewsWithLimit(
-                review.userId as unknown as string,
+                review.studentId as unknown as string,
                 "",
                 1
             );
@@ -383,18 +409,18 @@ export class ReviewService implements IReviewService {
             // Check weather, pass or fail
             let flag = practical >= 5 && theory >= 5;
 
-            let nextWeek;
+            let nextWeek = "";
 
-            if (flag) {
-                const splitedWeek = review.week.split(" ");
-                nextWeek = splitedWeek[0] + " " + (Number(splitedWeek[1]) + 1); // New week
-            } else {
-                nextWeek = review.week; // Old week
-            }
+            // if (flag) {
+            //     const splitedWeek = review.week.split(" ");
+            //     nextWeek = splitedWeek[0] + " " + (Number(splitedWeek[1]) + 1); // New week
+            // } else {
+            //     nextWeek = review.week; // Old week
+            // }
 
             // Update user through gRPC
             const { response } = await updateUser(
-                review.userId as unknown as string,
+                review.studentId as unknown as string,
                 { week: nextWeek }
             );
 
@@ -418,32 +444,43 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Searches for reviews based on the given keyword, sort, order, status, and batchIds.
-     * @param keyword - The keyword to search for in the review's title, week, or user's name or email.
+     * Searches for reviews based on the given parameters.
+     * @param batchId - The id of the batch to search for reviews in.
+     * @param studentId - The id of the student to search for reviews from.
+     * @param domainId - The id of the domain to search for reviews in.
+     * @param weekId - The id of the week to search for reviews in.
      * @param sort - The field to sort the result by.
-     * @param order - The order to sort the result by, either 1 for ascending or -1 for descending.
+     * @param order - The order of the sorting, either 1 for ascending or -1 for descending.
+     * @param date - The date to search for reviews on.
      * @param status - The status of the reviews to search for, either "true" or "false".
-     * @param batchIds - The list of batchIds to search for reviews in.
-     * @returns A promise that resolves to an array of review DTOs if successful, otherwise an empty array.
+     * @param category - The category of the reviews to search for.
+     * @param skip - The number of records to skip in the result set.
+     * @returns A promise that resolves to an array of review DTOs, or an empty array if there is a problem searching for the reviews.
      * @throws An error if there is a problem searching for the reviews.
      */
     async searchReviews(
-        keyword: string,
+        batchId: string,
+        studentId: string,
+        domainId: string,
+        weekId: string,
         sort: string,
         order: number,
         date: string,
         status: string,
-        batchIds: string[],
+        category: IReveiewCategory,
         skip: number
     ): Promise<IReviewDto[]> {
         try {
             const reviews = await this.reviewRepository.searchReviews(
-                keyword,
+                batchId,
+                studentId,
+                domainId,
+                weekId,
                 sort,
                 order,
                 date,
                 status,
-                batchIds,
+                category,
                 skip
             );
 
@@ -456,36 +493,38 @@ export class ReviewService implements IReviewService {
             for (let i = 0; i < reviews.length; i++) {
                 userIds.push(
                     ...[
-                        reviews[i].userId as unknown as string,
+                        reviews[i].studentId as unknown as string,
                         reviews[i].instructorId as unknown as string,
                     ]
                 );
             }
 
             // Users info through gRPC
-            let usersMap: Record<
-                string,
-                {
-                    _id: string;
-                    name: string;
-                    email: string;
-                    role: string;
-                    profilePic: string;
-                    batch: string;
-                }
-            >;
+            let usersMap: Record<string, IUser | IStudent>;
 
-            const resp = await getUsers([...new Set(userIds)]);
+            const resp = await getUsers([...new Set(userIds)], "");
 
             if (resp && resp.response.status === 200) {
                 usersMap = resp.response.users;
             }
 
-            // Reviews detils with user info
+            // Reviews detils with users info
             return reviews.map((review) => ({
-                ...(review.toObject ? review.toObject() : review),
-                user: usersMap[review.userId as unknown as string],
-                instructor: usersMap[review.instructorId as unknown as string],
+                _id: review._id as unknown as string,
+                student: usersMap[review.studentId as unknown as string] as IStudent,
+                instructor: usersMap[review.instructorId as unknown as string] as IUser,
+                title: review.title,
+                // week: review.week,
+                date: review.date,
+                time: review.time,
+                category: review.category as IReveiewCategory,
+                score: review.score,
+                result: review.result,
+                status: review.status,
+                pendings: review.pendings,
+                feedback: review.feedback,
+                rating: review.rating,
+                updatedAt: review.updatedAt,
             }));
         } catch (err: unknown) {
             throw err;
