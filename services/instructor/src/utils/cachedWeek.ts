@@ -10,7 +10,6 @@ import { ObjectId } from "mongoose";
 export const getCachedWeek = async (weekId: string | ObjectId) => {
     try {
         const data = await redisClient.get("weeks");
-        console.log(weekId);
         if (!data) return null;
 
         const weeks: IWeek[] = JSON.parse(data);

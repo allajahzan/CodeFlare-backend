@@ -16,5 +16,6 @@ export interface IReviewDto {
     status: string;
     result: string;
     rating: number;
+    createdAt: Date;
     updatedAt: Date;
 }

@@ -3,6 +3,7 @@ import {
     IReveiewCategory,
     IStudent,
     IUser,
+    IWeek,
     JwtPayloadType,
 } from "@codeflare/common";
 import { IReviewDto } from "../../dto/reviewService";
@@ -14,7 +15,6 @@ import { ObjectId } from "mongoose";
 import {
     getAllWeeks,
     getCachedWeek,
-    getCachedWeeks,
 } from "../../utils/cachedWeek";
 
 /** Implementation of Review Service */
@@ -30,10 +30,11 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Retrieves scheduled reviews for a given list of batchIds.
-     * @param batchIds - The list of batchIds to retrieve scheduled reviews for.
-     * @returns A promise that resolves to an array of scheduled review DTOs.
-     * @throws An error if there is a problem retrieving the reviews.
+     * Retrieves scheduled reviews for a user.
+     * @param userId - The ID of the user whose scheduled reviews are to be retrieved.
+     * @returns A promise that resolves to an array of review DTOs containing detailed review information
+     *          along with associated user data.
+     * @throws An error if there is a problem retrieving the reviews or user information.
      */
     async getScheduledReviews(userId: string): Promise<IReviewDto[]> {
         try {
@@ -62,27 +63,30 @@ export class ReviewService implements IReviewService {
             }
 
             // Reviews detils with user info
-            return reviews.map((review) => ({
-                _id: review._id as unknown as string,
-                student: usersMap[
-                    review.studentId as unknown as string
-                ] as unknown as IStudent,
-                instructor: usersMap[
-                    review.instructorId as unknown as string
-                ] as unknown as IUser,
-                title: review.title,
-                // week: review.week,
-                date: review.date,
-                time: review.time,
-                category: review.category as IReveiewCategory,
-                score: review.score,
-                result: review.result,
-                status: review.status,
-                pendings: review.pendings,
-                feedback: review.feedback,
-                rating: review.rating,
-                updatedAt: review.updatedAt,
-            }));
+            return Promise.all(
+                reviews.map(async (review) => ({
+                    _id: review._id as unknown as string,
+                    student: usersMap[
+                        review.studentId as unknown as string
+                    ] as unknown as IStudent,
+                    instructor: usersMap[
+                        review.instructorId as unknown as string
+                    ] as unknown as IUser,
+                    title: review.title,
+                    week: (await getCachedWeek(review.weekId)) as IWeek,
+                    date: review.date,
+                    time: review.time,
+                    category: review.category as IReveiewCategory,
+                    score: review.score,
+                    result: review.result,
+                    status: review.status,
+                    pendings: review.pendings,
+                    feedback: review.feedback,
+                    rating: review.rating,
+                    createdAt: review.createdAt,
+                    updatedAt: review.updatedAt,
+                }))
+            );
         } catch (err: unknown) {
             throw err;
         }
@@ -90,10 +94,10 @@ export class ReviewService implements IReviewService {
 
     /**
      * Schedules a review for a user.
-     * @param data - The partial review schema containing necessary data to schedule a review.
-     * @returns A promise that resolves to a partial review DTO containing the scheduled review details.
-     * @throws ConflictError if a review is already scheduled for the given user and week.
-     * @throws Error if there is a problem scheduling the review.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param data - The data used to schedule a review.
+     * @returns A promise that resolves to a review DTO.
+     * @throws An error if there is a problem scheduling the review.
      */
     async scheduleReview(
         tokenPayload: string,
@@ -169,13 +173,14 @@ export class ReviewService implements IReviewService {
                 student: student as unknown as IStudent,
                 instructor: instructor as unknown as IUser,
                 title: review.title,
-                // week: review.week,
+                week: (await getCachedWeek(review.weekId)) as IWeek,
                 date: review.date,
                 time: review.time,
                 status: review.status,
                 result: review.result,
                 feedback: review.feedback,
                 score: review.score,
+                createdAt: review.createdAt,
                 updatedAt: review.updatedAt,
             };
 
@@ -187,9 +192,10 @@ export class ReviewService implements IReviewService {
 
     /**
      * Updates a review for a user.
-     * @param data - The data used to update a review.
-     * @param reviewId - The id of the review to update.
-     * @returns A promise that resolves to a review DTO.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param data - The review data to be updated.
+     * @param reviewId - The ID of the review to be updated.
+     * @returns A promise that resolves to an updated review DTO with user information.
      * @throws An error if there is a problem updating the review.
      */
     async updateReview(
@@ -259,7 +265,7 @@ export class ReviewService implements IReviewService {
                 student: user as unknown as IStudent,
                 instructor: instructor as unknown as IUser,
                 title: updatedReview.title,
-                // week: updatedReview.week,
+                week: (await getCachedWeek(updatedReview.weekId)) as IWeek,
                 date: updatedReview.date,
                 time: updatedReview.time,
                 category: updatedReview.category as IReveiewCategory,
@@ -269,6 +275,7 @@ export class ReviewService implements IReviewService {
                 score: updatedReview.score,
                 status: updatedReview.status,
                 result: updatedReview.result,
+                createdAt: updatedReview.createdAt,
                 updatedAt: updatedReview.updatedAt,
             };
             return reviewDto;
@@ -279,11 +286,10 @@ export class ReviewService implements IReviewService {
 
     /**
      * Changes the status of a review with the given id.
-     * @param reviewId - The id of the review to update.
-     * @param userId - The id of the user who the review belongs to.
-     * @param week - The week of the review.
+     * @param tokenPayload - The JSON web token payload containing the user id.
+     * @param reviewId - The id of the review to be updated.
      * @param status - The new status of the review.
-     * @returns A promise that resolves when the review status is updated successfully.
+     * @returns A promise that resolves if the review status is updated successfully, otherwise rejects with an error.
      * @throws An error if there is a problem updating the review status.
      */
     async changeStatus(
@@ -348,6 +354,27 @@ export class ReviewService implements IReviewService {
 
             // if (response.status !== 200) throw new Error("Failed to update status !");
 
+            // Update user's week thorugh gRPC
+            if (status !== "Completed") {
+                let previousWeek;
+
+                if (review.weekId) {
+                    const currentweek = await getCachedWeek(review.weekId);
+
+                    previousWeek = currentweek?._id as unknown as string;
+                } else {
+                    previousWeek = null;
+                }
+
+                // Update user through gRPC
+                const resp = await updateUser(review.studentId as unknown as string, {
+                    week: previousWeek,
+                });
+
+                if (resp && resp.response.status !== 200)
+                    throw new Error("Failed to update score !");
+            }
+
             // Update review status
             const updatedReview = await this.reviewRepository.update(
                 { _id: reviewId },
@@ -366,12 +393,13 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Updates the score of a review.
+     * Updates the score of a review with the given id.
+     * @param tokenPayload - The JSON web token payload containing the instructor id.
      * @param reviewId - The id of the review to update.
-     * @param practical - The practical score of the review.
-     * @param theory - The theory score of the review.
-     * @returns A promise that resolves when the review score is updated successfully.
-     * @throws An error if there is a problem updating the review score.
+     * @param practical - The practical score to be updated for the review.
+     * @param theory - The theory score to be updated for the review.
+     * @returns A promise that resolves if the review score is updated successfully, otherwise rejects with an error.
+     * @throws An error if there is a problem updating the review score, or if the instructor is not authorized to update the review.
      */
     async updateScore(
         tokenPayload: string,
@@ -424,8 +452,7 @@ export class ReviewService implements IReviewService {
                     nextWeekName =
                         currentweek?.name.split(" ")[0] +
                         " " +
-                        Number(currentweek?.name.split(" ")[1]) +
-                        1;
+                        (Number(currentweek?.name.split(" ")[1]) + 1);
                 } else {
                     nextWeekName = "Week 1";
                 }
@@ -435,9 +462,14 @@ export class ReviewService implements IReviewService {
 
                 // Find next week
                 const week = allWeeks.find((week) => week.name === nextWeekName);
-                nextWeek = week?._id as unknown as string;
+
+                if (!week) {
+                    nextWeek = null;
+                } else {
+                    nextWeek = week?._id as unknown as string;
+                }
             } else {
-                nextWeek = review.weekId as unknown as string; // Old week
+                nextWeek = review.weekId ? (review.weekId as unknown as string) : null; // Old week
             }
 
             // Update user through gRPC
@@ -538,23 +570,28 @@ export class ReviewService implements IReviewService {
             }
 
             // Reviews detils with users info
-            return reviews.map((review) => ({
-                _id: review._id as unknown as string,
-                student: usersMap[review.studentId as unknown as string] as IStudent,
-                instructor: usersMap[review.instructorId as unknown as string] as IUser,
-                title: review.title,
-                // week: review.week,
-                date: review.date,
-                time: review.time,
-                category: review.category as IReveiewCategory,
-                score: review.score,
-                result: review.result,
-                status: review.status,
-                pendings: review.pendings,
-                feedback: review.feedback,
-                rating: review.rating,
-                updatedAt: review.updatedAt,
-            }));
+            return Promise.all(
+                reviews.map(async (review) => ({
+                    _id: review._id as unknown as string,
+                    student: usersMap[review.studentId as unknown as string] as IStudent,
+                    instructor: usersMap[
+                        review.instructorId as unknown as string
+                    ] as IUser,
+                    title: review.title,
+                    week: (await getCachedWeek(review.weekId)) as IWeek,
+                    date: review.date,
+                    time: review.time,
+                    category: review.category as IReveiewCategory,
+                    score: review.score,
+                    result: review.result,
+                    status: review.status,
+                    pendings: review.pendings,
+                    feedback: review.feedback,
+                    rating: review.rating,
+                    createdAt: review.createdAt,
+                    updatedAt: review.updatedAt,
+                }))
+            );
         } catch (err: unknown) {
             throw err;
         }

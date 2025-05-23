@@ -124,7 +124,6 @@ export class ReviewRepository
                 // },
             ]);
         } catch (err: unknown) {
-            console.log(err);
             return null;
         }
     }

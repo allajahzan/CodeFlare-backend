@@ -17,5 +17,6 @@ export interface IReviewSchema extends Document {
     status: string;
     result: string;
     rating: number;
+    createdAt: Date;
     updatedAt: Date;
 }

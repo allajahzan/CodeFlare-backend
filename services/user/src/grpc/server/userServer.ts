@@ -154,7 +154,8 @@ export const updateUser = async (call: any, callback: any) => {
 
         const updatedUser = await userRepository.update(
             { _id },
-            { $set: JSON.parse(data).data }
+            { $set: JSON.parse(data).data },
+            { new: true }
         );
 
         if (!updatedUser) {
@@ -175,8 +176,8 @@ export const updateUser = async (call: any, callback: any) => {
             phoneNo: updatedUser.phoneNo,
             profilePic: updatedUser.profilePic,
             role: updatedUser.role,
-            ...(user.week && { week: user.week as unknown as string }),
-            ...(user.domain && { domain: user.domain as unknown as string }),
+            ...(updatedUser.week && { week: updatedUser.week as unknown as string }),
+            ...(updatedUser.domain && { domain: updatedUser.domain as unknown as string }),
             ...(updatedUser.batch && { batch: updatedUser.batch.toString() }),
             ...(updatedUser.batches && {
                 batches: updatedUser.batches.map((b: any) => b.toString()),
