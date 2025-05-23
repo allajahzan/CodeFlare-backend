@@ -95,7 +95,7 @@ class WarningConsumer {
 
                         console.log("Warning event consumed and send notification");
                     } catch (err) {
-                        console.error("Consumer processing error:", err);
+                        console.log("Consumer processing error:", err);
                         rabbitmq.channel.nack(data as amqp.ConsumeMessage, false, true);
                     }
                 }

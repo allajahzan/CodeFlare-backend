@@ -16,7 +16,7 @@ export const getCachedDomain = async (domainId: string | ObjectId) => {
 
         return domains.find((d) => d._id === domainId?.toString()) || null;
     } catch (err) {
-        console.error("Error fetching domain from cache:", err);
+        console.log("Error fetching domain from cache:", err);
         throw err;
     }
 };
@@ -40,7 +40,7 @@ export const getCachedDomains = async (domainIds: ObjectId[]) => {
 
         return domains.filter((d) => domainIdStrings.includes(d._id));
     } catch (err) {
-        console.error("Error fetching domains from cache:", err);
+        console.log("Error fetching domains from cache:", err);
         throw err;
     }
 };

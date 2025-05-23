@@ -9,5 +9,5 @@ export interface IReviewService {
     updateReview(tokenPayload: string, data: Partial<IReviewSchema>, reviewId: string): Promise<IReviewDto>;
     changeStatus(tokenPayload: string, reviewId: string, status: string): Promise<void>;
     updateScore(tokenPayload: string, reviewId: string, practical: number, theory: number) : Promise<void>
-    searchReviews(batchId: string, studentId: string, domainId: string, weekId: string, sort: string, order: number, date: string, status: string, category: IReveiewCategory, skip: number): Promise<IReviewDto[]>;
+    searchReviews(tokenPayload: string,batchId: string, studentId: string, domainId: string, weekId: string, sort: string, order: number, date: string, status: string, category: IReveiewCategory, skip: number): Promise<IReviewDto[]>;
 }

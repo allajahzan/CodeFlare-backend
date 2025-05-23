@@ -179,6 +179,8 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const {
                 batchId,
                 studentId,
@@ -193,6 +195,7 @@ export class ReviewController implements IReviewController {
             } = req.query;
 
             const data = await this.reviewService.searchReviews(
+                tokenPayload as string,
                 batchId as string,
                 studentId as string,
                 domainId as string,

@@ -16,7 +16,7 @@ export const getCachedWeek = async (weekId: string | ObjectId) => {
 
         return weeks.find((w) => w._id === weekId?.toString()) || null;
     } catch (err) {
-        console.error("Error fetching week from cache:", err);
+        console.log("Error fetching week from cache:", err);
         throw err;
     }
 };
@@ -40,7 +40,7 @@ export const getCachedWeeks = async (weekIds: ObjectId[]) => {
 
         return weeks.filter((b) => weekIdStrings.includes(b._id));
     } catch (err) {
-        console.error("Error fetching weeks from cache:", err);
+        console.log("Error fetching weeks from cache:", err);
         throw err;
     }
 };

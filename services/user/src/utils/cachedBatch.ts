@@ -16,7 +16,7 @@ export const getCachedBatch = async (batchId: string | ObjectId) => {
 
         return batches.find((b) => b._id === batchId?.toString()) || null;
     } catch (err) {
-        console.error("Error fetching batch from cache:", err);
+        console.log("Error fetching batch from cache:", err);
         throw err;
     }
 };
@@ -40,7 +40,7 @@ export const getCachedBatches = async (batchIds: ObjectId[]) => {
 
         return batches.filter((b) => batchIdStrings.includes(b._id));
     } catch (err) {
-        console.error("Error fetching batches from cache:", err);
+        console.log("Error fetching batches from cache:", err);
         throw err;
     }
 };

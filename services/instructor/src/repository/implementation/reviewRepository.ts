@@ -18,13 +18,13 @@ export class ReviewRepository
     /**
      * Retrieves the latest reviews of a user for a given week, up to the given limit.
      * @param studentId - The id of the user to retrieve reviews for.
-     * @param week - The week to retrieve reviews for.
+     * @param weekId - The week to retrieve reviews for.
      * @param limit - The maximum number of reviews to retrieve.
      * @returns A promise that resolves to a list of review schema, or null if there is a problem retrieving the reviews.
      */
     async findReviewsWithLimit(
         studentId: string,
-        week?: string,
+        weekId?: string,
         limit?: number
     ): Promise<IReviewSchema[] | null> {
         try {
@@ -32,7 +32,7 @@ export class ReviewRepository
                 {
                     $match: {
                         studentId: new Types.ObjectId(studentId),
-                        ...(week && { week }),
+                        ...(weekId && { weekId: new Types.ObjectId(weekId) }),
                     },
                 },
                 {
@@ -68,6 +68,7 @@ export class ReviewRepository
      * @throws An error if there is a problem searching for the reviews.
      */
     async searchReviews(
+        instructorId: string,
         batchId: string,
         studentId: string,
         domainId: string,
@@ -80,21 +81,12 @@ export class ReviewRepository
         skip: number
     ): Promise<IReviewSchema[] | null> {
         try {
-            console.log(
-                batchId,
-                studentId,
-                domainId,
-                weekId,
-                sort,
-                order,
-                date,
-                status,
-                category,
-                skip
-            );
             return await this.model.aggregate([
                 {
                     $match: {
+                        ...(instructorId && {
+                            instructorId: new Types.ObjectId(instructorId),
+                        }),
                         ...(batchId && {
                             batchId: new Types.ObjectId(batchId),
                         }),
@@ -124,12 +116,12 @@ export class ReviewRepository
                 {
                     $sort: sort ? { [sort]: order === 1 ? 1 : -1 } : { createdAt: -1 },
                 },
-                {
-                    $skip: skip,
-                },
-                {
-                    $limit: 10,
-                },
+                // {
+                //     $skip: skip,
+                // },
+                // {
+                //     $limit: 10,
+                // },
             ]);
         } catch (err: unknown) {
             console.log(err);

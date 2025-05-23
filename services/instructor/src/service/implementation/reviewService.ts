@@ -11,6 +11,11 @@ import { IReviewRepository } from "../../repository/interface/IReviewRepository"
 import { IReviewService } from "../interface/IReviewService";
 import { getUser, getUsers, updateUser } from "../../grpc/client/userClient";
 import { ObjectId } from "mongoose";
+import {
+    getAllWeeks,
+    getCachedWeek,
+    getCachedWeeks,
+} from "../../utils/cachedWeek";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -105,25 +110,23 @@ export class ReviewService implements IReviewService {
                 1
             );
 
-            console.log(isReviewExists);
-
             // Check latest review status is pending or completed
-            //   if (
-            //     isReviewExists &&
-            //     isReviewExists.length > 0 &&
-            //     (isReviewExists[0].status === "Pending" ||
-            //       (isReviewExists[0].status === "Completed" &&
-            //         isReviewExists[0].result !== "Fail"))
-            //   )
-            //     throw new ConflictError(
-            //       isReviewExists?.[0].status === "Pending"
-            //         ? isReviewExists[0].instructorId == instructorId
-            //           ? "Review already scheduled for this student !"
-            //           : "Review already scheduled by another instructor !"
-            //         : isReviewExists[0].instructorId == instructorId
-            //         ? "Review already completed. please update score !"
-            //         : "Review already completed by another instructor !"
-            //     );
+            if (
+                isReviewExists &&
+                isReviewExists.length > 0 &&
+                (isReviewExists[0].status === "Pending" ||
+                    (isReviewExists[0].status === "Completed" &&
+                        isReviewExists[0].result !== "Fail"))
+            )
+                throw new ConflictError(
+                    isReviewExists?.[0].status === "Pending"
+                        ? isReviewExists[0].instructorId == instructorId
+                            ? "Review already scheduled for this student !"
+                            : "Review already scheduled by another instructor !"
+                        : isReviewExists[0].instructorId == instructorId
+                            ? "Review already completed. please update score !"
+                            : "Review already completed by another instructor !"
+                );
 
             // User and instrucor details through gRPC
             let student;
@@ -315,35 +318,35 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review status !");
 
             // Find the last two reviews of the user of same week
-            let reviews = await this.reviewRepository.findReviewsWithLimit(
-                review.studentId as unknown as string,
-                review.weekId as unknown as string,
-                2
-            );
+            // let reviews = await this.reviewRepository.findReviewsWithLimit(
+            //     review.studentId as unknown as string,
+            //     review.weekId as unknown as string,
+            //     2
+            // );
 
-            if (!reviews) throw new Error("Failed to update status !");
+            // if (!reviews) throw new Error("Failed to update status !");
 
-            let flag = false;
+            // let flag = false;
 
             // Check weather, status of previous review of same week is Absent
-            if (
-                reviews.length >= 2 &&
-                reviews[1].status === "Absent" &&
-                status === "Absent"
-            ) {
-                flag = true;
-            }
+            // if (
+            //     reviews.length >= 2 &&
+            //     reviews[1].status === "Absent" &&
+            //     status === "Absent"
+            // ) {
+            //     flag = true;
+            // }
 
-            // Update user through gRPC
-            const { response } = await updateUser(
-                review.studentId as unknown as string,
-                {
-                    stage: flag ? "Intake" : "Normal",
-                    week: review.weekId, // Old week
-                }
-            );
+            // // Update user through gRPC
+            // const { response } = await updateUser(
+            //     review.studentId as unknown as string,
+            //     {
+            //         stage: flag ? "Intake" : "Normal",
+            //         week: review.weekId, // Old week
+            //     }
+            // );
 
-            if (response.status !== 200) throw new Error("Failed to update status !");
+            // if (response.status !== 200) throw new Error("Failed to update status !");
 
             // Update review status
             const updatedReview = await this.reviewRepository.update(
@@ -409,22 +412,41 @@ export class ReviewService implements IReviewService {
             // Check weather, pass or fail
             let flag = practical >= 5 && theory >= 5;
 
-            let nextWeek = "";
+            let nextWeek;
 
-            // if (flag) {
-            //     const splitedWeek = review.week.split(" ");
-            //     nextWeek = splitedWeek[0] + " " + (Number(splitedWeek[1]) + 1); // New week
-            // } else {
-            //     nextWeek = review.week; // Old week
-            // }
+            if (flag) {
+                // Next week name
+                let nextWeekName;
+
+                if (review.weekId) {
+                    const currentweek = await getCachedWeek(review.weekId);
+
+                    nextWeekName =
+                        currentweek?.name.split(" ")[0] +
+                        " " +
+                        Number(currentweek?.name.split(" ")[1]) +
+                        1;
+                } else {
+                    nextWeekName = "Week 1";
+                }
+
+                // Get all weeks from cache
+                const allWeeks = await getAllWeeks();
+
+                // Find next week
+                const week = allWeeks.find((week) => week.name === nextWeekName);
+                nextWeek = week?._id as unknown as string;
+            } else {
+                nextWeek = review.weekId as unknown as string; // Old week
+            }
 
             // Update user through gRPC
-            const { response } = await updateUser(
-                review.studentId as unknown as string,
-                { week: nextWeek }
-            );
+            const resp = await updateUser(review.studentId as unknown as string, {
+                week: nextWeek,
+            });
 
-            if (response.status !== 200) throw new Error("Failed to update score !");
+            if (resp && resp.response.status !== 200)
+                throw new Error("Failed to update score !");
 
             // Update review
             const updatedReview = await this.reviewRepository.update(
@@ -444,21 +466,24 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Searches for reviews based on the given parameters.
-     * @param batchId - The id of the batch to search for reviews in.
-     * @param studentId - The id of the student to search for reviews from.
-     * @param domainId - The id of the domain to search for reviews in.
-     * @param weekId - The id of the week to search for reviews in.
+     * Searches for reviews based on the given parameters, retrieves additional user information,
+     * and returns detailed review data.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param batchId - The ID of the batch to search for reviews in.
+     * @param studentId - The ID of the student to search for reviews from.
+     * @param domainId - The ID of the domain to search for reviews in.
+     * @param weekId - The ID of the week to search for reviews in.
      * @param sort - The field to sort the result by.
      * @param order - The order of the sorting, either 1 for ascending or -1 for descending.
      * @param date - The date to search for reviews on.
-     * @param status - The status of the reviews to search for, either "true" or "false".
+     * @param status - The status of the reviews to search for.
      * @param category - The category of the reviews to search for.
      * @param skip - The number of records to skip in the result set.
-     * @returns A promise that resolves to an array of review DTOs, or an empty array if there is a problem searching for the reviews.
-     * @throws An error if there is a problem searching for the reviews.
+     * @returns A promise that resolves to an array of detailed review DTOs with user information.
+     * @throws An error if there is a problem retrieving the reviews or user information.
      */
     async searchReviews(
+        tokenPayload: string,
         batchId: string,
         studentId: string,
         domainId: string,
@@ -471,7 +496,11 @@ export class ReviewService implements IReviewService {
         skip: number
     ): Promise<IReviewDto[]> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Instutructor id
+            const instructorId = _id;
+
             const reviews = await this.reviewRepository.searchReviews(
+                instructorId,
                 batchId,
                 studentId,
                 domainId,

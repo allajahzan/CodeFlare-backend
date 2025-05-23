@@ -10,6 +10,7 @@ import { ObjectId } from "mongoose";
 export const getCachedWeek = async (weekId: string | ObjectId) => {
     try {
         const data = await redisClient.get("weeks");
+        console.log(weekId);
         if (!data) return null;
 
         const weeks: IWeek[] = JSON.parse(data);
@@ -39,6 +40,26 @@ export const getCachedWeeks = async (weekIds: ObjectId[]) => {
         const weekIdStrings = weekIds.map((id) => id.toString());
 
         return weeks.filter((b) => weekIdStrings.includes(b._id));
+    } catch (err) {
+        console.log("Error fetching weeks from cache:", err);
+        throw err;
+    }
+};
+
+/**
+ * Retrieves all weeks from the cache.
+ * @returns A promise that resolves to an array of all weeks if they are found in the cache, or an empty array if they are not.
+ * @throws An error if there is a problem retrieving the weeks from the cache.
+ */
+export const getAllWeeks = async () => {
+    try {
+        const data = await redisClient.get("weeks");
+
+        if (!data) return [];
+
+        const weeks: IWeek[] = JSON.parse(data);
+
+        return weeks;
     } catch (err) {
         console.log("Error fetching weeks from cache:", err);
         throw err;
