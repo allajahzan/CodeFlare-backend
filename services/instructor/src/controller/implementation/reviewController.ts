@@ -123,12 +123,12 @@ export class ReviewController implements IReviewController {
             const { id: reviewId } = req.params;
             const { status } = req.body;
 
-            await this.reviewService.changeStatus(
+            const data = await this.reviewService.changeStatus(
                 tokenPayload as string,
                 reviewId,
                 status
             );
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }
@@ -153,13 +153,13 @@ export class ReviewController implements IReviewController {
             const { id: reviewId } = req.params;
             const { practical, theory } = req.body;
 
-            await this.reviewService.updateScore(
+            const data = await this.reviewService.updateScore(
                 tokenPayload as string,
                 reviewId,
                 practical,
                 theory
             );
-            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
             next(err);
         }

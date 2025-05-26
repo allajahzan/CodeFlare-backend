@@ -30,15 +30,12 @@ const reviewSchema = new Schema<IReviewSchema>(
         },
         title: {
             type: String,
-            required: true,
         },
         date: {
             type: Date,
-            required: true,
         },
         time: {
             type: String,
-            required: true,
         },
         category: {
             type: String,
@@ -46,21 +43,17 @@ const reviewSchema = new Schema<IReviewSchema>(
         },
         feedback: {
             type: String,
-            required: false,
         },
         pendings: {
             type: [String],
-            required: false,
         },
         score: {
             type: {
                 practical: {
                     type: Number,
-                    required: false,
                 },
                 theory: {
                     type: Number,
-                    required: false,
                 },
             },
             default: null,
@@ -76,7 +69,6 @@ const reviewSchema = new Schema<IReviewSchema>(
         },
         rating: {
             type: Number,
-            required: false,
         },
     },
     { timestamps: true }
