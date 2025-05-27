@@ -25,6 +25,7 @@ export class ReviewRepository
     async findReviewsWithLimit(
         studentId: string,
         weekId?: string,
+        category?: IReveiewCategory | "",
         limit?: number
     ): Promise<IReviewSchema[] | null> {
         try {
@@ -33,6 +34,7 @@ export class ReviewRepository
                     $match: {
                         studentId: new Types.ObjectId(studentId),
                         ...(weekId && { weekId: new Types.ObjectId(weekId) }),
+                        ...(category && { category })
                     },
                 },
                 {
