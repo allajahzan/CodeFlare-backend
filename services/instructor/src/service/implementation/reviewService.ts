@@ -16,6 +16,7 @@ import { ObjectId } from "mongoose";
 import { getAllWeeks, getCachedWeek } from "../../utils/cachedWeek";
 import { getCachedDomain } from "../../utils/cachedDomain";
 import { getAvailableInstructor } from "../../utils/availableInstructor";
+import { isReviewsDateAndTimeOver } from "../../utils/checkReviewsDateAndTime";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -87,6 +88,54 @@ export class ReviewService implements IReviewService {
                     updatedAt: review.updatedAt,
                 }))
             );
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Schedules a review for a user. This is used to schedule a review immediately after a user select a domain.
+     * @param tokenPayload - The JWT token payload containing user identification information.
+     * @param data - The data used to schedule a review.
+     * @returns A promise that resolves when the review has been scheduled.
+     * @throws An error if there is a problem scheduling the review.
+     */
+    async scheduleFoundationReview(
+        tokenPayload: string,
+        data: Partial<IReviewSchema>
+    ): Promise<void> {
+        try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Student id
+            const studentId = _id as unknown as ObjectId;
+
+            // Get available instructor of same domain
+            const instructorId = await getAvailableInstructor(
+                this.reviewRepository,
+                data.domainId as unknown as string
+            );
+
+            if (!instructorId) {
+                throw new BadRequestError("No available instructors for this domain!");
+            }
+
+            // Review date
+            const reviewDate = new Date();
+            reviewDate.setDate(reviewDate.getDate() + 7);
+
+            // Schdule review
+            const scheduledReview = await this.reviewRepository.create({
+                instructorId: instructorId as unknown as ObjectId,
+                studentId,
+                batchId: data.batchId,
+                domainId: data.domainId,
+                title: "Foundation Period",
+                category: "Foundation",
+                date: reviewDate,
+                time: "",
+            });
+
+            if (!scheduledReview)
+                throw new BadRequestError("Failed to schedule foundation review");
         } catch (err: unknown) {
             throw err;
         }
@@ -236,6 +285,11 @@ export class ReviewService implements IReviewService {
                     throw new Error("You can't update previous review details!");
             }
 
+            // Check weather review's date and time is over or not
+            if (await isReviewsDateAndTimeOver(review.date, review.time, "details")) {
+                throw new BadRequestError("Review's date and time is over!");
+            }
+
             // User info through gRPC
             let user;
             let instructor;
@@ -329,6 +383,15 @@ export class ReviewService implements IReviewService {
             if (latestReview[0].time && latestReview[0]._id != reviewId)
                 throw new Error("You can't update previous review status!");
 
+            // Check weather review's date and time is over or not
+            if (status !== "Cancelled" && status !== "Pending") {
+                if (
+                    !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
+                ) {
+                    throw new BadRequestError("Review's date and time is not over yet!");
+                }
+            }
+
             // If status is not completed
             let deletedReview;
 
@@ -341,9 +404,10 @@ export class ReviewService implements IReviewService {
                     previousWeek = null;
                 }
 
-                // Update user (student)
+                // Update user(student) through gRPC
                 const resp = await updateUser(review.studentId as unknown as string, {
                     week: previousWeek,
+                    category: review.category === "Foundation" ? "Foundation" : "Ongoing",
                 });
 
                 if (resp && resp.response.status !== 200)
@@ -481,6 +545,13 @@ export class ReviewService implements IReviewService {
             if (latestReview[0].time && latestReview[0]._id != reviewId)
                 throw new Error("You can't update previous review score!");
 
+            // Check weather review's date and time is over or not
+            if (
+                !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
+            ) {
+                throw new BadRequestError("Review's date and time is not over yet!");
+            }
+
             // Check weather, review is completed
             if (review.status !== "Completed")
                 throw new Error("Review is not completed yet!");
@@ -580,6 +651,8 @@ export class ReviewService implements IReviewService {
                         scheduleRequired = false;
                         nextWeek = review.weekId ? review.weekId : null; // Old week or null
 
+                        // Here set students category also - 'PENDING'
+
                         console.log("no need to schedule next review!");
                     }
                 }
@@ -605,15 +678,6 @@ export class ReviewService implements IReviewService {
                 };
             }
 
-            // Update user(student's) week through gRPC
-            const resp = await updateUser(review.studentId as unknown as string, {
-                week: nextWeek,
-            });
-
-            // Success resposne
-            if (resp && resp.response.status !== 200)
-                throw new Error("Failed to update score!");
-
             // Update review score and result
             const updatedReview = await this.reviewRepository.update(
                 { _id: reviewId },
@@ -629,6 +693,17 @@ export class ReviewService implements IReviewService {
 
             // Schedule next review
             if (scheduleRequired && scheduleData) {
+                // Update user(student) through gRPC
+                const resp = await updateUser(review.studentId as unknown as string, {
+                    week: nextWeek,
+                    category:
+                        scheduleData.category === "Foundation" ? "Foundation" : "Ongoing",
+                });
+
+                // Success resposne
+                if (resp && resp.response.status !== 200)
+                    throw new Error("Failed to update score!");
+
                 let scheduledReview: IReviewSchema;
 
                 // Find the latest review of a student

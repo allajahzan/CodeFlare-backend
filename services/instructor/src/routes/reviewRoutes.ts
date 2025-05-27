@@ -16,6 +16,11 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
     reviewController.getScheduledReviews(req, res, next)
 );
 
+// Schedule review initially
+router.post("/foundation", (req: Request, res: Response, next: NextFunction) =>
+    reviewController.scheduleFoundationReview(req, res, next)
+);
+
 // Schedule review
 router.post("/", (req: Request, res: Response, next: NextFunction) =>
     reviewController.scheduleReview(req, res, next)

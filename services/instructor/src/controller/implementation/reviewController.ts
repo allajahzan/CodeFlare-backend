@@ -47,6 +47,35 @@ export class ReviewController implements IReviewController {
     }
 
     /**
+     * Schedules a review for a user immediately after a user selects a domain.
+     * @param req - The express request object containing the user's JWT token payload in the headers.
+     * @param res - The express response object used to send the response of the scheduled review.
+     * @param next - The next middleware function in the express stack.
+     * @returns A promise that resolves when the review has been scheduled.
+     * @throws An error if there is a problem scheduling the review.
+     */
+    async scheduleFoundationReview(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const tokenPayload = req.headers["x-user-payload"];
+
+            const reviewData = req.body;
+
+            await this.reviewService.scheduleFoundationReview(
+                tokenPayload as string,
+                reviewData
+            );
+
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Schedules a review for a user.
      * @param req - The request containing the review data.
      * @param res - The response to send the review data back to the user.

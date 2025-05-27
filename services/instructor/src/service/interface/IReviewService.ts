@@ -5,6 +5,7 @@ import { IReviewSchema } from "../../entities/IReviewSchema";
 /** Interface for Review Service */
 export interface IReviewService {
     getScheduledReviews(userId: string) : Promise<IReviewDto[]>
+    scheduleFoundationReview(tokenPayload: string, data: Partial<IReviewSchema>): Promise<void>;
     scheduleReview(tokenPayload: string, data: Partial<IReviewSchema>): Promise<Partial<IReviewDto>>;
     updateReview(tokenPayload: string, data: Partial<IReviewSchema>, reviewId: string): Promise<IReviewDto>;
     changeStatus(tokenPayload: string, reviewId: string, status: string): Promise<{_id: string} | null>;
