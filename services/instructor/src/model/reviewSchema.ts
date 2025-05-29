@@ -39,7 +39,7 @@ const reviewSchema = new Schema<IReviewSchema>(
         },
         category: {
             type: String,
-            enum: ["Foundation", "Weekly", "QA", "InTake"],
+            enum: ["Foundation", "Weekly", "QA", "InTake", "Normal"],
         },
         feedback: {
             type: String,

@@ -60,7 +60,16 @@ const userSchema = new Schema<IUserSchema>(
                 "Placement",
                 "Placed",
             ],
-            required: false,
+        },
+        review : {
+            type: String, 
+            enum: [
+                "Foundation",
+                "Weekly",
+                "QA",
+                "InTake",
+                "Normal"
+            ]
         },
         lastActive: {
             type: Date,

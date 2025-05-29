@@ -1,15 +1,16 @@
-import { IBatch, IReveiewCategory, IStudent, IUser, IWeek } from "@codeflare/common";
+import { IBatch, IReviewCategory, IStudent, IUser, IWeek } from "@codeflare/common";
 
 /** Dto for review */
 export interface IReviewDto {
     _id: string;
     instructor: IUser;
     student: IStudent,
+    batch?: IBatch;
     week?: IWeek;
     title: string;
     date: Date;
     time: string;
-    category: IReveiewCategory;
+    category: IReviewCategory;
     feedback: string;
     pendings: string[];
     score: { practical: number; theory: number };

@@ -1,4 +1,4 @@
-import { BaseRepository, IReveiewCategory } from "@codeflare/common";
+import { BaseRepository, IReviewCategory } from "@codeflare/common";
 import { IReviewSchema } from "../../entities/IReviewSchema";
 import { IReviewRepository } from "../interface/IReviewRepository";
 import { Model, Types } from "mongoose";
@@ -25,8 +25,9 @@ export class ReviewRepository
     async findReviewsWithLimit(
         studentId: string,
         weekId?: string,
-        category?: IReveiewCategory | "",
-        limit?: number
+        category?: IReviewCategory | "",
+        limit?: number,
+        status?: string
     ): Promise<IReviewSchema[] | null> {
         try {
             const pipeline: any[] = [
@@ -34,7 +35,8 @@ export class ReviewRepository
                     $match: {
                         studentId: new Types.ObjectId(studentId),
                         ...(weekId && { weekId: new Types.ObjectId(weekId) }),
-                        ...(category && { category })
+                        ...(category && { category }),
+                        ...(status && { status }),
                     },
                 },
                 {
@@ -79,7 +81,7 @@ export class ReviewRepository
         order: number,
         date: string,
         status: string,
-        category: IReveiewCategory,
+        category: IReviewCategory,
         skip: number
     ): Promise<IReviewSchema[] | null> {
         try {

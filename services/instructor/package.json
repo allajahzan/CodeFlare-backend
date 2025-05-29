@@ -11,7 +11,7 @@
   "author": "allaj",
   "license": "ISC",
   "dependencies": {
-    "@codeflare/common": "^1.0.79",
+    "@codeflare/common": "^1.0.83",
     "@grpc/grpc-js": "^1.12.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

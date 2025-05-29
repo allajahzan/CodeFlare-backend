@@ -1,7 +1,8 @@
 import {
     BadRequestError,
     ConflictError,
-    IReveiewCategory,
+    IBatch,
+    IReviewCategory,
     IStudent,
     IUser,
     IWeek,
@@ -17,6 +18,7 @@ import { getAllWeeks, getCachedWeek } from "../../utils/cachedWeek";
 import { getCachedDomain } from "../../utils/cachedDomain";
 import { getAvailableInstructor } from "../../utils/availableInstructor";
 import { isReviewsDateAndTimeOver } from "../../utils/checkReviewsDateAndTime";
+import { getCachedBatch } from "../../utils/cachedBatch";
 
 /** Implementation of Review Service */
 export class ReviewService implements IReviewService {
@@ -77,7 +79,7 @@ export class ReviewService implements IReviewService {
                     week: (await getCachedWeek(review.weekId)) as IWeek,
                     date: review.date,
                     time: review.time,
-                    category: review.category as IReveiewCategory,
+                    category: review.category as IReviewCategory,
                     score: review.score,
                     result: review.result,
                     status: review.status,
@@ -130,6 +132,7 @@ export class ReviewService implements IReviewService {
                 const isReviewExists = await this.reviewRepository.findOne({
                     studentId,
                     weekId: data.weekId,
+                    category: "Foundation",
                 });
 
                 if (isReviewExists)
@@ -138,6 +141,8 @@ export class ReviewService implements IReviewService {
                 // Update user(student) through gRPC
                 const resp = await updateUser(studentId as unknown as string, {
                     week: data.weekId,
+                    category: "Foundation",
+                    review: "Foundation",
                 });
 
                 if (resp && resp.response.status !== 200)
@@ -183,7 +188,7 @@ export class ReviewService implements IReviewService {
             const isReviewExists = await this.reviewRepository.findReviewsWithLimit(
                 data.studentId as unknown as string,
                 data.weekId as unknown as string,
-                "",
+                data.category as IReviewCategory,
                 1
             );
 
@@ -251,6 +256,7 @@ export class ReviewService implements IReviewService {
                 week: (await getCachedWeek(review.weekId)) as IWeek,
                 date: review.date,
                 time: review.time,
+                category: review.category as IReviewCategory,
                 status: review.status,
                 result: review.result,
                 feedback: review.feedback,
@@ -350,7 +356,7 @@ export class ReviewService implements IReviewService {
                 week: (await getCachedWeek(updatedReview.weekId)) as IWeek,
                 date: updatedReview.date,
                 time: updatedReview.time,
-                category: updatedReview.category as IReveiewCategory,
+                category: updatedReview.category as IReviewCategory,
                 rating: updatedReview.rating,
                 feedback: updatedReview.feedback,
                 pendings: updatedReview.pendings,
@@ -388,7 +394,7 @@ export class ReviewService implements IReviewService {
 
             if (!review) throw new Error("Review not found!");
 
-            // Cheak weather instructor is authorized
+            // Check weather instructor is authorized
             if (instructorId != review.instructorId)
                 throw new Error("You are restricted to update this review!");
 
@@ -407,26 +413,82 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review status!");
 
             // Check weather review's date and time is over or not
-            if (status !== "Cancelled" && status !== "Pending") {
-                if (
-                    !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
-                ) {
-                    throw new BadRequestError("Review's date and time is not over yet!");
-                }
-            }
+            // if (status !== "Cancelled" && status !== "Pending") {
+            //     if (
+            //         !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
+            //     ) {
+            //         throw new BadRequestError("Review's date and time is not over yet!");
+            //     }
+            // }
 
             // If status is not completed
             let deletedReview;
 
-            if (status !== "Completed") {
-                let previousWeek;
+            if (status !== "Completed" && review.category !== "Normal") {
+                let scheduleRequired = false;
+                let scheduleData: Partial<IReviewSchema> | undefined;
 
-                previousWeek = review.weekId;
+                let previousWeek = review.weekId;
+                let category = review.category;
+
+                // Schedule next review if status is 'Absent'
+                if (status === "Absent" && review.category !== "Normal") {
+                    // Find last review of student with status 'Completed'
+                    let lastReview = await this.reviewRepository.findReviewsWithLimit(
+                        review.studentId as unknown as string,
+                        "",
+                        "",
+                        1,
+                        "Completed"
+                    );
+
+                    // Next review date
+                    const currentReviewDate = new Date(review.date);
+                    const nextReviewDate = new Date(currentReviewDate);
+                    nextReviewDate.setDate(nextReviewDate.getDate() + 7);
+
+                    if (lastReview && lastReview.length > 0) {
+                        const lastReviewDate = new Date(lastReview[0].date);
+
+                        const diff = nextReviewDate.getTime() - lastReviewDate.getTime();
+
+                        const totalDaysWithoutAttending = Math.floor(
+                            diff / (1000 * 60 * 60 * 24)
+                        );
+
+                        if (
+                            totalDaysWithoutAttending > 14 &&
+                            review.category !== "QA" &&
+                            review.category !== "Foundation"
+                        ) {
+                            category = "InTake";
+                        }
+                    }
+
+                    scheduleRequired = true;
+
+                    // Schedule next review
+                    scheduleData = {
+                        instructorId: (await getAvailableInstructor(
+                            this.reviewRepository,
+                            review.domainId as unknown as string
+                        )) as unknown as ObjectId,
+                        studentId: review.studentId,
+                        batchId: review.batchId,
+                        domainId: review.domainId,
+                        weekId: review.weekId,
+                        title: review.title,
+                        category,
+                        date: nextReviewDate,
+                        time: "",
+                    };
+                }
 
                 // Update user(student) through gRPC
                 const resp = await updateUser(review.studentId as unknown as string, {
                     week: previousWeek,
                     category: review.category === "Foundation" ? "Foundation" : "Ongoing",
+                    review: category,
                 });
 
                 if (resp && resp.response.status !== 200)
@@ -450,48 +512,11 @@ export class ReviewService implements IReviewService {
                     await this.reviewRepository.delete({ _id: latestReview[0]._id });
                 }
 
-                // Schedule next review if status is 'Absent'
-                if (status === "Absent") {
-                    // Find last two reviews of the student
-                    let lastTwoReviews = await this.reviewRepository.findReviewsWithLimit(
-                        review.studentId as unknown as string,
-                        "",
-                        "",
-                        2
+                // If schedule required
+                if (scheduleRequired && scheduleData) {
+                    const scheduledReview = await this.reviewRepository.create(
+                        scheduleData
                     );
-
-                    // Next review date
-                    const currentReviewDate = new Date(review.date);
-                    const nextReviewDate = new Date(currentReviewDate);
-                    nextReviewDate.setDate(nextReviewDate.getDate() + 7);
-
-                    // Next review category
-                    let category = review.category;
-
-                    if (lastTwoReviews && lastTwoReviews.length > 1) {
-                        if (
-                            lastTwoReviews[1].status === "Absent" &&
-                            lastTwoReviews[0].category !== "QA"
-                        ) {
-                            category = "InTake";
-                        }
-                    }
-
-                    // Schedule next review
-                    const scheduledReview = await this.reviewRepository.create({
-                        instructorId: (await getAvailableInstructor(
-                            this.reviewRepository,
-                            review.domainId as unknown as string
-                        )) as unknown as ObjectId,
-                        studentId: review.studentId,
-                        batchId: review.batchId,
-                        domainId: review.domainId,
-                        weekId: review.weekId,
-                        title: review.title,
-                        category,
-                        date: nextReviewDate,
-                        time: "",
-                    });
 
                     if (!scheduledReview)
                         throw new Error("Failed to schedule next review!");
@@ -504,7 +529,8 @@ export class ReviewService implements IReviewService {
                 {
                     $set: {
                         status: status,
-                        ...(status !== "Completed" && { result: null, score: null }),
+                        ...(status !== "Completed" &&
+                            review.category !== "Normal" && { result: null, score: null }),
                     },
                 }
             );
@@ -565,20 +591,25 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review score!");
 
             // Check weather review's date and time is over or not
-            if (
-                !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
-            ) {
-                throw new BadRequestError("Review's date and time is not over yet!");
-            }
+            // if (
+            //     !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
+            // ) {
+            //     throw new BadRequestError("Review's date and time is not over yet!");
+            // }
 
             // Check weather, review is completed
             if (review.status !== "Completed")
                 throw new Error("Review is not completed yet!");
 
+            // Check weather, review is Normal
+            if (review.category === "Normal") {
+                throw new BadRequestError("You can't update score for Normal review!");
+            }
+
             // Check weather, pass or fail
             let flag = practical >= 5 && theory >= 5;
 
-            let nextWeek;
+            let nextWeek = review.weekId as unknown as string;
             let scheduleRequired;
             let scheduleData: Partial<IReviewSchema> | undefined;
 
@@ -590,13 +621,18 @@ export class ReviewService implements IReviewService {
             // Next review category
             let category = "Weekly";
 
-            if (review.category === "Weekly" || review.category === "Foundation") {
+            // Student category
+            let studentCategory =
+                review.category === "Foundation" ? "Foundation" : "Ongoing";
+
+            if (review.category === "Weekly") {
                 // Last 2 reviews of the student of same weekId
                 const lastTwoReviews = await this.reviewRepository.findReviewsWithLimit(
                     review.studentId as unknown as string,
                     review.weekId as unknown as string,
                     "Weekly",
-                    2
+                    2,
+                    "Completed"
                 );
 
                 if (lastTwoReviews && lastTwoReviews.length > 1) {
@@ -615,10 +651,13 @@ export class ReviewService implements IReviewService {
                 let nextWeekName;
 
                 const currentweek = await getCachedWeek(review.weekId);
-
                 const [weekName, suffix] = currentweek?.name.split(" ") as string[];
 
-                nextWeekName = `${weekName} ${Number(suffix) + 1}`;
+                if (review.category === "Weekly" || review.category === "Foundation") {
+                    nextWeekName = `${weekName} ${Number(suffix) + 1}`;
+                } else {
+                    nextWeekName = currentweek?.name;
+                }
 
                 // Get all weeks from cache
                 const allWeeks = await getAllWeeks();
@@ -627,25 +666,23 @@ export class ReviewService implements IReviewService {
                 if (!weekObj) {
                     // No schedule
                     scheduleRequired = false;
-                    nextWeek = review.weekId; // Old week
 
                     console.log("no need to schedule next review!");
                 } else {
-                    // Next review domainsWeek
+                    // Next review week in domain's Weeks
                     const domain = await getCachedDomain(review.domainId);
                     if (!domain) throw new BadRequestError("Failed to update score!");
 
                     const domainsWeek = domain.domainsWeeks.find(
-                        (week) => week.week._id === weekObj._id
+                        (domainsWeek) => domainsWeek.week._id === weekObj._id
                     );
 
                     if (domainsWeek) {
                         // Schedule
                         scheduleRequired = true;
-                        nextWeek =
-                            review.category === "Weekly" || review.category === "Foundation"
-                                ? (weekObj._id as unknown as string)
-                                : review.weekId;
+                        studentCategory = "Ongoing";
+
+                        nextWeek = weekObj._id as unknown as string;
 
                         scheduleData = {
                             instructorId: (await getAvailableInstructor(
@@ -664,7 +701,7 @@ export class ReviewService implements IReviewService {
                     } else {
                         // No schedule
                         scheduleRequired = false;
-                        nextWeek = review.weekId; // Old week
+                        studentCategory = "Placement";
 
                         console.log("no need to schedule next review!");
                     }
@@ -672,7 +709,6 @@ export class ReviewService implements IReviewService {
             } else {
                 // Fail
                 scheduleRequired = true;
-                nextWeek = review.weekId; // Old week
 
                 // Schedule
                 scheduleData = {
@@ -704,18 +740,18 @@ export class ReviewService implements IReviewService {
 
             if (!updatedReview) throw new Error("Failed to update score!");
 
+            // Update user(student) through gRPC
+            const resp = await updateUser(review.studentId as unknown as string, {
+                week: nextWeek,
+                category: studentCategory,
+                review: category,
+            });
+
+            if (resp && resp.response.status !== 200)
+                throw new Error("Failed to update score!");
+
             // Schedule next review
             if (scheduleRequired && scheduleData) {
-                // Update user(student) through gRPC
-                const resp = await updateUser(review.studentId as unknown as string, {
-                    week: nextWeek,
-                    category:
-                        scheduleData.category === "Foundation" ? "Foundation" : "Ongoing",
-                });
-
-                if (resp && resp.response.status !== 200)
-                    throw new Error("Failed to update score!");
-
                 let scheduledReview: IReviewSchema;
 
                 // Find the latest review of a student
@@ -784,7 +820,7 @@ export class ReviewService implements IReviewService {
                     week: (await getCachedWeek(scheduledReview.weekId)) as IWeek,
                     date: scheduledReview.date,
                     time: scheduledReview.time,
-                    category: scheduledReview.category as IReveiewCategory,
+                    category: scheduledReview.category as IReviewCategory,
                     score: scheduledReview.score,
                     result: scheduledReview.result,
                     status: scheduledReview.status,
@@ -827,7 +863,7 @@ export class ReviewService implements IReviewService {
         order: number,
         date: string,
         status: string,
-        category: IReveiewCategory,
+        category: IReviewCategory,
         skip: number
     ): Promise<IReviewDto[]> {
         try {
@@ -882,9 +918,10 @@ export class ReviewService implements IReviewService {
                     ] as IUser,
                     title: review.title,
                     week: (await getCachedWeek(review.weekId)) as IWeek,
+                    batch: (await getCachedBatch(review.batchId)) as IBatch,
                     date: review.date,
                     time: review.time,
-                    category: review.category as IReveiewCategory,
+                    category: review.category as IReviewCategory,
                     score: review.score,
                     result: review.result,
                     status: review.status,

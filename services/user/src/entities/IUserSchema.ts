@@ -1,4 +1,4 @@
-import { IRole, IStudentCategory } from "@codeflare/common";
+import { IReviewCategory, IRole, IStudentCategory } from "@codeflare/common";
 import { Document, Schema } from "mongoose";
 
 /** Interface for User Schema */
@@ -13,7 +13,8 @@ export interface IUserSchema extends Document {
     domain: Schema.Types.ObjectId;
     batch: Schema.Types.ObjectId;
     batches: Schema.Types.ObjectId[];
-    category: IStudentCategory
+    category: IStudentCategory;
+    review: IReviewCategory;
     lastActive: Date;
     isTokenValid: boolean;
     isBlock: boolean;

@@ -3,7 +3,7 @@ import { IReviewService } from "../../service/interface/IReviewService";
 import { IReviewController } from "../interface/IReviewController";
 import {
     HTTPStatusCode,
-    IReveiewCategory,
+    IReviewCategory,
     ResponseMessage,
     SendResponse,
 } from "@codeflare/common";
@@ -233,7 +233,7 @@ export class ReviewController implements IReviewController {
                 Number(order),
                 date as string,
                 status as string,
-                category as IReveiewCategory,
+                category as IReviewCategory,
                 Number(skip)
             );
 

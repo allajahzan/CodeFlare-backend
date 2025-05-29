@@ -357,6 +357,7 @@ export class UserService implements IUserService {
                 ...(user.batch ? { batch: batch } : {}),
                 ...(user.batches?.length ? { batches: batches } : {}),
                 ...(user.category ? { category: user.category } : {}),
+                ...(user.review ? { review: user.review } : {}),
                 ...(user.lastActive ? { lastActive: user.lastActive } : {}),
                 isBlock: user.isBlock,
                 createdAt: user.createdAt,

@@ -1,4 +1,4 @@
-import { IBatch, IDomain, IRole, IStudentCategory, IWeek } from "@codeflare/common";
+import { IBatch, IDomain, IReviewCategory, IRole, IStudentCategory, IWeek } from "@codeflare/common";
 
 /** Dto for userLogin */
 export interface IUserLoginDto {
@@ -31,6 +31,7 @@ export interface IUserDto {
     batch?: IBatch | null;
     batches?: IBatch[];
     category?: IStudentCategory;
+    review?: IReviewCategory;
     lastActive?: Date;
     isBlock: boolean;
     createdAt: Date;
