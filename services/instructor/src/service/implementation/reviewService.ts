@@ -126,7 +126,7 @@ export class ReviewService implements IReviewService {
 
                 // Review date
                 const reviewDate = new Date();
-                reviewDate.setDate(reviewDate.getDate() + 7);
+                reviewDate.setDate(reviewDate.getDate() + 3);
 
                 // Check if review exists
                 const isReviewExists = await this.reviewRepository.findOne({
@@ -299,6 +299,13 @@ export class ReviewService implements IReviewService {
 
             // If date and time updates
             if (data.date || data.time) {
+                // Check weather review's date and time is over or not
+                if (
+                    await isReviewsDateAndTimeOver(review.date, review.time, "details")
+                ) {
+                    throw new BadRequestError("Review's date and time is over!");
+                }
+                
                 // Find the latest review of the user
                 let latestReview = await this.reviewRepository.findReviewsWithLimit(
                     review.studentId as unknown as string,
@@ -312,11 +319,6 @@ export class ReviewService implements IReviewService {
                 // Check weather, we are updating the latest review of a user
                 if (latestReview[0].time && latestReview[0]._id != reviewId)
                     throw new Error("You can't update previous review details!");
-            }
-
-            // Check weather review's date and time is over or not
-            if (await isReviewsDateAndTimeOver(review.date, review.time, "details")) {
-                throw new BadRequestError("Review's date and time is over!");
             }
 
             // User info through gRPC
@@ -413,13 +415,13 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review status!");
 
             // Check weather review's date and time is over or not
-            // if (status !== "Cancelled" && status !== "Pending") {
-            //     if (
-            //         !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
-            //     ) {
-            //         throw new BadRequestError("Review's date and time is not over yet!");
-            //     }
-            // }
+            if (status !== "Cancelled" && status !== "Pending") {
+                if (
+                    !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
+                ) {
+                    throw new BadRequestError("Review's date and time is not over yet!");
+                }
+            }
 
             // If status is not completed
             let deletedReview;
@@ -445,7 +447,7 @@ export class ReviewService implements IReviewService {
                     // Next review date
                     const currentReviewDate = new Date(review.date);
                     const nextReviewDate = new Date(currentReviewDate);
-                    nextReviewDate.setDate(nextReviewDate.getDate() + 7);
+                    nextReviewDate.setDate(nextReviewDate.getDate() + 3);
 
                     if (lastReview && lastReview.length > 0) {
                         const lastReviewDate = new Date(lastReview[0].date);
@@ -457,7 +459,7 @@ export class ReviewService implements IReviewService {
                         );
 
                         if (
-                            totalDaysWithoutAttending > 14 &&
+                            totalDaysWithoutAttending > 7 &&
                             review.category !== "QA" &&
                             review.category !== "Foundation"
                         ) {
@@ -591,11 +593,11 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review score!");
 
             // Check weather review's date and time is over or not
-            // if (
-            //     !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
-            // ) {
-            //     throw new BadRequestError("Review's date and time is not over yet!");
-            // }
+            if (
+                !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
+            ) {
+                throw new BadRequestError("Review's date and time is not over yet!");
+            }
 
             // Check weather, review is completed
             if (review.status !== "Completed")
@@ -616,7 +618,7 @@ export class ReviewService implements IReviewService {
             // Next review date
             const currentReviewDate = new Date(review.date);
             const nextReviewDate = new Date(currentReviewDate);
-            nextReviewDate.setDate(nextReviewDate.getDate() + 7);
+            nextReviewDate.setDate(nextReviewDate.getDate() + 3);
 
             // Next review category
             let category = "Weekly";
