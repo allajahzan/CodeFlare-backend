@@ -81,7 +81,8 @@ export class ReviewRepository
         order: number,
         date: string,
         status: string,
-        category: IReviewCategory,
+        category: IReviewCategory | "",
+        result: string,
         skip: number
     ): Promise<IReviewSchema[] | null> {
         try {
@@ -105,6 +106,9 @@ export class ReviewRepository
                         }),
                         ...(category && {
                             category,
+                        }),
+                        ...(result && {
+                            result,
                         }),
                         ...(date && {
                             $expr: {

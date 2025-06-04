@@ -34,10 +34,13 @@ export class ReviewController implements IReviewController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { userId } = req.query;
+            const { studentId, weekId, status, result } = req.query;
 
             const data = await this.reviewService.getScheduledReviews(
-                userId as string
+                studentId as string,
+                weekId as string,
+                status as string,
+                result as string
             );
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);

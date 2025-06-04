@@ -33,15 +33,35 @@ export class ReviewService implements IReviewService {
     }
 
     /**
-     * Retrieves scheduled reviews for a user.
-     * @param userId - The ID of the user whose scheduled reviews are to be retrieved.
-     * @returns A promise that resolves to an array of review DTOs containing detailed review information
-     *          along with associated user data.
-     * @throws An error if there is a problem retrieving the reviews or user information.
+     * Retrieves scheduled reviews for a given list of batchIds.
+     * @param studentId - The id of the user to retrieve reviews for.
+     * @param weekId - The week to retrieve reviews for.
+     * @param status - The status of the reviews to search for, either "true" or "false".
+     * @param result - The result of the reviews to search for, either "true" or "false".
+     * @returns A promise that resolves to an array of scheduled review DTOs with user information.
+     * @throws An error if there is a problem retrieving the reviews.
      */
-    async getScheduledReviews(userId: string): Promise<IReviewDto[]> {
+    async getScheduledReviews(
+        studentId: string,
+        weekId: string,
+        status: string,
+        result: string
+    ): Promise<IReviewDto[]> {
         try {
-            const reviews = await this.reviewRepository.findReviewsWithLimit(userId);
+            const reviews = await this.reviewRepository.searchReviews(
+                "",
+                "",
+                studentId,
+                "",
+                weekId,
+                "",
+                0,
+                "",
+                status,
+                "",
+                result,
+                0
+            );
 
             if (!reviews || !reviews.length) return [];
 
@@ -305,7 +325,7 @@ export class ReviewService implements IReviewService {
                 ) {
                     throw new BadRequestError("Review's date and time is over!");
                 }
-                
+
                 // Find the latest review of the user
                 let latestReview = await this.reviewRepository.findReviewsWithLimit(
                     review.studentId as unknown as string,
@@ -883,6 +903,7 @@ export class ReviewService implements IReviewService {
                 date,
                 status,
                 category,
+                "",
                 skip
             );
 

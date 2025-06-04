@@ -637,7 +637,7 @@ export class UserService implements IUserService {
                 );
             }
 
-            const { _id, role } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id and role
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Requester id
 
             const user = await this.userRepository.findOne({ _id });
             if (user?.domain) throw new BadRequestError("Domain already selected!");
