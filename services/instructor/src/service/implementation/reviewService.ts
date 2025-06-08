@@ -321,9 +321,13 @@ export class ReviewService implements IReviewService {
             if (data.date || data.time) {
                 // Check weather review's date and time is over or not
                 if (
-                    await isReviewsDateAndTimeOver(review.date, review.time, "details")
+                    await isReviewsDateAndTimeOver(
+                        data.date as Date,
+                        data.time as string,
+                        "details"
+                    )
                 ) {
-                    throw new BadRequestError("Review's date and time is over!");
+                    throw new BadRequestError("Can't update with past date and time!");
                 }
 
                 // Find the latest review of the user
@@ -436,6 +440,9 @@ export class ReviewService implements IReviewService {
 
             // Check weather review's date and time is over or not
             if (status !== "Cancelled" && status !== "Pending") {
+                if (!review.time)
+                    throw new BadRequestError("Review's time is not set!");
+
                 if (
                     !(await isReviewsDateAndTimeOver(review.date, review.time, "status"))
                 ) {
@@ -613,6 +620,8 @@ export class ReviewService implements IReviewService {
                 throw new Error("You can't update previous review score!");
 
             // Check weather review's date and time is over or not
+            if (!review.time) throw new BadRequestError("Review's time is not set!");
+
             if (
                 !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
             ) {

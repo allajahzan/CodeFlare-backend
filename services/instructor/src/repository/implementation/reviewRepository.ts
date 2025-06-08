@@ -85,7 +85,22 @@ export class ReviewRepository
         result: string,
         skip: number
     ): Promise<IReviewSchema[] | null> {
+        console.log(date);
         try {
+            let start;
+            let end;
+            if (date) {
+                const inputDate = new Date(date);
+
+                // Start of the day
+                start = new Date(inputDate);
+                start.setHours(0, 0, 0, 0);
+
+                // End of the day
+                end = new Date(inputDate);
+                end.setHours(23, 59, 59, 999);
+            }
+
             return await this.model.aggregate([
                 {
                     $match: {
@@ -111,11 +126,9 @@ export class ReviewRepository
                             result,
                         }),
                         ...(date && {
-                            $expr: {
-                                $eq: [
-                                    { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-                                    new Date(date).toISOString().split("T")[0],
-                                ],
+                            date: {
+                                $gte: start,
+                                $lte: end,
                             },
                         }),
                         ...(status && { status }),
