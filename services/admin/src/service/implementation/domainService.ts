@@ -1,9 +1,10 @@
-import { BadRequestError, IDomain } from "@codeflare/common";
+import { BadRequestError, IDomain, IWeek } from "@codeflare/common";
 import { IDomainDto, ISearchDomainsDto } from "../../dto/domainServiceDto";
 import { IDomainsWeekSchema } from "../../entities/IDomainSchema";
 import { IDomainRepository } from "../../repository/interface/IDomainRepository";
 import { IDomainService } from "../interface/IDomainService";
 import { transformDomainAndCache } from "../../utils/cacheDomain";
+import { ObjectId } from "mongoose";
 
 /** Implementation of Domain Service */
 export class DomainService implements IDomainService {
@@ -27,7 +28,8 @@ export class DomainService implements IDomainService {
      */
     async addDomain(
         name: string,
-        weeks: IDomainsWeekSchema[]
+        weeks: IDomainsWeekSchema[],
+        lastWeek: IWeek
     ): Promise<IDomainDto> {
         try {
             const isDomainExists = await this.domainRepository.findOne({
@@ -40,6 +42,7 @@ export class DomainService implements IDomainService {
             const domain = await this.domainRepository.create({
                 name,
                 domainsWeeks: weeks,
+                lastWeek: lastWeek._id as unknown as ObjectId,
             });
 
             if (!domain) throw new BadRequestError("Failed to add the domain!");
@@ -63,7 +66,8 @@ export class DomainService implements IDomainService {
     async updateDomain(
         domainId: string,
         name: string,
-        weeks: IDomainsWeekSchema[]
+        weeks: IDomainsWeekSchema[],
+        lastWeek: IWeek
     ): Promise<IDomainDto> {
         try {
             const isDomainExists = await this.domainRepository.findOne({
@@ -76,7 +80,7 @@ export class DomainService implements IDomainService {
 
             const updatedDomain = await this.domainRepository.update(
                 { _id: domainId },
-                { $set: { name, domainsWeeks: weeks } },
+                { $set: { name, domainsWeeks: weeks, lastWeek: lastWeek._id } },
                 { new: true }
             );
 
@@ -128,18 +132,25 @@ export class DomainService implements IDomainService {
             if (!domain)
                 throw new BadRequestError("Failed to get weeks in this domain!");
 
-            // Populate week in domainsWeeks
-            const populatedDomain: IDomain = await domain.populate({
-                path: "domainsWeeks.week",
-                model: "Week",
-                select: "_id name",
-            });
-
+            // Populate weeks in domiansWeeks and also lastweek
+            const populatedDomain: IDomain = await domain.populate([
+                {
+                    path: "domainsWeeks.week",
+                    model: "Week",
+                    select: "_id name",
+                },
+                {
+                    path: "lastWeek",
+                    model: "Week",
+                    select: "_id name",
+                },
+            ]);
             // Map data to return type
             const domainDto: IDomainDto = {
                 _id: populatedDomain._id as unknown as string,
                 name: populatedDomain.name,
                 domainsWeeks: populatedDomain.domainsWeeks,
+                lastWeek: populatedDomain.lastWeek,
                 isListed: populatedDomain.isListed,
             };
 
@@ -258,6 +269,7 @@ export class DomainService implements IDomainService {
                 _id: domain._id as unknown as string,
                 name: domain.name,
                 domainsWeeks: domain.domainsWeeks,
+                lastWeek: domain.lastWeek as unknown as string,
                 isListed: domain.isListed,
             }));
         } catch (err: unknown) {

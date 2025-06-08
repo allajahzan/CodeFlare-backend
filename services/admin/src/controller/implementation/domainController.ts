@@ -34,9 +34,9 @@ export class DomainController implements IDomainController {
         next: NextFunction
     ): Promise<void> {
         try {
-            const { name, weeks } = req.body;
+            const { name, weeks, lastWeek } = req.body;
 
-            const data = await this.domainService.addDomain(name, weeks);
+            const data = await this.domainService.addDomain(name, weeks, lastWeek);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {
@@ -59,9 +59,9 @@ export class DomainController implements IDomainController {
     ): Promise<void> {
         try {
             const { domainId } = req.params;
-            const { name, weeks } = req.body;
+            const { name, weeks, lastWeek } = req.body;
 
-            const data = await this.domainService.updateDomain(domainId, name, weeks);
+            const data = await this.domainService.updateDomain(domainId, name, weeks, lastWeek);
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);
         } catch (err: unknown) {

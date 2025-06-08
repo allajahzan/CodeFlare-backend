@@ -60,16 +60,24 @@ export const cacheAllDomains = async () => {
         const tranformedDomains: IDomainDto[] = await Promise.all(
             domains.map(async (d) => {
                 // Populate weeks in domainsWeek
-                const populatedDomain: IDomain = await d.populate({
-                    path: "domainsWeeks.week",
-                    model: "Week",
-                    select: "_id name",
-                });
+                const populatedDomain: IDomain = await d.populate([
+                    {
+                        path: "domainsWeeks.week",
+                        model: "Week",
+                        select: "_id name",
+                    },
+                    {
+                        path: "lastWeek",
+                        model: "Week",
+                        select: "_id name",
+                    },
+                ]);
 
                 return {
                     _id: populatedDomain._id,
                     name: populatedDomain.name,
                     domainsWeeks: populatedDomain.domainsWeeks,
+                    lastWeek: populatedDomain.lastWeek,
                     isListed: populatedDomain.isListed,
                 };
             })
@@ -94,11 +102,18 @@ export const transformDomainAndCache = async (
 ) => {
     try {
         // Populate week in domainsWeeks
-        const populatedDomain: IDomain = await domain.populate({
-            path: "domainsWeeks.week",
-            model: "Week",
-            select: "_id name",
-        });
+        const populatedDomain: IDomain = await domain.populate([
+            {
+                path: "domainsWeeks.week",
+                model: "Week",
+                select: "_id name",
+            },
+            {
+                path: "lastWeek",
+                model: "Week",
+                select: "_id name",
+            },
+        ]);
 
         // Map data
         const domainDto: IDomainDto = {
@@ -110,6 +125,7 @@ export const transformDomainAndCache = async (
                     title: w.title,
                 };
             }),
+            lastWeek: populatedDomain.lastWeek,
             isListed: populatedDomain.isListed,
         };
 

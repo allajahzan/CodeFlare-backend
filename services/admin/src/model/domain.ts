@@ -26,6 +26,12 @@ const domainSchema = new Schema<IDomainSchema>(
             ],
             required: true,
         },
+        lastWeek: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            ref: "Week",
+            index: true,
+        },
         isListed: {
             type: Boolean,
             default: true,

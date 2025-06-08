@@ -97,6 +97,17 @@ export class DomainRepository
     ): Promise<IDomainSchema[] | null> {
         try {
             return await this.model.aggregate([
+                {
+                    $lookup: {
+                        from: "weeks",
+                        localField: "lastWeek",
+                        foreignField: "_id",
+                        as: "lastWeek",
+                    },
+                },
+                {
+                    $unwind: "$lastWeek",
+                },
                 { $unwind: "$domainsWeeks" },
                 {
                     $lookup: {
@@ -114,6 +125,7 @@ export class DomainRepository
                         _id: "$_id",
                         name: { $first: "$name" },
                         isListed: { $first: "$isListed" },
+                        createdAt: { $first: "$createdAt" },
                         domainsWeeks: {
                             $push: {
                                 week: {
@@ -123,6 +135,7 @@ export class DomainRepository
                                 title: "$domainsWeeks.title",
                             },
                         },
+                        lastWeek: { $first: "$lastWeek" },
                     },
                 },
 

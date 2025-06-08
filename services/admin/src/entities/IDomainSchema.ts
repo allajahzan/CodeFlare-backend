@@ -10,5 +10,6 @@ export interface IDomainsWeekSchema {
 export interface IDomainSchema extends Document {
     name: string;
     domainsWeeks: IDomainsWeekSchema[];
+    lastWeek: Schema.Types.ObjectId;
     isListed: boolean;
 }
