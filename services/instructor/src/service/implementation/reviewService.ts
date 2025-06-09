@@ -208,7 +208,7 @@ export class ReviewService implements IReviewService {
             const isReviewExists = await this.reviewRepository.findReviewsWithLimit(
                 data.studentId as unknown as string,
                 data.weekId as unknown as string,
-                data.category as IReviewCategory,
+                { category: { $eq: data.category } },
                 1
             );
 
@@ -316,6 +316,10 @@ export class ReviewService implements IReviewService {
             // Cheak weather instructor is authorized
             if (instructorId != review.instructorId)
                 throw new Error("You are restricted to update this review!");
+
+            // If pendings are there
+            if (data.pendings && review.status !== "Completed")
+                throw new BadRequestError("Review is not completed yet!");
 
             // If date and time updates
             if (data.date || data.time) {
@@ -428,14 +432,14 @@ export class ReviewService implements IReviewService {
             let latestReview = await this.reviewRepository.findReviewsWithLimit(
                 review.studentId as unknown as string,
                 "",
-                "",
+                { category: { $ne: "Normal" } },
                 1
             );
 
             if (!latestReview) throw new Error("Failed to update status!");
 
             // Check weather, we are updating the latest review of a user
-            if (latestReview[0].time && latestReview[0]._id != reviewId)
+            if (latestReview[0]?.time && latestReview[0]._id != reviewId)
                 throw new Error("You can't update previous review status!");
 
             // Check weather review's date and time is over or not
@@ -498,10 +502,7 @@ export class ReviewService implements IReviewService {
 
                     // Schedule next review
                     scheduleData = {
-                        instructorId: (await getAvailableInstructor(
-                            this.reviewRepository,
-                            review.domainId as unknown as string
-                        )) as unknown as ObjectId,
+                        instructorId: review.instructorId,
                         studentId: review.studentId,
                         batchId: review.batchId,
                         domainId: review.domainId,
@@ -522,14 +523,6 @@ export class ReviewService implements IReviewService {
 
                 if (resp && resp.response.status !== 200)
                     throw new Error("Failed to update status!");
-
-                // Find the latest review of student
-                const latestReview = await this.reviewRepository.findReviewsWithLimit(
-                    review.studentId as unknown as string,
-                    "",
-                    "",
-                    1
-                );
 
                 // Delete the latest scheduled review (*new review - not the review which we are updating now)
                 if (
@@ -559,7 +552,11 @@ export class ReviewService implements IReviewService {
                     $set: {
                         status: status,
                         ...(status !== "Completed" &&
-                            review.category !== "Normal" && { result: null, score: null }),
+                            review.category !== "Normal" && {
+                            result: null,
+                            score: null,
+                            pendings: [],
+                        }),
                     },
                 }
             );
@@ -616,17 +613,8 @@ export class ReviewService implements IReviewService {
             if (!latestReview) throw new BadRequestError("Failed to update score!");
 
             // Check weather, we are updating the latest review of a user
-            if (latestReview[0].time && latestReview[0]._id != reviewId)
+            if (latestReview[0]?.time && latestReview[0]._id != reviewId)
                 throw new Error("You can't update previous review score!");
-
-            // Check weather review's date and time is over or not
-            if (!review.time) throw new BadRequestError("Review's time is not set!");
-
-            if (
-                !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
-            ) {
-                throw new BadRequestError("Review's date and time is not over yet!");
-            }
 
             // Check weather, review is completed
             if (review.status !== "Completed")
@@ -635,6 +623,15 @@ export class ReviewService implements IReviewService {
             // Check weather, review is Normal
             if (review.category === "Normal") {
                 throw new BadRequestError("You can't update score for Normal review!");
+            }
+
+            // Check weather review's date and time is over or not
+            if (!review.time) throw new BadRequestError("Review's time is not set!");
+
+            if (
+                !(await isReviewsDateAndTimeOver(review.date, review.time, "score"))
+            ) {
+                throw new BadRequestError("Review's date and time is not over yet!");
             }
 
             // Check weather, pass or fail
@@ -661,7 +658,7 @@ export class ReviewService implements IReviewService {
                 const lastTwoReviews = await this.reviewRepository.findReviewsWithLimit(
                     review.studentId as unknown as string,
                     review.weekId as unknown as string,
-                    "Weekly",
+                    { category: { $eq: "Weekly" } },
                     2,
                     "Completed"
                 );
@@ -694,16 +691,21 @@ export class ReviewService implements IReviewService {
                 const allWeeks = await getAllWeeks();
                 const weekObj = allWeeks.find((week) => week.name === nextWeekName);
 
+                // Get domain from cache
+                const domain = await getCachedDomain(review.domainId);
+                if (!domain) throw new BadRequestError("Failed to update score!");
+
                 if (!weekObj) {
                     // No schedule
                     scheduleRequired = false;
 
+                    if (nextWeek === domain.lastWeek._id) {
+                        studentCategory = "Placement";
+                    }
+
                     console.log("no need to schedule next review!");
                 } else {
                     // Next review week in domain's Weeks
-                    const domain = await getCachedDomain(review.domainId);
-                    if (!domain) throw new BadRequestError("Failed to update score!");
-
                     const domainsWeek = domain.domainsWeeks.find(
                         (domainsWeek) => domainsWeek.week._id === weekObj._id
                     );
@@ -732,7 +734,10 @@ export class ReviewService implements IReviewService {
                     } else {
                         // No schedule
                         scheduleRequired = false;
-                        studentCategory = "Placement";
+
+                        if (nextWeek.toString() === domain.lastWeek._id) {
+                            studentCategory = "Placement";
+                        }
 
                         console.log("no need to schedule next review!");
                     }
