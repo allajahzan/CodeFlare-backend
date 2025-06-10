@@ -48,10 +48,8 @@ cron.schedule("0 7 * * *", async () => {
                     checkOut: null,
                     reason: {},
                     status: "Pending",
-                    selfies: [],
+                    selfies: [false, false, false],
                     date: new Date(),
-                    isApproved: false,
-                    isPartial: false,
                 }));
 
             // If new attendences are there

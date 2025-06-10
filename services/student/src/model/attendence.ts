@@ -16,15 +16,15 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     date: {
         type: Date,
         default: new Date(),
-        index: 1,
+        index: true,
     },
     checkIn: {
         type: String,
-        default: null
+        default: null,
     },
     checkOut: {
         type: String,
-        default: null
+        default: null,
     },
     status: {
         type: String,
@@ -33,53 +33,22 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
     },
     isApproved: {
         type: Boolean,
-        required: false,
-        default: false
-    },
-    isPartial: {
-        type: Boolean,
-        required: false,
-        default: false,
+        default: null,
     },
     reason: {
         type: {
             time: {
                 type: String,
-                required: false,
             },
             description: {
                 type: String,
-                required: false,
             },
         },
-        default: {}
+        default: {},
     },
     selfies: {
-        type : [
-            {
-                name: {
-                    type: String,
-                    required: false,
-                },
-                time: {
-                    type: String,
-                    required: false,
-                },
-                photo: {
-                    type: String,
-                    required: false,
-                },
-                location: {
-                    type: String,
-                    required: false,
-                },
-                isVerified: {
-                    type: Boolean,
-                    default: false,
-                },
-            },
-        ],
-        default: []
+        type: [Boolean],
+        default: [false, false, false],
     },
 });
 

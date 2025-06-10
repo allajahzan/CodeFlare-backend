@@ -9,7 +9,7 @@ import { IAttendenceDto, ICheckInOutDto } from "../../dto/attendenceDto";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
 import { UpdateQuery } from "mongoose";
-import { IAttendenceSchema, ISelfie } from "../../entities/IAttendence";
+import { IAttendenceSchema } from "../../entities/IAttendence";
 import { getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
 
@@ -56,7 +56,7 @@ export class AttendenceService implements IAttendenceService {
                 const today = new Date();
                 if (today.getDay() === 0) {
                     throw new BadRequestError(
-                        "You don't have to check-in or check-out on Sundays !"
+                        "You don't have to check-in or check-out on Sundays!"
                     );
                 }
 
@@ -76,7 +76,7 @@ export class AttendenceService implements IAttendenceService {
                 if (!isAttendenceExist) {
                     throw new BadRequestError(
                         `${activity === "checkIn" ? "Check-in" : "Check-out"
-                        } failed due to some issue !`
+                        } failed due to some issue!`
                     );
                 }
 
@@ -86,7 +86,7 @@ export class AttendenceService implements IAttendenceService {
                     (activity === "checkOut" && isAttendenceExist.checkOut)
                 ) {
                     throw new BadRequestError(
-                        `You have already ${activity === "checkIn" ? "checked-in " : "checked-out "
+                        `You have already ${activity === "checkIn" ? "checked-in" : "checked-out"
                         }!`
                     );
                 }
@@ -95,11 +95,11 @@ export class AttendenceService implements IAttendenceService {
                 if (activity === "checkIn" && !reason) {
                     if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
                         throw new Error(
-                            "You are late to check-in. Please submit the reason !"
+                            "You are late to check-in. Please submit the reason!"
                         );
                     } else if (hour > 10 || (hour === 10 && minute > 0)) {
                         throw new BadRequestError(
-                            "You are very late. Please contact your coordinator !"
+                            "You are very late. Please contact your coordinator!"
                         );
                     }
                 }
@@ -107,16 +107,23 @@ export class AttendenceService implements IAttendenceService {
                 // Check weather student crossed more than 8 hours
                 if (activity === "checkOut") {
                     if (!isAttendenceExist.checkIn) {
-                        throw new BadRequestError(
-                            "You didn't even check-in to check-out !"
-                        );
+                        throw new BadRequestError("You didn't even check-in to check-out!");
                     }
 
-                    const currentHour = new Date().getHours();
-                    const checkedInHour = Number(isAttendenceExist.checkIn.split(":")[0]);
-                    if (currentHour - checkedInHour < 8) {
+                    const [checkedInHour, checkedInMinute] = isAttendenceExist.checkIn
+                        .split(":")
+                        .map(Number);
+
+                    const checkedInDate = new Date(isAttendenceExist.date);
+                    checkedInDate.setHours(checkedInHour, checkedInMinute, 0, 0);
+
+                    const now = new Date();
+                    const diffInMs = now.getTime() - checkedInDate.getTime();
+                    const diffInMinutes = diffInMs / (1000 * 60);
+
+                    if (diffInMinutes < 8 * 60) {
                         throw new BadRequestError(
-                            "You are not permitted to check-out right now !"
+                            "You are not permitted to check-out right now!"
                         );
                     }
                 }
@@ -162,7 +169,7 @@ export class AttendenceService implements IAttendenceService {
             if (!updatedAttendance)
                 throw new BadRequestError(
                     `${activity === "checkIn" ? "Check-in" : "Check-out"
-                    } failed due to some issue !`
+                    } failed due to some issue!`
                 );
 
             // Map data to return type
@@ -210,7 +217,7 @@ export class AttendenceService implements IAttendenceService {
                     date: { $gte: startOfDay, $lte: endOfDay },
                 });
 
-                if (!attendance) throw new NotFoundError("No attendence found !");
+                if (!attendance) throw new NotFoundError("No attendence found!");
 
                 // Map data to return type
                 const attendenceDto: IAttendenceDto = {
@@ -221,7 +228,6 @@ export class AttendenceService implements IAttendenceService {
                     checkIn: attendance.checkIn,
                     checkOut: attendance.checkOut,
                     isApproved: attendance.isApproved,
-                    isPartial: attendance.isPartial,
                     status: attendance.status,
                     reason: {
                         description: attendance.reason.description,
@@ -244,7 +250,7 @@ export class AttendenceService implements IAttendenceService {
                 });
 
                 if (!attendances || attendances.length === 0)
-                    throw new NotFoundError("No attendence recorded this month !");
+                    throw new NotFoundError("No attendence recorded this month!");
 
                 // Map data to return type
                 const attendenceDtos: IAttendenceDto[] = attendances.map(
@@ -257,7 +263,6 @@ export class AttendenceService implements IAttendenceService {
                             checkIn: attendance.checkIn,
                             checkOut: attendance.checkOut,
                             isApproved: attendance.isApproved,
-                            isPartial: attendance.isPartial,
                             status: attendance.status,
                             reason: {
                                 description: attendance.reason.description,
@@ -340,7 +345,6 @@ export class AttendenceService implements IAttendenceService {
                         checkIn: attendence.checkIn,
                         checkOut: attendence.checkOut,
                         isApproved: attendence.isApproved,
-                        isPartial: attendence.isPartial,
                         status: attendence.status,
                         reason: {
                             description: attendence.reason.description,
@@ -352,6 +356,30 @@ export class AttendenceService implements IAttendenceService {
             );
 
             return attendencesWithUserAndBatch;
+        } catch (err: unknown) {
+            throw err;
+        }
+    }
+
+    /**
+     * Approves a check-in for a specific attendance record.
+     * @param {string} attendanceId - The ID of the attendance record to approve.
+     * @returns {Promise<void>} - A promise that resolves when the attendance record is successfully approved, or throws an error if not.
+     * @throws {NotFoundError} - If the attendance record is not found.
+     */
+    async approvalCheckIn(attendanceId: string): Promise<void> {
+        try {
+            const attendance = await this.attendenceRepository.findOne({
+                _id: attendanceId,
+            });
+            if (!attendance) throw new NotFoundError("No attendence found!");
+
+            const updatedAttendance = await this.attendenceRepository.update(
+                { _id: attendanceId },
+                { $set: { isApproved: true } }
+            );
+            if (!updatedAttendance)
+                throw new BadRequestError("Failed approval for check-in!");
         } catch (err: unknown) {
             throw err;
         }
@@ -384,7 +412,7 @@ export class AttendenceService implements IAttendenceService {
                 allowedHours.includes(currentHour) && currentMinute <= 10;
 
             if (!isAllowedTime) {
-                throw new Error("You are late to submit the snapshot !");
+                throw new Error("You are late to submit the snapshot!");
             }
 
             const startOfDay = new Date();
@@ -399,14 +427,21 @@ export class AttendenceService implements IAttendenceService {
                 date: { $gte: startOfDay, $lte: endOfDay },
             });
 
-            if (!attendance) throw new NotFoundError("Attendence not found !");
+            if (!attendance) throw new NotFoundError("Attendence not found!");
 
             // Name of the snapshot
-            type nameType = "Tea" | "Lunch" | "Evening";
+            type nameType = "Morning" | "Lunch" | "Evening";
             let name: nameType | null = null;
 
+            // Selfie index map
+            const selfieIndexMap = {
+                Morning: 0,
+                Lunch: 1,
+                Evening: 2,
+            };
+
             if (currentHour === 11) {
-                name = "Tea";
+                name = "Morning";
             } else if (currentHour === 13) {
                 name = "Lunch";
             } else if (currentHour === 16) {
@@ -414,17 +449,15 @@ export class AttendenceService implements IAttendenceService {
             }
 
             if (!name) {
-                throw new Error("Failed to submit snapshot !");
+                throw new Error("Failed to submit snapshot!");
             }
 
-            // Now check if snapshot is already uploaded
-            const alreadyExists = attendance?.selfies?.some(
-                (selfie: any) => selfie && selfie.name === name
-            );
-
-            if (alreadyExists) {
-                throw new Error(`${name}-break snapshot already submitted !`);
-            }
+            // Check if snapshot is already submitted
+            attendance.selfies.forEach((selfie, index) => {
+                if (selfieIndexMap[name] === index && selfie) {
+                    throw new Error(`${name}-break snapshot already submitted!`);
+                }
+            });
 
             // New snapshot
             const newSelfie = {
@@ -435,19 +468,10 @@ export class AttendenceService implements IAttendenceService {
                 isVerified: false,
             };
 
-            // Selfie index map
-            const selfieIndexMap = {
-                Tea: 0,
-                Lunch: 1,
-                Evening: 2,
-            };
+            // Here we have to upload the snapshot to snapshot-collection
 
-            const selfies: (ISelfie | null)[] = [
-                attendance.selfies?.[0],
-                attendance.selfies?.[1],
-                attendance.selfies?.[2],
-            ];
-            selfies[selfieIndexMap[name]] = newSelfie;
+            const selfies: boolean[] = [false, false, false];
+            selfies[selfieIndexMap[name]] = true;
 
             // Update attendence
             const updatedAttendance = await this.attendenceRepository.update(
@@ -461,7 +485,7 @@ export class AttendenceService implements IAttendenceService {
             );
 
             if (!updatedAttendance)
-                throw new NotFoundError("Failed to upload snapshot !");
+                throw new NotFoundError("Failed to upload snapshot!");
         } catch (err: unknown) {
             throw err;
         }
@@ -489,7 +513,7 @@ export class AttendenceService implements IAttendenceService {
             if (status) {
                 // Check status type
                 if (!["Pending", "Present", "Absent", "Late"].includes(status)) {
-                    throw new Error("Failed to update status !");
+                    throw new Error("Failed to update status!");
                 }
 
                 // Find attendence with attendence ID
@@ -497,14 +521,14 @@ export class AttendenceService implements IAttendenceService {
                     _id: attendenceId,
                 });
 
-                if (!attendance) throw new NotFoundError("Attendence not found !");
+                if (!attendance) throw new NotFoundError("Attendence not found!");
 
                 // Check if student is checked-in or not if status is Late
                 if (
                     (status === "Present" || status === "Late") &&
                     !attendance.checkIn
                 ) {
-                    throw new BadRequestError("Student didn't check-in yet !");
+                    throw new BadRequestError("Student didn't check-in yet!");
                 }
 
                 // Prepare update data
@@ -546,7 +570,7 @@ export class AttendenceService implements IAttendenceService {
             );
 
             if (!updatedAttendance)
-                throw new BadRequestError("Failed to update status !");
+                throw new BadRequestError("Failed to update status!");
         } catch (err: unknown) {
             throw err;
         }
@@ -658,7 +682,6 @@ export class AttendenceService implements IAttendenceService {
                             checkIn: attendence.checkIn,
                             checkOut: attendence.checkOut,
                             isApproved: attendence.isApproved,
-                            isPartial: attendence.isPartial,
                             status: attendence.status,
                             reason: {
                                 description: attendence.reason.description,

@@ -1,14 +1,5 @@
 import { Document, Schema } from "mongoose";
 
-// Interface for ISelfie
-export interface ISelfie {
-    name: string;
-    time: string;
-    photo: string;
-    location: string;
-    isVerified: boolean;
-}
-
 /** Interface for Attendence Schema */
 export interface IAttendenceSchema extends Document {
     userId: Schema.Types.ObjectId;
@@ -18,10 +9,9 @@ export interface IAttendenceSchema extends Document {
     checkOut: string;
     status: string;
     isApproved: boolean;
-    isPartial: boolean;
     reason: {
         time: string;
         description: string;
     };
-    selfies: ISelfie[];
+    selfies: boolean[];
 }

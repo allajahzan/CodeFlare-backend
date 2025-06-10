@@ -16,14 +16,19 @@ router.get("/", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.getAttendence(req, res, next)
 );
 
+// CheckInOut
+router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.checkInOut(req, res, next)
+);
+
 // Search Attendences
 router.get("/search", (req: Request, res: Response, next: NextFunction) =>
     attendenceController.searchAttendence(req, res, next)
 );
 
-// CheckInOut
-router.patch("/check-in-out", (req: Request, res: Response, next: NextFunction) =>
-    attendenceController.checkInOut(req, res, next)
+// Approval CheckIn
+router.patch("/approval/:attendanceId", (req: Request, res: Response, next: NextFunction) =>
+    attendenceController.approvalCheckIn(req, res, next)
 );
 
 // Upload Snapshot

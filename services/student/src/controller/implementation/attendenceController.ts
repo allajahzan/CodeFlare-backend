@@ -108,6 +108,30 @@ export class AttendenceController implements IAttendenceController {
     }
 
     /**
+     * Approves a check-in request by updating the attendance status to "Approved"
+     * @param {Request} req - The express request object containing the attendance ID in the parameters.
+     * @param {Response} res - The express response object used to send the response back to the client.
+     * @param {NextFunction} next - The express next middleware function for error handling.
+     * @returns {Promise<void>} - A promise that resolves when the check-in is successfully approved and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
+     */
+    async approvalCheckIn(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const { attendanceId } = req.params;
+
+            await this.attedenceService.approvalCheckIn(attendanceId);
+
+            SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
+        } catch (err: unknown) {
+            next(err);
+        }
+    }
+
+    /**
      * Uploads a snapshot of a student.
      * @param {Request} req - The express request object containing the user ID in the query parameters and the image URL in the request body.
      * @param {Response} res - The express response object used to send the response back to the client.

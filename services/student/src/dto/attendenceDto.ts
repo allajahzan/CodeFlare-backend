@@ -1,8 +1,7 @@
 import { IBatch, IStudent, IUser } from "@codeflare/common";
-import { ISelfie } from "../entities/IAttendence";
 import { IWarningDto } from "./warningDto";
 
-/** Dto for CheckIn */
+/** Dto for CheckInOut */
 export interface ICheckInOutDto {
     userId: string;
     date: Date;
@@ -22,11 +21,10 @@ export interface IAttendenceDto {
     checkIn: string;
     checkOut: string;
     status: string;
-    isApproved: boolean;
-    isPartial: boolean;
+    isApproved: boolean | null;
     reason: {
         time: string;
         description: string;
     };
-    selfies: ISelfie[];
+    selfies: boolean[];
 }
