@@ -13,5 +13,6 @@ export interface IAttendenceSchema extends Document {
         time: string;
         description: string;
     };
+    violationReport: string;
     selfies: boolean[];
 }

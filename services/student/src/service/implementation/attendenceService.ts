@@ -1,8 +1,11 @@
 import {
     BadRequestError,
+    ExpiredError,
     IBatch,
     IStudent,
     IUser,
+    IUserBasic,
+    JwtPayloadType,
     NotFoundError,
 } from "@codeflare/common";
 import { IAttendenceDto, ICheckInOutDto } from "../../dto/attendenceDto";
@@ -10,8 +13,9 @@ import { IAttendenceRepository } from "../../repository/interface/IAttendenceRep
 import { IAttendenceService } from "../interface/IAttendenceService";
 import { UpdateQuery } from "mongoose";
 import { IAttendenceSchema } from "../../entities/IAttendence";
-import { getUsers } from "../../grpc/client/userClient";
+import { getUser, getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
+import { WarningProducer } from "../../events/producer/warningProducer";
 
 /** Implementation of Attendence Service */
 export class AttendenceService implements IAttendenceService {
@@ -91,18 +95,27 @@ export class AttendenceService implements IAttendenceService {
                     );
                 }
 
-                // Check if Check-in is late or very late
-                if (activity === "checkIn" && !reason) {
-                    if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
-                        throw new Error(
+                // Check if Check-in is late or very late (Before approval-default)
+                if (!isAttendenceExist.isApproved)
+                    if (activity === "checkIn" && !reason) {
+                        if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
+                            throw new ExpiredError(
+                                "You are late to check-in. Please submit the reason!"
+                            );
+                        } else if (hour > 10 || (hour === 10 && minute > 0)) {
+                            throw new BadRequestError(
+                                "You are very late. Please contact your coordinator!"
+                            );
+                        }
+                    }
+
+                // Ask for reason (After approval)
+                if (isAttendenceExist.isApproved)
+                    if (activity === "checkIn" && !reason) {
+                        throw new ExpiredError(
                             "You are late to check-in. Please submit the reason!"
                         );
-                    } else if (hour > 10 || (hour === 10 && minute > 0)) {
-                        throw new BadRequestError(
-                            "You are very late. Please contact your coordinator!"
-                        );
                     }
-                }
 
                 // Check weather student crossed more than 8 hours
                 if (activity === "checkOut") {
@@ -123,7 +136,7 @@ export class AttendenceService implements IAttendenceService {
 
                     if (diffInMinutes < 8 * 60) {
                         throw new BadRequestError(
-                            "You are not permitted to check-out right now!"
+                            "You have to complete 8 hours to check-out!"
                         );
                     }
                 }
@@ -233,6 +246,7 @@ export class AttendenceService implements IAttendenceService {
                         description: attendance.reason.description,
                         time: attendance.reason.time,
                     },
+                    violationReport: attendance.violationReport,
                     selfies: attendance.selfies,
                 };
 
@@ -268,6 +282,7 @@ export class AttendenceService implements IAttendenceService {
                                 description: attendance.reason.description,
                                 time: attendance.reason.time,
                             },
+                            violationReport: attendance.violationReport,
                             selfies: attendance.selfies,
                         };
                     }
@@ -350,6 +365,7 @@ export class AttendenceService implements IAttendenceService {
                             description: attendence.reason.description,
                             time: attendence.reason.time,
                         },
+                        violationReport: attendence.violationReport,
                         selfies: attendence.selfies,
                     };
                 })
@@ -362,24 +378,53 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Approves a check-in for a specific attendance record.
-     * @param {string} attendanceId - The ID of the attendance record to approve.
-     * @returns {Promise<void>} - A promise that resolves when the attendance record is successfully approved, or throws an error if not.
-     * @throws {NotFoundError} - If the attendance record is not found.
+     * Approves a check-in request by updating the attendance status to "Approved"
+     * @param {string} tokenPayload - The payload of the JSON Web Token containing the coordinator ID.
+     * @param {string} attendanceId - The ID of the attendance to be approved.
+     * @returns {Promise<void>} - A promise that resolves when the attendance is successfully approved and sent, or passes an error to the next middleware.
+     * @throws - Passes any errors to the next middleware.
      */
-    async approvalCheckIn(attendanceId: string): Promise<void> {
+    async approvalCheckIn(
+        tokenPayload: string,
+        attendanceId: string
+    ): Promise<void> {
         try {
+            const { _id } = JSON.parse(tokenPayload) as JwtPayloadType; // Coordinator id
+            const coordinatorId = _id;
+            let coordinator: IUser;
+
+            // Get coordinator info through gRPC
+            const resp = await getUser(coordinatorId);
+
+            if (resp.response && resp.response.status === 200) {
+                coordinator = resp.response.user as IUser;
+            } else {
+                throw new BadRequestError(resp.response.message);
+            }
+
             const attendance = await this.attendenceRepository.findOne({
                 _id: attendanceId,
             });
+
             if (!attendance) throw new NotFoundError("No attendence found!");
 
             const updatedAttendance = await this.attendenceRepository.update(
                 { _id: attendanceId },
                 { $set: { isApproved: true } }
             );
+
             if (!updatedAttendance)
                 throw new BadRequestError("Failed approval for check-in!");
+
+            // Send notification to student
+            const warningProducer = new WarningProducer(
+                coordinatorId,
+                coordinator as IUserBasic,
+                attendance.userId as unknown as string,
+                "Your check-in has been approved!"
+            );
+
+            await warningProducer.publish();
         } catch (err: unknown) {
             throw err;
         }
@@ -503,69 +548,39 @@ export class AttendenceService implements IAttendenceService {
     async updateStatus(
         attendenceId: string,
         status: "Pending" | "Present" | "Absent" | "Late",
-        reason?: string
+        violationReport: string
     ): Promise<void> {
         try {
+            console.log(violationReport);
+
             // Update query
             let updateQuery: UpdateQuery<IAttendenceSchema>;
 
-            // Update status by coordinator
-            if (status) {
-                // Check status type
-                if (!["Pending", "Present", "Absent", "Late"].includes(status)) {
-                    throw new Error("Failed to update status!");
-                }
+            // Check status type
+            if (!["Pending", "Present", "Absent", "Late"].includes(status)) {
+                throw new Error("Failed to update status!");
+            }
 
-                // Find attendence with attendence ID
-                const attendance = await this.attendenceRepository.findOne({
-                    _id: attendenceId,
-                });
+            // Find attendence with attendence ID
+            const attendance = await this.attendenceRepository.findOne({
+                _id: attendenceId,
+            });
 
-                if (!attendance) throw new NotFoundError("Attendence not found!");
+            if (!attendance) throw new NotFoundError("Attendence not found!");
 
-                // Check if student is checked-in or not if status is Late
-                if (
-                    (status === "Present" || status === "Late") &&
-                    !attendance.checkIn
-                ) {
-                    throw new BadRequestError("Student didn't check-in yet!");
-                }
-
-                // Prepare update data
-                const updateData: any = {
-                    status,
-                };
-
-                if (reason) {
-                    updateQuery = {
-                        $set: {
-                            ...updateData,
-                            "reason.description": reason,
-                            "reason.time":
-                                new Date().getHours() + ":" + new Date().getMinutes(),
-                        },
-                    };
-                } else {
-                    updateQuery = {
-                        $set: updateData,
-                        $unset: {
-                            "reason.description": "",
-                            "reason.time": "",
-                        },
-                    };
-                }
-            } else {
-                // When only reason is there, and no status (update reason by coordinator)
-                updateQuery = {
-                    $set: {
-                        "reason.description": reason,
-                    },
-                };
+            // Check if student is checked-in or not if status is Late
+            if ((status === "Present" || status === "Late") && !attendance.checkIn) {
+                throw new BadRequestError("Student didn't check-in yet!");
             }
 
             const updatedAttendance = await this.attendenceRepository.update(
                 { _id: attendenceId },
-                updateQuery,
+                {
+                    $set: {
+                        status,
+                        violationReport,
+                    },
+                },
                 { new: true }
             );
 
@@ -687,6 +702,7 @@ export class AttendenceService implements IAttendenceService {
                                 description: attendence.reason.description,
                                 time: attendence.reason.time,
                             },
+                            violationReport: attendence.violationReport,
                             selfies: attendence.selfies,
                         };
                     })

@@ -77,7 +77,7 @@ cron.schedule("0 22 * * *", async () => {
         // Mark absent for student who didn't check in
         await attendenceRepository.updateMany(
             { $or: [{ checkIn: null }, { checkOut: null }] },
-            { $set: { status: "Absent" } }
+            { $set: { status: "Absent", reason: null } }
         );
     } catch (err: unknown) {
         console.log(err);
@@ -93,7 +93,7 @@ cron.schedule("0 11 * * *", async () => {
         // Send snapshot event through rabbitmq
         const snapshotProducer = new SnapshotProducer(
             new Date().toLocaleTimeString(),
-            "Send snapshot for tea break within 10 minutes."
+            "Send snapshot for morning break within 10 minutes."
         );
         snapshotProducer.publish();
     } catch (err: unknown) {

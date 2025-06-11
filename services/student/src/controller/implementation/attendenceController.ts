@@ -121,9 +121,14 @@ export class AttendenceController implements IAttendenceController {
         next: NextFunction
     ): Promise<void> {
         try {
+            const tokenPayload = req.headers["x-user-payload"];
+
             const { attendanceId } = req.params;
 
-            await this.attedenceService.approvalCheckIn(attendanceId);
+            await this.attedenceService.approvalCheckIn(
+                tokenPayload as string,
+                attendanceId
+            );
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS);
         } catch (err: unknown) {
@@ -175,12 +180,12 @@ export class AttendenceController implements IAttendenceController {
     ): Promise<void> {
         try {
             const { attendenceId } = req.params;
-            const { status, reason } = req.body;
+            const { status, violationReport } = req.body;
 
             const data = await this.attedenceService.updateStatus(
                 attendenceId as string,
                 status,
-                reason
+                violationReport
             );
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);

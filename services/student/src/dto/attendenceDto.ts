@@ -26,5 +26,6 @@ export interface IAttendenceDto {
         time: string;
         description: string;
     };
+    violationReport: string;
     selfies: boolean[];
 }

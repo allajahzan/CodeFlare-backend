@@ -46,6 +46,9 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
         },
         default: {},
     },
+    violationReport: {
+        type: String,
+    },
     selfies: {
         type: [Boolean],
         default: [false, false, false],
