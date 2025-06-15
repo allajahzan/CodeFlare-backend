@@ -46,7 +46,7 @@ export const checkAuth = async (
         if (resp && resp.response.status === 200) {
             user = resp.response.user;
         } else {
-            throw new Error("Failed to load chats due to some issue!");
+            throw new Error("No such user found!");
         }
 
         // Set user to request body

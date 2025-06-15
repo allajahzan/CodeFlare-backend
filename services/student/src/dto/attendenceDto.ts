@@ -1,5 +1,4 @@
 import { IBatch, IStudent, IUser } from "@codeflare/common";
-import { IWarningDto } from "./warningDto";
 
 /** Dto for CheckInOut */
 export interface ICheckInOutDto {
@@ -26,6 +25,9 @@ export interface IAttendenceDto {
         time: string;
         description: string;
     };
-    violationReport: string;
+    report: {
+        time: string;
+        description: string;
+    };
     selfies: boolean[];
 }

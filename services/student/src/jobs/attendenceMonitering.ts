@@ -47,6 +47,7 @@ cron.schedule("0 7 * * *", async () => {
                     checkIn: null,
                     checkOut: null,
                     reason: {},
+                    report: {},
                     status: "Pending",
                     selfies: [false, false, false],
                     date: new Date(),
@@ -76,8 +77,8 @@ cron.schedule("0 22 * * *", async () => {
 
         // Mark absent for student who didn't check in
         await attendenceRepository.updateMany(
-            { $or: [{ checkIn: null }, { checkOut: null }] },
-            { $set: { status: "Absent", reason: null } }
+            { $or: [{ checkIn: null }, { checkOut: null }, { status: "Pending" }] },
+            { $set: { status: "Absent", reason: null, report: null } }
         );
     } catch (err: unknown) {
         console.log(err);

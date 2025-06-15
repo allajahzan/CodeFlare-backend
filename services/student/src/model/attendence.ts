@@ -46,8 +46,16 @@ const attendenceSchema = new Schema<IAttendenceSchema>({
         },
         default: {},
     },
-    violationReport: {
-        type: String,
+    report: {
+        type: {
+            time: {
+                type: String,
+            },
+            description: {
+                type: String,
+            },
+        },
+        default: {},
     },
     selfies: {
         type: [Boolean],

@@ -180,12 +180,12 @@ export class AttendenceController implements IAttendenceController {
     ): Promise<void> {
         try {
             const { attendenceId } = req.params;
-            const { status, violationReport } = req.body;
+            const { status, report } = req.body;
 
             const data = await this.attedenceService.updateStatus(
                 attendenceId as string,
                 status,
-                violationReport
+                report
             );
 
             SendResponse(res, HTTPStatusCode.OK, ResponseMessage.SUCCESS, data);

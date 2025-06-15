@@ -6,7 +6,6 @@ export interface ISelfie {
     photo: string;
     time: string;
     location: string;
-    isVerified: boolean;
 }
 
 /** Interface for Snapshot Schema */
@@ -17,5 +16,5 @@ export interface ISnapshotSchema extends Document {
     photo: string;
     time: string;
     location: string;
-    isVerified: boolean;
+    expireAt: Date;
 }

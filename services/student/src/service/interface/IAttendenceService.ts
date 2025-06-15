@@ -7,6 +7,6 @@ export interface IAttendenceService {
     searchAttendence(userId: string, batchIds: string[], date: string, sort: string, order: number, filter: string): Promise<IAttendenceDto[] | []>
     approvalCheckIn(tokenPayload: string, attendanceId: string) : Promise<void>;
     uploadSnapshot(userId: string, imageUrl: string, location: string): Promise<void>;
-    updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent" | "Late", violationReport: string): Promise<void>;
+    updateStatus(attendenceId: string, status: "Pending" | "Present" | "Absent" | "Late", report: string): Promise<void>;
     getMonthlyAttendence(type: string, userId: string, batchIds: string[], month: string, year: number, filter: string, skip: number, limit: number): Promise<IAttendenceDto[]>
 }

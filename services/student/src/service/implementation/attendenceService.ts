@@ -11,22 +11,29 @@ import {
 import { IAttendenceDto, ICheckInOutDto } from "../../dto/attendenceDto";
 import { IAttendenceRepository } from "../../repository/interface/IAttendenceRepository";
 import { IAttendenceService } from "../interface/IAttendenceService";
-import { UpdateQuery } from "mongoose";
-import { IAttendenceSchema } from "../../entities/IAttendence";
+import { ObjectId } from "mongoose";
 import { getUser, getUsers } from "../../grpc/client/userClient";
 import { getCachedBatch } from "../../utils/cachedBatches";
 import { WarningProducer } from "../../events/producer/warningProducer";
+import { ISnapshotRepository } from "../../repository/interface/ISnapshotRepository";
+import { ISelfie } from "../../entities/ISnapshot";
 
 /** Implementation of Attendence Service */
 export class AttendenceService implements IAttendenceService {
     private attendenceRepository: IAttendenceRepository;
+    private snapshotRepository: ISnapshotRepository;
 
     /**
-     * Constructor for AttendenceService
-     * @param {IAttendenceRepository} attendenceRepository - Instance of AttendenceRepository
+     * Constructor for Attendence Service
+     * @param {IAttendenceRepository} attendenceRepository - Instance of Attendence Repository
+     * @param {ISnapshotRepository} snapshotRepository - Instance of Snapshot Repository
      */
-    constructor(attendenceRepository: IAttendenceRepository) {
+    constructor(
+        attendenceRepository: IAttendenceRepository,
+        snapshotRepository: ISnapshotRepository
+    ) {
         this.attendenceRepository = attendenceRepository;
+        this.snapshotRepository = snapshotRepository;
     }
 
     /**
@@ -54,130 +61,113 @@ export class AttendenceService implements IAttendenceService {
             const hour = currentTime.getHours();
             const minute = currentTime.getMinutes();
 
-            // When students check-in or check-out, there won't be any attendence ID
-            if (!attendanceId) {
-                // Check weather today is sunday or not (for students)
-                const today = new Date();
-                if (today.getDay() === 0) {
-                    throw new BadRequestError(
-                        "You don't have to check-in or check-out on Sundays!"
-                    );
-                }
+            // Check weather today is sunday or not (for students)
+            const today = new Date();
+            if (today.getDay() === 0) {
+                throw new BadRequestError("You don't have to check-in on sundays!");
+            }
 
-                const startOfDay = new Date();
-                startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0); // Set time to 00:00
 
-                const endOfDay = new Date();
-                endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999); // Set time to 23:59
 
-                // Find attendence of today's with time range
-                const isAttendenceExist = await this.attendenceRepository.findOne({
-                    userId,
-                    date: { $gte: startOfDay, $lte: endOfDay },
-                });
+            // Find attendence of today's with time range
+            const isAttendenceExist = await this.attendenceRepository.findOne({
+                userId,
+                date: { $gte: startOfDay, $lte: endOfDay },
+            });
 
-                // No such attendence registered by cronjob
-                if (!isAttendenceExist) {
-                    throw new BadRequestError(
-                        `${activity === "checkIn" ? "Check-in" : "Check-out"
-                        } failed due to some issue!`
-                    );
-                }
+            // No such attendence registered by cronjob
+            if (!isAttendenceExist) {
+                throw new BadRequestError(
+                    `${activity === "checkIn" ? "Check-in" : "Check-out"
+                    } failed due to some issue!`
+                );
+            }
 
-                // If already checked-in or checked-out
-                if (
-                    (activity === "checkIn" && isAttendenceExist.checkIn) ||
-                    (activity === "checkOut" && isAttendenceExist.checkOut)
-                ) {
-                    throw new BadRequestError(
-                        `You have already ${activity === "checkIn" ? "checked-in" : "checked-out"
-                        }!`
-                    );
-                }
+            // If already checked-in or checked-out
+            if (
+                (activity === "checkIn" && isAttendenceExist.checkIn) ||
+                (activity === "checkOut" && isAttendenceExist.checkOut)
+            ) {
+                throw new BadRequestError(
+                    `You have already ${activity === "checkIn" ? "checked-in" : "checked-out"
+                    }!`
+                );
+            }
 
-                // Check if Check-in is late or very late (Before approval-default)
-                if (!isAttendenceExist.isApproved)
-                    if (activity === "checkIn" && !reason) {
-                        if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
-                            throw new ExpiredError(
-                                "You are late to check-in. Please submit the reason!"
-                            );
-                        } else if (hour > 10 || (hour === 10 && minute > 0)) {
-                            throw new BadRequestError(
-                                "You are very late. Please contact your coordinator!"
-                            );
-                        }
-                    }
-
-                // Ask for reason (After approval)
-                if (isAttendenceExist.isApproved)
-                    if (activity === "checkIn" && !reason) {
+            // Check if Check-in is late or very late (Before approval-default)
+            if (!isAttendenceExist.isApproved)
+                if (activity === "checkIn" && !reason) {
+                    if ((hour === 9 && minute >= 0) || (hour === 10 && minute === 0)) {
                         throw new ExpiredError(
                             "You are late to check-in. Please submit the reason!"
                         );
-                    }
-
-                // Check weather student crossed more than 8 hours
-                if (activity === "checkOut") {
-                    if (!isAttendenceExist.checkIn) {
-                        throw new BadRequestError("You didn't even check-in to check-out!");
-                    }
-
-                    const [checkedInHour, checkedInMinute] = isAttendenceExist.checkIn
-                        .split(":")
-                        .map(Number);
-
-                    const checkedInDate = new Date(isAttendenceExist.date);
-                    checkedInDate.setHours(checkedInHour, checkedInMinute, 0, 0);
-
-                    const now = new Date();
-                    const diffInMs = now.getTime() - checkedInDate.getTime();
-                    const diffInMinutes = diffInMs / (1000 * 60);
-
-                    if (diffInMinutes < 8 * 60) {
+                    } else if (hour > 10 || (hour === 10 && minute > 0)) {
                         throw new BadRequestError(
-                            "You have to complete 8 hours to check-out!"
+                            "You are very late. Please contact your coordinator!"
                         );
                     }
                 }
 
-                // Prepare update fields
-                let updateFields: any = {};
-
-                if (activity === "checkIn") {
-                    updateFields.checkIn = `${hour}:${minute}`;
-
-                    if (reason) {
-                        updateFields.reason = {
-                            description: reason,
-                            time: `${hour}:${minute}`,
-                        };
-                        updateFields.status = "Late";
-                    }
-                } else if (activity === "checkOut") {
-                    updateFields.checkOut = `${hour}:${minute}`;
+            // Ask for reason (After approval)
+            if (isAttendenceExist.isApproved)
+                if (activity === "checkIn" && !reason) {
+                    throw new ExpiredError(
+                        "You are late to check-in. Please submit the reason!"
+                    );
                 }
 
-                // Update attendance
-                updatedAttendance = await this.attendenceRepository.update(
-                    { userId, date: { $gte: startOfDay, $lte: endOfDay } },
-                    { $set: updateFields },
-                    { new: true }
-                );
+            // Check weather student crossed more than 8 hours
+            if (activity === "checkOut") {
+                if (!isAttendenceExist.checkIn) {
+                    throw new BadRequestError("You didn't even check-in to check-out!");
+                }
+
+                const [checkedInHour, checkedInMinute] = isAttendenceExist.checkIn
+                    .split(":")
+                    .map(Number);
+
+                const checkedInDate = new Date(isAttendenceExist.date);
+                checkedInDate.setHours(checkedInHour, checkedInMinute, 0, 0);
+
+                const now = new Date();
+                const diffInMs = now.getTime() - checkedInDate.getTime();
+                const diffInMinutes = diffInMs / (1000 * 60);
+
+                if (diffInMinutes < 8 * 60) {
+                    throw new BadRequestError(
+                        "You have to complete 8 hours to check-out!"
+                    );
+                }
             }
-            // When coordinator check-in or check-out for students, attendence ID will be there
-            else {
-                updatedAttendance = await this.attendenceRepository.update(
-                    { _id: attendanceId },
-                    {
-                        $set:
-                            activity === "checkIn"
-                                ? { checkIn: `${hour}:${minute}` }
-                                : { checkOut: `${hour}:${minute}` },
-                    },
-                    { new: true }
-                );
+
+            // Prepare update fields
+            let updateFields: any = {};
+
+            if (activity === "checkIn") {
+                updateFields.checkIn = `${hour}:${minute}`;
+
+                if (reason) {
+                    updateFields.reason = {
+                        description: reason,
+                        time: `${hour}:${minute}`,
+                    };
+                    updateFields.status = "Late";
+                }
+            } else if (activity === "checkOut") {
+                updateFields.checkOut = `${hour}:${minute}`;
+                updateFields.status = "Present";
             }
+
+            // Update attendance
+            updatedAttendance = await this.attendenceRepository.update(
+                { userId, date: { $gte: startOfDay, $lte: endOfDay } },
+                { $set: updateFields },
+                { new: true }
+            );
 
             if (!updatedAttendance)
                 throw new BadRequestError(
@@ -243,10 +233,13 @@ export class AttendenceService implements IAttendenceService {
                     isApproved: attendance.isApproved,
                     status: attendance.status,
                     reason: {
-                        description: attendance.reason.description,
-                        time: attendance.reason.time,
+                        description: attendance.reason?.description || "",
+                        time: attendance.reason?.time || "",
                     },
-                    violationReport: attendance.violationReport,
+                    report: {
+                        description: attendance.report?.description || "",
+                        time: attendance.report?.time || "",
+                    },
                     selfies: attendance.selfies,
                 };
 
@@ -279,10 +272,13 @@ export class AttendenceService implements IAttendenceService {
                             isApproved: attendance.isApproved,
                             status: attendance.status,
                             reason: {
-                                description: attendance.reason.description,
-                                time: attendance.reason.time,
+                                description: attendance.reason?.description || "",
+                                time: attendance.reason?.time || "",
                             },
-                            violationReport: attendance.violationReport,
+                            report: {
+                                description: attendance.report?.description || "",
+                                time: attendance.report?.time || "",
+                            },
                             selfies: attendance.selfies,
                         };
                     }
@@ -344,6 +340,17 @@ export class AttendenceService implements IAttendenceService {
                 throw new BadRequestError(resp.response.message);
             }
 
+            // Create a map to hold snapshots
+            const snapshots = new Map<string, ISelfie[]>();
+
+            for (let i = 0; i < attendences.length; i++) {
+                const attendenceId = attendences[i]._id as unknown as string;
+                const selfies = await this.snapshotRepository.find({
+                    attendenceId: attendences[i]._id,
+                });
+                snapshots.set(attendenceId, selfies);
+            }
+
             // Map data to return type
             // Get user details thorugh gRPC and batch details from cache
             const attendencesWithUserAndBatch: IAttendenceDto[] = await Promise.all(
@@ -362,11 +369,15 @@ export class AttendenceService implements IAttendenceService {
                         isApproved: attendence.isApproved,
                         status: attendence.status,
                         reason: {
-                            description: attendence.reason.description,
-                            time: attendence.reason.time,
+                            description: attendence.reason?.description || "",
+                            time: attendence.reason?.time || "",
                         },
-                        violationReport: attendence.violationReport,
+                        report: {
+                            description: attendence.report?.description || "",
+                            time: attendence.report?.time || "",
+                        },
                         selfies: attendence.selfies,
+                        snapshots: snapshots.get(attendence._id as unknown as string),
                     };
                 })
             );
@@ -505,15 +516,21 @@ export class AttendenceService implements IAttendenceService {
             });
 
             // New snapshot
-            const newSelfie = {
+            const hour = new Date().getHours();
+            const minute = new Date().getMinutes();
+
+            const newSnapshot = {
+                attendenceId: attendance._id as ObjectId,
+                userId: userId as unknown as ObjectId,
                 name: name,
-                time: new Date().toLocaleTimeString(),
                 photo: imageUrl,
+                time: `${hour}:${minute}`,
                 location,
-                isVerified: false,
             };
 
-            // Here we have to upload the snapshot to snapshot-collection
+            // Upload snapshot
+            const snapshot = await this.snapshotRepository.create(newSnapshot);
+            if (!snapshot) throw new BadRequestError("Failed to upload snapshot!");
 
             const selfies: boolean[] = [false, false, false];
             selfies[selfieIndexMap[name]] = true;
@@ -537,25 +554,21 @@ export class AttendenceService implements IAttendenceService {
     }
 
     /**
-     * Updates the status of an attendance record based on the attendance ID and status.
+     * Updates the status of an attendance record.
      * @param {string} attendenceId - The ID of the attendance record to update.
-     * @param {"Pending" | "Present" | "Absent" | "Late"} status - The new status of the attendance record.
-     * @param {string} [reason] - The reason for status update, only required when status is "Absent".
-     * @returns {Promise<void>} - A promise that resolves when the attendance record is successfully updated and sent, or passes an error to the next middleware.
-     * @throws {BadRequestError} - If update fails.
-     * @throws {NotFoundError} - If attendence not found.
+     * @param {"Pending" | "Present" | "Absent" | "Late"} status - The new status to set for the attendance record.
+     * @param {string} report - The report description to associate with the attendance status update.
+     * @returns {Promise<void>} - A promise that resolves when the attendance status has been successfully updated, or throws an error if the update fails.
+     * @throws {Error} - If the status is invalid.
+     * @throws {NotFoundError} - If the attendance record is not found.
+     * @throws {BadRequestError} - If the student hasn't checked in yet but the status is set to "Present" or "Late".
      */
     async updateStatus(
         attendenceId: string,
         status: "Pending" | "Present" | "Absent" | "Late",
-        violationReport: string
+        report: string
     ): Promise<void> {
         try {
-            console.log(violationReport);
-
-            // Update query
-            let updateQuery: UpdateQuery<IAttendenceSchema>;
-
             // Check status type
             if (!["Pending", "Present", "Absent", "Late"].includes(status)) {
                 throw new Error("Failed to update status!");
@@ -573,12 +586,18 @@ export class AttendenceService implements IAttendenceService {
                 throw new BadRequestError("Student didn't check-in yet!");
             }
 
+            // Current time
+            const currentTime = new Date();
+            const hour = currentTime.getHours();
+            const minute = currentTime.getMinutes();
+
             const updatedAttendance = await this.attendenceRepository.update(
                 { _id: attendenceId },
                 {
                     $set: {
                         status,
-                        violationReport,
+                        report: { description: report, time: `${hour}:${minute}` },
+                        reason: { description: "", time: "" },
                     },
                 },
                 { new: true }
@@ -699,10 +718,13 @@ export class AttendenceService implements IAttendenceService {
                             isApproved: attendence.isApproved,
                             status: attendence.status,
                             reason: {
-                                description: attendence.reason.description,
-                                time: attendence.reason.time,
+                                description: attendence.reason?.description || "",
+                                time: attendence.reason?.time || "",
                             },
-                            violationReport: attendence.violationReport,
+                            report: {
+                                description: attendence.report?.description || "",
+                                time: attendence.report?.time || "",
+                            },
                             selfies: attendence.selfies,
                         };
                     })

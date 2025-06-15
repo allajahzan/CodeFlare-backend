@@ -1,5 +1,10 @@
 import { rabbitmq } from "../../config/rabbitmq";
 import { Exchanges } from "@codeflare/common";
+import { AttendenceRepository } from "../../repository/implementation/attendenceRepository";
+import Attendence from "../../model/attendence";
+
+// Attendance repository
+const attendenceRepository = new AttendenceRepository(Attendence);
 
 // Snapshot producer
 export class SnapshotProducer {
@@ -8,8 +13,8 @@ export class SnapshotProducer {
 
     /**
      * Constructor for SnapshotProducer
-     * @param time - The time of sending the snapshot notification
-     * @param message - The message to be sent
+     * @param time - The time of the snapshot notification
+     * @param message - The message to be sent with the snapshot notification
      */
     constructor(time: string, message: string) {
         this.time = time;
